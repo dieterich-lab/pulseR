@@ -19,14 +19,33 @@ forms <- list(
      flow_chase_Hypox   = quote(alpha_chase*(mu_h + mu_n*a_n * a_h)),
      biotin_chase_Hypox = quote(beta_chase*(mu_n*(1-a_n)*a_h)))
      
-p <- c(mu_n=1000, mu_h=500, a_n=.1, a_h=.2)
-alphas <- list(alpha_chase=1, alpha_lab=1, beta_chase=1,beta_lab=1)
-d <- generateTestData(forms, p,alphas, n=2)
-d$deseq_factor <- 1
+testIndividualGeneParams <- function(){
+    p <- c(mu_n=1000, mu_h=500, a_n=.1, a_h=.2)
+    alphas <- list(alpha_chase=1, alpha_lab=1, beta_chase=1,beta_lab=1)
+    d <- generateTestData(forms, p,alphas, n=2)
+    d$deseq_factor <- 1
 
-likelihood <- ll_gene(d$count, d$deseq_factor, d$condition,
-    forms, param_names=names(p), alphas )
+    likelihood <- ll_gene(d$count, d$deseq_factor, d$condition,
+        forms, param_names=names(p), alphas )
 
-res <-optim(p, likelihood, method="L-BFGS-B", 
-    lower=rep(1e-9, length(params)), upper=c(1e5,1e5, 1,1))
-expect_equal(res$par,p)
+    res <-optim(p, likelihood, method="L-BFGS-B", 
+        lower=rep(1e-9, length(params)), upper=c(1e5,1e5, 1,1))
+    expect_equal(res$par,p)
+}
+
+testSharedParams <- function(){
+    d <- list()
+    p <- data.frame(mu_n=c(100,1000), 
+                    mu_h=c(50,500), 
+                     a_n=c(.5, .8),
+                     a_h=c(.8, .5))
+    alphas <- list(alpha_chase=2, alpha_lab=1.5, beta_chase=1,beta_lab=.8)
+    p$id <- c("a", "b")
+    for(i in seq_along(p$id)){
+        d[[i]] <- cbind(id=p$id[i],generateTestData(forms, p[i,1:4],alphas, n=2))
+    }
+    d <- do.call(rbind,d)
+    d$deseq_factor <- 1
+    
+
+}
