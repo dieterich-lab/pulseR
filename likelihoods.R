@@ -72,18 +72,19 @@ ll_shared_params <- function(count_data,forms,individual_params,
     individual_params <- individual_params[order(individual_params$id),]
     forms_vector <- makeVector(forms)[[1]]
     condition_indexes <- sapply(count_data$condition, match, names(forms))
-    mean_indexes <- cbind(as.numeric(count_data$id), condition_indexes)
+    means_indexes <- cbind(as.numeric(count_data$id), condition_indexes)
     for(i in 1:2){
         means_for_genes[[i]] <- substitute_q(
             forms_vector, env=individual_params[i,])
     }
     function(shared_params){
         names(shared_params ) <- shared_param_names
-        m <- matrix(0,ncol=length(forms), nrow=2)
+        means_matrix <- matrix(0,ncol=length(forms), nrow=2)
         for(i in 1:2){
-            m[i,] <- (eval(means_for_genes[[i]], as.list(shared_params)))
+            means_matrix[i,] <- eval(means_for_genes[[i]],
+                                     as.list(shared_params))
         }
-        lambdas <- m[mean_indexes]
-        -sum(dpois(d$count, (lambdas+1e-10), log=TRUE))
+        lambdas <- means_matrix[means_indexes]
+        -sum(dpois(count_data$count, (lambdas+1e-10), log=TRUE))
     }
 }
