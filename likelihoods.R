@@ -44,8 +44,10 @@ makeVector <- function(forms){
 }
 
 
-ll_gene <- function(counts, norm_factors, conditions, 
-                    forms, param_names, shared_params=NULL){
+ll_gene <- function(count_data, forms, param_names, shared_params=NULL){
+    conditions <- count_data$condition
+    counts <- count_data$count
+    norm_factors <- count_data$norm_factor
     mean_indexes <- sapply(conditions, match, names(forms))
     if(!is.null(shared_params)&&!anyNA(forms))
         forms <- lapply(forms, substitute_q, shared_params)
@@ -87,4 +89,19 @@ ll_shared_params <- function(count_data,forms,individual_params,
         lambdas <- means_matrix[means_indexes]
         -sum(dpois(count_data$count, (lambdas+1e-10), log=TRUE))
     }
+}
+
+
+fitModel <- function(count_data,  formulas, individual_params,
+                     shared_params){
+    list_gene_ll <- list()
+    splitted_data <- split(count_data, count_data$id)
+    param_names <- names(individual_params)[-1]
+    for(gene in names(splitted_data)){
+    list_gene_ll[[gene]] <- with(splitted_data[[gene]],
+            ll_gene(count, norm_factors,
+                count_data$conditions, forms, param_names, shared_params=NULL))
+    
+    }
+
 }
