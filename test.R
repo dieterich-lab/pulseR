@@ -1,5 +1,4 @@
 source("likelihoods.R") 
-library(testthat)
 
 generateTestData <- function(forms, individual_params, shared_params, n=1){
    means <- sapply(forms, eval, c(as.list(individual_params), as.list(shared_params)))
@@ -29,8 +28,10 @@ testIndividualGeneParams <- function(){
         forms, param_names=names(p), alphas )
 
     res <-optim(p, likelihood, method="L-BFGS-B", 
-        lower=rep(1e-9, length(params)), upper=c(1e5,1e5, 1,1))
-    expect_equal(res$par,p)
+        lower=rep(1e-9, length(p)), upper=c(1e5,1e5, 1,1))
+    results <- cbind(correct=p,estimated=res$par)
+    rownames(results)
+    results
 }
 
 testSharedParams <- function(){
@@ -46,6 +47,13 @@ testSharedParams <- function(){
     }
     d <- do.call(rbind,d)
     d$deseq_factor <- 1
-    
-
+    f <- ll_shared_params (d, forms,p, names(alphas))
+    res <-optim(rep(1,4), f, method="L-BFGS-B", 
+        lower=rep(1e-9, length(alphas)), upper=c(15,15, 4,4))
+    res <- cbind(correct=unlist(alphas), estimated=res$par)
+    rownames(res) <- names(alphas)
+    res
 }
+
+
+
