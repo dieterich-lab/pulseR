@@ -9,13 +9,15 @@ makeVector <- function(forms){
 
 
 ll_gene <- function(counts, norm_factors, conditions, 
-                    forms, param_names, param_list=NULL){
+                    forms, param_names, shared_params=NULL){
     mean_indexes <- sapply(conditions, match, names(forms))
+    if(!is.null(shared_params)&&!anyNA(forms))
+        forms <- lapply(forms, substitute_q, shared_params)
     means_vector<- makeVector(forms)
     funquote <- substitute(
         function(params, output=FALSE){
             names(params) <- param_names
-            env <- c(as.list(params),param_list )
+            env <- c(as.list(params))
             mus <- eval(means_vector, env)
             lambdas <- mus[mean_indexes]
             if(output){
@@ -28,10 +30,11 @@ ll_gene <- function(counts, norm_factors, conditions,
 }
 
 ll_shared_params <- function(shared_params, individual_gene_parameters, dat, forms){
-    #attach(dat)
     param_names <- names(individual_gene_parameters)
     mean_indexes <- sapply(conditions, match, names(forms))
+    
     means_vector<- makeVector(forms)
+    means_vector <- substitute
     funquote <- substitute(
         function(shared_params, individual_gene_parameters,output=FALSE){
             names(params) <- param_names
