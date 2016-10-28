@@ -45,7 +45,7 @@ testSharedParams <- function(){
         d[[i]] <- cbind(id=p$id[i],generateTestData(forms, p[i,1:4],alphas, n=2))
     }
     d <- do.call(rbind,d)
-    d$deseq_factor <- 1
+    d$norm_factor<- 1
     f <- ll_shared_params (d, forms,p, names(alphas))
     res <-optim(rep(1,4), f, method="L-BFGS-B", 
         lower=rep(1e-9, length(alphas)), upper=c(15,15, 4,4))
@@ -55,4 +55,6 @@ testSharedParams <- function(){
 }
 
 
+#fitModel (count_data,  form, individual_params,
+#                     shared_params, lower_boundary, upper_boundary)
 

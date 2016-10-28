@@ -93,15 +93,22 @@ ll_shared_params <- function(count_data,forms,individual_params,
 
 
 fitModel <- function(count_data,  formulas, individual_params,
-                     shared_params){
-    list_gene_ll <- list()
+                     shared_params, lower_boundary, upper_boundary){
+    # Fit params for every genes individually
     splitted_data <- split(count_data, count_data$id)
-    param_names <- names(individual_params)[-1]
+    param_names <- names(individual_params)
+    param_names <- param_names[-which(param_names=="id")]
+    new_params <- list()
     for(gene in names(splitted_data)){
-    list_gene_ll[[gene]] <- with(splitted_data[[gene]],
-            ll_gene(count, norm_factors,
-                count_data$conditions, forms, param_names, shared_params=NULL))
-    
+        objective <- ll_gene(splitted_data[[gene]], forms, 
+                             param_names, shared_params)
+        new_params [[gene]] <- optim(rep(1,4), objective, method="L-BFGS-B",
+            lower=lower_boundary, upper=upper_boundary)$par
     }
-
+    individual_params <- as.data.frame(do.call(rbind, new_params))
+    names(individual_params) <- param_names
+    individual_params$id <- rownames(individual_params)
+    individual_params
+    # Fit shared params
+    
 }
