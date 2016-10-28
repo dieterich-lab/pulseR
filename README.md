@@ -1,1 +1,5 @@
-# pulseR. Analysis of RNA metabolic kinetics from RNAseq data.
+# pulseR 
+
+Tools for the analysis of RNA metabolic kinetics from RNAseq data.
+
+
