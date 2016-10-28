@@ -1,1 +1,1 @@
-# pulseR
+# pulseR. Analysis of RNA metabolic kinetics from RNAseq data.
