@@ -1,3 +1,39 @@
+#from pryr package
+ substitute_q <- function (x, env) 
+{
+    stopifnot(is.language(x))
+    env <- to_env(env)
+    call <- substitute(substitute(x, env), list(x = x))
+    eval(call)
+}
+
+# from pryr package
+to_env <-  function (x, quiet = FALSE) 
+{
+    if (is.environment(x)) {
+        x
+    }
+    else if (is.list(x)) {
+        list2env(x)
+    }
+    else if (is.function(x)) {
+        environment(x)
+    }
+    else if (length(x) == 1 && is.character(x)) {
+        if (!quiet) 
+            message("Using environment ", x)
+        as.environment(x)
+    }
+    else if (length(x) == 1 && is.numeric(x) && x > 0) {
+        if (!quiet) 
+            message("Using environment ", search()[x])
+        as.environment(x)
+    }
+    else {
+        stop("Input can not be coerced to an environment", call. = FALSE)
+    }
+}
+
  
 makeVector <- function(forms){
     string <- paste("c(", 
@@ -28,25 +64,26 @@ ll_gene <- function(counts, norm_factors, conditions,
     eval(funquote)
 }
 
-ll_shared_params <- function(shared_params, individual_gene_parameters, dat, forms){
-    param_names <- names(individual_gene_parameters)
-    mean_indexes <- sapply(conditions, match, names(forms))
-    
-    means_vector<- makeVector(forms)
-    means_vector <- substitute(
-    funquote <- substitute(
-        function(shared_params, individual_gene_parameters,output=FALSE){
-            names(params) <- param_names
-            env <- c(as.list(params),param_list )
-            mus <- eval(means_vector, env)
-            lambdas <- mus[mean_indexes]
-            if(output){
-                return(data.frame(lambdas=lambdas*norm_factors, count=counts))
-            }
-            -sum(dpois(counts, (lambdas+1e-10)* norm_factors, log=TRUE))
-        } 
-    ), parent.frame())
-    eval(funquote)
 
+ll_shared_params <- function(count_data,forms,individual_params,
+                             shared_param_names){
+    means_for_genes <- list()
+    individual_params$id <- as.factor(individual_params$id)
+    individual_params <- individual_params[order(individual_params$id),]
+    forms_vector <- makeVector(forms)[[1]]
+    condition_indexes <- sapply(count_data$condition, match, names(forms))
+    mean_indexes <- cbind(as.numeric(count_data$id), condition_indexes)
+    for(i in 1:2){
+        means_for_genes[[i]] <- substitute_q(
+            forms_vector, env=individual_params[i,])
+    }
+    function(shared_params){
+        names(shared_params ) <- shared_param_names
+        m <- matrix(0,ncol=length(forms), nrow=2)
+        for(i in 1:2){
+            m[i,] <- (eval(means_for_genes[[i]], as.list(shared_params)))
+        }
+        lambdas <- m[mean_indexes]
+        -sum(dpois(d$count, (lambdas+1e-10), log=TRUE))
+    }
 }
-
