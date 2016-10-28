@@ -1,4 +1,5 @@
 source("likelihoods.R") 
+library(testthat)
 
 generateTestData <- function(forms, individual_params, shared_params, n=1){
    means <- sapply(forms, eval, c(as.list(individual_params), as.list(shared_params)))
@@ -28,3 +29,4 @@ likelihood <- ll_gene(d$count, d$deseq_factor, d$condition,
 
 res <-optim(p, likelihood, method="L-BFGS-B", 
     lower=rep(1e-9, length(params)), upper=c(1e5,1e5, 1,1))
+expect_equal(res$par,p)
