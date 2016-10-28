@@ -21,4 +21,10 @@ forms <- list(
 p <- c(mu_n=1000, mu_h=500, a_n=.1, a_h=.2)
 alphas <- list(alpha_chase=1, alpha_lab=1, beta_chase=1,beta_lab=1)
 d <- generateTestData(forms, p,alphas, n=2)
+d$deseq_factor <- 1
 
+likelihood <- ll_gene(d$count, d$deseq_factor, d$condition,
+    forms, param_names=names(p), alphas )
+
+res <-optim(p, likelihood, method="L-BFGS-B", 
+    lower=rep(1e-9, length(params)), upper=c(1e5,1e5, 1,1))
