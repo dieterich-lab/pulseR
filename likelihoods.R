@@ -17,8 +17,7 @@ ll_gene <- function(counts, norm_factors, conditions,
     funquote <- substitute(
         function(params, output=FALSE){
             names(params) <- param_names
-            env <- c(as.list(params))
-            mus <- eval(means_vector, env)
+            mus <- eval(means_vector, as.list(params))
             lambdas <- mus[mean_indexes]
             if(output){
                 return(data.frame(lambdas=lambdas*norm_factors, count=counts))
@@ -34,7 +33,7 @@ ll_shared_params <- function(shared_params, individual_gene_parameters, dat, for
     mean_indexes <- sapply(conditions, match, names(forms))
     
     means_vector<- makeVector(forms)
-    means_vector <- substitute
+    means_vector <- substitute(
     funquote <- substitute(
         function(shared_params, individual_gene_parameters,output=FALSE){
             names(params) <- param_names
@@ -46,5 +45,8 @@ ll_shared_params <- function(shared_params, individual_gene_parameters, dat, for
             }
             -sum(dpois(counts, (lambdas+1e-10)* norm_factors, log=TRUE))
         } 
-    )
+    ), parent.frame())
     eval(funquote)
+
+}
+
