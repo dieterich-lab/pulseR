@@ -93,12 +93,17 @@ ll_shared_params <- function(count_data,forms,individual_params,
 
 
 fitModel <- function(count_data,  formulas, individual_params,
-                     shared_params, lower_boundary, upper_boundary){
+                     shared_params, 
+                     lower_boundary,
+                     upper_boundary,
+                     lower_boundary_shared,
+                     upper_boundary_shared){
     # Fit params for every genes individually
     splitted_data <- split(count_data, count_data$id)
     param_names <- names(individual_params)
     param_names <- param_names[-which(param_names=="id")]
     new_params <- list()
+    shared_param_names <- names(shared_params)
     for(gene in names(splitted_data)){
         objective <- ll_gene(splitted_data[[gene]], forms, 
                              param_names, shared_params)
@@ -110,5 +115,10 @@ fitModel <- function(count_data,  formulas, individual_params,
     individual_params$id <- rownames(individual_params)
     individual_params
     # Fit shared params
-    
+    shared_objective <- ll_shared_params(count_data, formulas, 
+        individual_params, shared_param_names)
+    shared_params <- optim(rep(1,4), shared_objective, method="L-BFGS-B",
+            lower=lower_boundary_shared, upper=upper_boundary_shared)$par
+    names(shared_params) <- shared_param_names
+    list(individual_params=individual_params, shared_params=shared_params)
 }
