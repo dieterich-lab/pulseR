@@ -115,15 +115,15 @@ fitModel <- function(count_data,  formulas, individual_params,
                      upper_boundary_shared){
     # Fit params for every genes individually
     splitted_data <- split(count_data, count_data$id)
-    param_names <- names(individual_params)
-    param_names <- param_names[-which(param_names=="id")]
-    old_params <- split(individual_params, individual_params$id)
+    id_column <- which(names(individual_params)=="id")
+    param_names <- names(individual_params)[-id_column]
+    old_params <- split(individual_params[,-id_column], individual_params$id)
     new_params <- list()
     shared_param_names <- names(shared_params)
     for(gene in names(splitted_data)){
         objective <- ll_gene(splitted_data[[gene]], forms, 
                              param_names, shared_params)
-        new_params [[gene]] <- optim(old_params[[gene]], objective, 
+        new_params [[gene]] <- optim(unlist(old_params[[gene]]), objective, 
             method="L-BFGS-B", lower=lower_boundary, upper=upper_boundary)$par
     }
     individual_params <- as.data.frame(do.call(rbind, new_params))
