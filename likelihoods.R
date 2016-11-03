@@ -81,7 +81,7 @@ ll_shared_params <- function(count_data,forms,individual_params,
     function(shared_params){
         names(shared_params ) <- shared_param_names
         means_matrix <- matrix(0,ncol=length(forms), nrow=gene_number)
-        for(i in seq_along(individual_params$id)){
+        for(i in 1:gene_number){
             means_matrix[i,] <- eval(means_for_genes[[i]],
                                      as.list(shared_params))
         }
