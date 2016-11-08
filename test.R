@@ -7,8 +7,8 @@ generateTestData <- function(forms, individual_params, shared_params, n=1){
 }
 
 forms <- MeanFormulas(
-     total_Hypox        = mu_n,
-     total_Norm         = mu_n*a_h + mu_h,
+     total_Norm         = mu_n,
+     total_Hypox        = mu_n*a_h + mu_h,
      flow_lab_Norm      = alpha_lab*(mu_n*a_n),
      biotin_lab_Norm    = beta_lab*mu_n*(1-a_n),
      flow_lab_Hypox     = alpha_lab*(mu_n*a_h),
