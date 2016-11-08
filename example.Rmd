@@ -18,7 +18,6 @@ $$ U = \mu a, $$ where
 $a=e^{-d\cdot t}$.
 
 1. Define the formulas for expression level (average read count): 
-
 ```{r} 
 source("likelihoods.R")
 
@@ -53,9 +52,7 @@ countData <- structure(list(id = structure(c(1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L,
 "condition", "count", "norm_factor"), row.names = c(NA, 36L), class = "data.frame")
 countData
 ```
-
 3. Define boundaries for parameter values:
-
 ```{r}
 options <- list(
     lower_boundary = c(mu=1e-5, a=1e-5),
@@ -63,21 +60,17 @@ options <- list(
     
 ```
 4. Initialise a first guess:
-
 ```{r}
 initial_params <- data.frame(mu=rep(1e4,4), a=rep(.5,4))
 initial_params$id <- levels(countData$id)
 initial_params
 ```
 5. Fit the model:
-
 ```{r}
 fitResult <- fitModel (countData,  forms, initial_params, options=options)
 fitResult
 ```
-
 6. Check model predictions
-
 ```{r}
 predictions <- predict.expression(countData, fitResult, forms)
 predictions
