@@ -20,7 +20,6 @@ $a=e^{-d\cdot t}$.
 1. Define the formulas for expression level (average read count): 
 ```{r} 
 source("likelihoods.R")
-
 forms <- MeanFormulas(
      total      = mu,
      unlabelled = mu*a,
@@ -30,7 +29,6 @@ forms <- MeanFormulas(
     - $"id" -- gene id
     - $"count" -- read count
     - $"condition" -- the same identifier as in the formulas definition `forms`
-
 ```{r}
 # A generated data frame for parameters
 #   mu=c(100,1000, 2000,3000)
