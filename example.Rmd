@@ -1,0 +1,87 @@
+## Usage example
+
+### Pulse experiment with three fractions
+
+For a pulse labelling experiment, if $\mu$ is gene expression level,
+the total fraction is 
+$$ T=\mu,$$
+labelled fraction 
+$$ L=\mu (1-e^{-d\cdot t}),$$
+and unlabelled one is 
+$$ U = \mu e^{-d\cdot t}, $$ where
+$d$ is the degradation rate, $t$ experiment and labelling time.
+
+For simplicity, since we have only one time point, the equations can be simplified as
+$$ T=\mu,$$
+$$ L=\mu (1-a),$$
+$$ U = \mu a, $$ where
+$a=e^{-d\cdot t}$.
+
+1. Define the formulas for expression level (average read count): 
+
+```{r} 
+source("likelihoods.R")
+
+forms <- MeanFormulas(
+     total      = mu,
+     unlabelled = mu*a,
+     labelled   = mu*(1-a))
+```
+2. Prepair a count data in the form of a data.frame with the following columns:
+    - $"id" -- gene id
+    - $"count" -- read count
+    - $"condition" -- the same identifier as in the formulas definition `forms`
+
+```{r}
+# A generated data frame for parameters
+#   mu=c(100,1000, 2000,3000)
+#   a=c(.5, .8,.6,.7))
+#   alpha=2, beta=1
+countData <- structure(list(id = structure(c(1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 
+1L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 3L, 3L, 3L, 3L, 3L, 3L, 
+3L, 3L, 3L, 4L, 4L, 4L, 4L, 4L, 4L, 4L, 4L, 4L), .Label = c("geneA", 
+"geneB", "geneC", "geneD"), class = "factor"), condition = structure(c(2L, 
+3L, 1L, 2L, 3L, 1L, 2L, 3L, 1L, 2L, 3L, 1L, 2L, 3L, 1L, 2L, 3L, 
+1L, 2L, 3L, 1L, 2L, 3L, 1L, 2L, 3L, 1L, 2L, 3L, 1L, 2L, 3L, 1L, 
+2L, 3L, 1L), .Label = c("labelled", "total", "unlabelled"), class = "factor"), 
+    count = c(93L, 56L, 45L, 107L, 36L, 42L, 108L, 46L, 61L, 
+    954L, 793L, 223L, 971L, 836L, 194L, 1034L, 835L, 186L, 1993L, 
+    1181L, 840L, 2002L, 1216L, 760L, 1969L, 1190L, 772L, 3031L, 
+    2055L, 903L, 2909L, 2078L, 887L, 3044L, 2192L, 945L), norm_factor = c(1, 
+    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 
+    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1)), .Names = c("id", 
+"condition", "count", "norm_factor"), row.names = c(NA, 36L), class = "data.frame")
+countData
+```
+
+3. Define boundaries for parameter values:
+
+```{r}
+options <- list(
+    lower_boundary = c(mu=1e-5, a=1e-5),
+    upper_boundary = c(mu=1e6, a=1))
+    
+```
+4. Initialise a first guess:
+
+```{r}
+initial_params <- data.frame(mu=rep(1e4,4), a=rep(.5,4))
+initial_params$id <- levels(countData$id)
+initial_params
+```
+5. Fit the model:
+
+```{r}
+fitResult <- fitModel (countData,  forms, initial_params, options=options)
+fitResult
+```
+
+6. Check model predictions
+
+```{r}
+predictions <- predict.expression(countData, fitResult, forms)
+predictions
+library(cowplot)
+qplot(x=countData$count, y=predictions$prediction, log='xy', 
+    ylab="prediction", xlab="experiment")
+```
