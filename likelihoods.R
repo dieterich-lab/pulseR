@@ -34,6 +34,9 @@ to_env <-  function (x, quiet = FALSE)
     }
 }
 
+MeanFormulas <- function(...){
+    eval(substitute(alist(...)))
+}
  
 makeVector <- function(forms){
     string <- paste("c(", 
