@@ -102,9 +102,9 @@ ll_shared_params <- function(count_data,forms,individual_params,
 }
 
 predict.expression <- function(count_data, model, forms){
-    estimateMeans <- getMeansEstimatingFunction(count_data, individual_params, 
-                                        forms, shared_param_names)
-    lambdas <- estimateMeans(shared_params)
+    estimateMeans <- getMeansEstimatingFunction(count_data,
+    model$individual_params, forms, names(model$shared_params))
+    lambdas <- estimateMeans(model$shared_params)
     list(prediction=lambdas,
          logL=dpois(count_data$count, (lambdas+1e-10), log=TRUE))
 }
