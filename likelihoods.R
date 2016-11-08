@@ -111,7 +111,7 @@ predict.expression <- function(count_data, model, forms){
 
 
 fitModel <- function(count_data,  formulas, individual_params,
-                     shared_params, options=list()){
+                     shared_params=NULL, options=list()){
     splitted_data <- split(count_data, count_data$id)
     id_column <- which(names(individual_params)=="id")
     param_names <- names(individual_params)[-id_column]
@@ -121,7 +121,8 @@ fitModel <- function(count_data,  formulas, individual_params,
         shared_rel_tol=rep(1e-2, length(shared_param_names)))
     individual_rel_err <- 10*opts$individual_rel_tol
     shared_rel_err <- 10* opts$shared_rel_tol
-    while(any(individual_rel_err > opts$individual_rel_tol) &&
+    if(is.null(shared_params)) shared_rel_err <- 0
+    while(any(individual_rel_err > opts$individual_rel_tol) || 
         any(shared_rel_err > opts$shared_rel_tol)){
         shared_params <- as.list(shared_params)
         opts[names(options)] <- options
@@ -145,21 +146,25 @@ fitModel <- function(count_data,  formulas, individual_params,
         individual_params$id <- rownames(individual_params)
         
         # Fit shared params
-        shared_objective <- ll_shared_params(count_data, formulas, 
-            individual_params, shared_param_names)
-        old_shared_params <- shared_params
-        shared_params <- optim(
-            unlist(shared_params),
-            shared_objective, 
-            method="L-BFGS-B", 
-            lower=options$lower_boundary_shared, 
-            upper=options$upper_boundary_shared)$par
-        names(shared_params) <- shared_param_names
-        shared_rel_err <- list()
-        for(p in shared_param_names){
-            shared_rel_err[[p]] <- abs(1-old_shared_params[[p]]/shared_params[[p]])
+        if(!is.null(shared_params)){
+            shared_objective <- ll_shared_params(count_data, formulas, 
+                individual_params, shared_param_names)
+            old_shared_params <- shared_params
+            res <- optim(
+                unlist(shared_params),
+                shared_objective, 
+                method="L-BFGS-B", 
+                lower=options$lower_boundary_shared, 
+                upper=options$upper_boundary_shared)
+            shared_params <- res$par
+            optimum <- res$value
+            names(shared_params) <- shared_param_names
+            shared_rel_err <- list()
+            for(p in shared_param_names){
+                shared_rel_err[[p]] <- abs(1-old_shared_params[[p]]/shared_params[[p]])
+            }
+            shared_rel_err <- unlist(shared_rel_err)
         }
-        shared_rel_err <- unlist(shared_rel_err)
     }
     list(individual_params=individual_params, shared_params=shared_params)
 }
