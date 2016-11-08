@@ -111,11 +111,7 @@ predict.expression <- function(count_data, model, forms){
 
 
 fitModel <- function(count_data,  formulas, individual_params,
-                     shared_params, 
-                     lower_boundary,
-                     upper_boundary,
-                     lower_boundary_shared,
-                     upper_boundary_shared){
+                     shared_params, options=list()){
     # Fit params for every genes individually
     splitted_data <- split(count_data, count_data$id)
     id_column <- which(names(individual_params)=="id")
@@ -126,8 +122,12 @@ fitModel <- function(count_data,  formulas, individual_params,
     for(gene in names(splitted_data)){
         objective <- ll_gene(splitted_data[[gene]], forms, 
                              param_names, shared_params)
-        new_params [[gene]] <- optim(unlist(old_params[[gene]]), objective, 
-            method="L-BFGS-B", lower=lower_boundary, upper=upper_boundary)$par
+        new_params [[gene]] <- optim(
+            unlist(old_params[[gene]]), 
+            objective, 
+            method="L-BFGS-B", 
+            lower=options$lower_boundary, 
+            upper=options$upper_boundary)$par
     }
     individual_params <- as.data.frame(do.call(rbind, new_params))
     names(individual_params) <- param_names
@@ -135,9 +135,12 @@ fitModel <- function(count_data,  formulas, individual_params,
     # Fit shared params
     shared_objective <- ll_shared_params(count_data, formulas, 
         individual_params, shared_param_names)
-    shared_params <- optim(unlist(shared_params), shared_objective, 
-        method="L-BFGS-B", lower=lower_boundary_shared, 
-        upper=upper_boundary_shared)$par
+    shared_params <- optim(
+        unlist(shared_params),
+        shared_objective, 
+        method="L-BFGS-B", 
+        lower=options$lower_boundary_shared, 
+        upper=options$upper_boundary_shared)$par
     names(shared_params) <- shared_param_names
     list(individual_params=individual_params, shared_params=shared_params)
 }

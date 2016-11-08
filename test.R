@@ -85,19 +85,16 @@ testFitModel <- function(){
     d <- do.call(rbind,d)
     d$norm_factor<- 1
     # Fit
-    lower_boundary <- rep(1e-9,4)
-    upper_boundary <- c(1e5,1e5,1,1)-1e-1
-    lower_boundary_shared <- rep(1e-9,4)
-    upper_boundary_shared <- rep(5)
+    options <- list(
+        lower_boundary = rep(1e-9,4),
+        upper_boundary = c(1e5,1e5,1,1)-1e-1,
+        lower_boundary_shared = rep(1e-9,4),
+        upper_boundary_shared = rep(5)
+    )
     individual_params <- as.data.frame(p[,-5])
     individual_params[,] <- .1
     individual_params$id <- p$id
-    fitResult <- fitModel (d,  forms, individual_params,
-                alphas,
-                lower_boundary, 
-                upper_boundary,
-                lower_boundary_shared,
-                upper_boundary_shared)
+    fitResult <- fitModel (d,  forms, individual_params, alphas, options)
     ip <- rbind(estimated=fitResult$individual_params, correct=p)
     ip <- split(ip, ip$id)
     sp <- rbind(estimated=fitResult$shared_params, correct=alphas)
