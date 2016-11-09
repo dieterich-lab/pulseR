@@ -98,6 +98,7 @@ ll_shared_params <- function(count_data,forms,individual_params,
     function(shared_params){
         lambdas <- estimateMeans(shared_params)
         -sum(dpois(count_data$count, (lambdas+1e-10), log=TRUE))
+        #-median(dpois(count_data$count, (lambdas+1e-10), log=TRUE))
     }
 }
 
@@ -109,12 +110,13 @@ predict.expression <- function(count_data, model, forms){
          logL=dpois(count_data$count, (lambdas+1e-10), log=TRUE))
 }
 
-
+# options is a list with records
+# - individual_rel_err
+# - shared_rel_tol
 fitModel <- function(count_data,  formulas, individual_params,
                      shared_params=NULL, options=list()){
     splitted_data <- split(count_data, count_data$id)
-    id_column <- which(names(individual_params)=="id")
-    param_names <- names(individual_params)[-id_column]
+    param_names <- setdiff(names(individual_params), "id")
     shared_param_names <- names(shared_params)
     opts <- list(
         individual_rel_tol=rep(1e-2, length(param_names)),
@@ -127,7 +129,8 @@ fitModel <- function(count_data,  formulas, individual_params,
         shared_params <- as.list(shared_params)
         opts[names(options)] <- options
         # Fit params for every genes individually
-        old_params <- split(individual_params[,-id_column], individual_params$id)
+        old_params <- split(individual_params[,param_names],
+                            individual_params$id)
         new_params <- list()
         for(gene in names(old_params)){
             objective <- ll_gene(splitted_data[[gene]], forms, 
