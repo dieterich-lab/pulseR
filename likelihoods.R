@@ -120,6 +120,9 @@ predict.expression <- function(count_data, model, forms){
          logL=dpois(count_data$count, (lambdas+1e-10), log=TRUE))
 }
 
+log2screen <- function(options,...){
+    if(options$verbose=="verbose") cat(...) 
+}
 
 fitIndividualParameters <- function(old_params, splitted_data, formulas,
                                     shared_params, options){
@@ -141,10 +144,8 @@ fitIndividualParameters <- function(old_params, splitted_data, formulas,
             method="L-BFGS-B", 
             lower=options$lower_boundary, 
             upper=options$upper_boundary)$par
-        if(verbose=="verbose"){
-            cat(rep("",100),"\r")
-            cat(gene_index, " of ", ngene, " are analysed\r")
-        }
+            log2screen(options, rep("",100),"\r")
+            log2screen(options, gene_index, " of ", ngene, " are analysed\r")
     }
     new_params <- as.data.frame(do.call(rbind, new_params))
     names(new_params) <- param_names
@@ -186,6 +187,7 @@ fitModel <- function(count_data,  formulas, individual_params,
         shared_params <- as.list(shared_params)
         opts[names(options)] <- options
         # Fit params for every genes individually
+        log2screen(opts, "Fitting gene-specific params")
         old_params <- individual_params
         individual_params <- fitIndividualParameters(
             old_params, splitted_data, formulas, shared_params, opts)
@@ -193,11 +195,15 @@ fitModel <- function(count_data,  formulas, individual_params,
             abs(1 - individual_params[,param_names] / old_params[,param_names]))
         # Fit shared params
         if(!is.null(shared_params)){
+            log2screen(opts, rep(" ",100,"\r"))
+            log2screen(opts,"Fitting shared params")
             old_shared_params <- shared_params
             shared_params <- fitSharedParameters(shared_params, count_data,
                 formulas, individual_params, opts)
             shared_rel_err <- 
                 1 - unlist(shared_params) / unlist(old_shared_params)
+            log2screen(opts, "Shared params\n")
+            log2screen(opts, toString(shared_params),"\n")
         }
     }
     list(individual_params=individual_params, shared_params=shared_params)
