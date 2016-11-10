@@ -121,27 +121,49 @@ predict.expression <- function(count_data, model, forms){
 }
 
 
-fitIndividualParameters <- function(old_params, splitted_data, forms,
+fitIndividualParameters <- function(old_params, splitted_data, formulas,
                                     shared_params, options){
+    verbose <- options$verbose
+    if(verbose=="verbose"){
+        ngene <- dim(old_params)[1]
+    }
     ids <- old_params$id
     param_names <- setdiff(names(old_params), "id")
     old_params <- split(old_params[,param_names],
                         old_params$id)
     new_params <- list()
-    for(gene in names(old_params)){
-        objective <- ll_gene(splitted_data[[gene]], forms, 
+    for(gene_index in seq_along(old_params)){
+        objective <- ll_gene(splitted_data[[gene_index]], formulas, 
                             param_names, shared_params)
-        new_params [[gene]] <- optim(
-            unlist(old_params[[gene]]), 
+        new_params [[gene_index]] <- optim(
+            unlist(old_params[[gene_index]]), 
             objective, 
             method="L-BFGS-B", 
             lower=options$lower_boundary, 
             upper=options$upper_boundary)$par
+        if(verbose=="verbose"){
+            cat(rep("",100),"\r")
+            cat(gene_index, " of ", ngene, " are analysed\r")
+        }
     }
     new_params <- as.data.frame(do.call(rbind, new_params))
     names(new_params) <- param_names
     new_params$id <- ids
     new_params
+}
+
+fitSharedParameters <- function(old_shared_params, count_data, formulas,
+                                individual_params, options){
+    shared_objective <- ll_shared_params(count_data, formulas, 
+        individual_params, names(old_shared_params))
+    shared_params <- optim(
+        unlist(old_shared_params),
+        shared_objective, 
+        method="L-BFGS-B", 
+        lower=options$lower_boundary_shared, 
+        upper=options$upper_boundary_shared)$par
+    names(shared_params) <- names(old_shared_params)
+    as.list(shared_params)
 }
 
 # options is a list with records
@@ -154,7 +176,8 @@ fitModel <- function(count_data,  formulas, individual_params,
     shared_param_names <- names(shared_params)
     opts <- list(
         individual_rel_tol=rep(1e-2, length(param_names)),
-        shared_rel_tol=rep(1e-2, length(shared_param_names)))
+        shared_rel_tol=rep(1e-2, length(shared_param_names)),
+        verbose="silent")
     individual_rel_err <- 10*opts$individual_rel_tol
     shared_rel_err <- 10* opts$shared_rel_tol
     if(is.null(shared_params)) shared_rel_err <- 0
@@ -165,28 +188,16 @@ fitModel <- function(count_data,  formulas, individual_params,
         # Fit params for every genes individually
         old_params <- individual_params
         individual_params <- fitIndividualParameters(
-            old_params, splitted_data, forms, shared_params, options)
+            old_params, splitted_data, formulas, shared_params, opts)
         individual_rel_err <- max(
             abs(1 - individual_params[,param_names] / old_params[,param_names]))
         # Fit shared params
         if(!is.null(shared_params)){
-            shared_objective <- ll_shared_params(count_data, formulas, 
-                individual_params, shared_param_names)
             old_shared_params <- shared_params
-            res <- optim(
-                unlist(shared_params),
-                shared_objective, 
-                method="L-BFGS-B", 
-                lower=options$lower_boundary_shared, 
-                upper=options$upper_boundary_shared)
-            shared_params <- res$par
-            optimum <- res$value
-            names(shared_params) <- shared_param_names
-            shared_rel_err <- list()
-            for(p in shared_param_names){
-                shared_rel_err[[p]] <- abs(1-old_shared_params[[p]]/shared_params[[p]])
-            }
-            shared_rel_err <- unlist(shared_rel_err)
+            shared_params <- fitSharedParameters(shared_params, count_data,
+                formulas, individual_params, opts)
+            shared_rel_err <- 
+                1 - unlist(shared_params) / unlist(old_shared_params)
         }
     }
     list(individual_params=individual_params, shared_params=shared_params)
