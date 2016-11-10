@@ -120,6 +120,30 @@ predict.expression <- function(count_data, model, forms){
          logL=dpois(count_data$count, (lambdas+1e-10), log=TRUE))
 }
 
+
+fitIndividualParameters <- function(old_params, splitted_data, forms,
+                                    shared_params, options){
+    ids <- old_params$id
+    param_names <- setdiff(names(old_params), "id")
+    old_params <- split(old_params[,param_names],
+                        old_params$id)
+    new_params <- list()
+    for(gene in names(old_params)){
+        objective <- ll_gene(splitted_data[[gene]], forms, 
+                            param_names, shared_params)
+        new_params [[gene]] <- optim(
+            unlist(old_params[[gene]]), 
+            objective, 
+            method="L-BFGS-B", 
+            lower=options$lower_boundary, 
+            upper=options$upper_boundary)$par
+    }
+    new_params <- as.data.frame(do.call(rbind, new_params))
+    names(new_params) <- param_names
+    new_params$id <- ids
+    new_params
+}
+
 # options is a list with records
 # - individual_rel_err
 # - shared_rel_tol
@@ -139,25 +163,11 @@ fitModel <- function(count_data,  formulas, individual_params,
         shared_params <- as.list(shared_params)
         opts[names(options)] <- options
         # Fit params for every genes individually
-        old_params <- split(individual_params[,param_names],
-                            individual_params$id)
-        new_params <- list()
-        for(gene in names(old_params)){
-            objective <- ll_gene(splitted_data[[gene]], forms, 
-                                param_names, shared_params)
-            new_params [[gene]] <- optim(
-                unlist(old_params[[gene]]), 
-                objective, 
-                method="L-BFGS-B", 
-                lower=options$lower_boundary, 
-                upper=options$upper_boundary)$par
-        }
-        individual_params <- as.data.frame(do.call(rbind, new_params))
-        old_params <- as.data.frame(do.call(rbind, old_params))
-        individual_rel_err <- unlist(lapply(abs(1-individual_params/old_params), max))
-        names(individual_params) <- param_names
-        individual_params$id <- rownames(individual_params)
-        
+        old_params <- individual_params
+        individual_params <- fitIndividualParameters(
+            old_params, splitted_data, forms, shared_params, options)
+        individual_rel_err <- max(
+            abs(1 - individual_params[,param_names] / old_params[,param_names]))
         # Fit shared params
         if(!is.null(shared_params)){
             shared_objective <- ll_shared_params(count_data, formulas, 
