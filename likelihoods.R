@@ -46,6 +46,16 @@ makeVector <- function(forms){
     parse(text=string)
 }
 
+contaminate <- function(formulas, target_condition, 
+                        contaminant_condition, coef_name){
+    target_condition <- deparse(substitute(target_condition))
+    contaminant_condition <- deparse(substitute(contaminant_condition))
+    f1 <- deparse(formulas[[target_condition]])
+    f2 <- deparse(formulas[[contaminant_condition]])
+    e <- paste("(1-",coef_name,")*(",f1,")+",coef_name,"*(",f2,")")
+    parse(text=e)[[1]]
+}
+
 
 ll_gene <- function(count_data, forms, param_names, shared_params=NULL){
     conditions <- count_data$condition
@@ -97,8 +107,8 @@ ll_shared_params <- function(count_data,forms,individual_params,
                                         forms, shared_param_names)
     function(shared_params){
         lambdas <- estimateMeans(shared_params)
-        -sum(dpois(count_data$count, (lambdas+1e-10), log=TRUE))
-        #-median(dpois(count_data$count, (lambdas+1e-10), log=TRUE))
+        #-sum(dpois(count_data$count, (lambdas+1e-10), log=TRUE))
+        -median(dpois(count_data$count, (lambdas+1e-10), log=TRUE))
     }
 }
 
