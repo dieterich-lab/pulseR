@@ -220,8 +220,8 @@ fitModel <- function(count_data,  formulas, individual_params,
         if(!is.null(opts$result_name)){
             assign(opts$result_name, 
                 value=list(individual_params=individual_params,
-                        shared_params=shared_params,
-                        env=globalenv()))
+                        shared_params=shared_params),
+                        env=globalenv())
         }
     }
     list(individual_params=individual_params, shared_params=shared_params)
