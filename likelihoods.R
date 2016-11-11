@@ -139,7 +139,7 @@ fitIndividualParameters <- function(old_params, splitted_data, formulas,
             optim(unlist(olds), obj, method="L-BFGS-B", 
             lower=options$lower_boundary, 
             upper=options$upper_boundary)$par},
-        objectives, old_params, SIMPLIFY=FALSE, mc.cores=6)
+        objectives, old_params, SIMPLIFY=FALSE, mc.cores=options$cores)
     new_params <- as.data.frame(do.call(rbind, new_params))
     names(new_params) <- param_names
     new_params$id <- ids
@@ -174,6 +174,7 @@ evaluateLikelihood <- function(shared_params, individual_params,
 # - shared_rel_tol
 fitModel <- function(count_data,  formulas, individual_params,
                      shared_params=NULL, options=list()){
+    require(parallel)
     conditions <- names(formulas)
     count_data <- count_data[ count_data$condition %in% conditions,]
     splitted_data <- split(count_data, count_data$id)
@@ -183,7 +184,8 @@ fitModel <- function(count_data,  formulas, individual_params,
         individual_rel_tol=1e-2, 
         shared_rel_tol=1e-2,
         verbose="silent",
-        update_inital_parameters=FALSE)
+        update_inital_parameters=FALSE,
+        cores=1)
     individual_rel_err <- 10*opts$individual_rel_tol
     shared_rel_err <- 10* opts$shared_rel_tol
     if(is.null(shared_params)) shared_rel_err <- 0
