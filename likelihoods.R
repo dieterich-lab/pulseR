@@ -107,8 +107,8 @@ ll_shared_params <- function(count_data,forms,individual_params,
                                         forms, shared_param_names)
     function(shared_params){
         lambdas <- estimateMeans(shared_params)
-        #-sum(dpois(count_data$count, (lambdas+1e-10), log=TRUE))
-        -median(dpois(count_data$count, (lambdas+1e-10), log=TRUE))
+        -sum(dpois(count_data$count, (lambdas+1e-10), log=TRUE))
+        #-median(dpois(count_data$count, (lambdas+1e-10), log=TRUE))
     }
 }
 
@@ -167,6 +167,13 @@ fitSharedParameters <- function(old_shared_params, count_data, formulas,
     as.list(shared_params)
 }
 
+evaluateLikelihood <- function(shared_params, individual_params,
+                               count_data, formulas){
+    shared_objective <- ll_shared_params(count_data, formulas, 
+        individual_params, names(shared_params))
+    shared_objective(unlist(shared_params))
+}
+
 # options is a list with records
 # - individual_rel_err
 # - shared_rel_tol
@@ -178,7 +185,8 @@ fitModel <- function(count_data,  formulas, individual_params,
     opts <- list(
         individual_rel_tol=rep(1e-2, length(param_names)),
         shared_rel_tol=rep(1e-2, length(shared_param_names)),
-        verbose="silent")
+        verbose="silent",
+        update_inital_parameters=FALSE)
     individual_rel_err <- 10*opts$individual_rel_tol
     shared_rel_err <- 10* opts$shared_rel_tol
     if(is.null(shared_params)) shared_rel_err <- 0
@@ -204,6 +212,9 @@ fitModel <- function(count_data,  formulas, individual_params,
                 1 - unlist(shared_params) / unlist(old_shared_params)
             log2screen(opts, "Shared params\n")
             log2screen(opts, toString(shared_params),"\n")
+        }
+        if(opts$update_inital_parameters){
+            # todo
         }
     }
     list(individual_params=individual_params, shared_params=shared_params)
