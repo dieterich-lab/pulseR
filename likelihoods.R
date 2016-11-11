@@ -67,7 +67,7 @@ ll_gene <- function(count_data, forms, param_names, shared_params=NULL){
         forms <- lapply(forms, substitute_q, shared_params)
     means_vector<- makeVector(forms)
     funquote <- substitute(
-        function(params, output=FALSE){
+        function(params){
             names(params) <- param_names
             mus <- eval(means_vector, as.list(params))
             lambdas <- mus[mean_indexes]
@@ -107,8 +107,8 @@ ll_shared_params <- function(count_data,forms,individual_params,
                                         forms, shared_param_names)
     function(shared_params){
         lambdas <- estimateMeans(shared_params)
-        -sum(dpois(count_data$count, (lambdas+1e-10), log=TRUE))
-        #-median(dpois(count_data$count, (lambdas+1e-10), log=TRUE))
+        #-sum(dpois(count_data$count, (lambdas+1e-10), log=TRUE))
+        -median(dpois(count_data$count, (lambdas+1e-10), log=TRUE))
     }
 }
 
@@ -144,8 +144,8 @@ fitIndividualParameters <- function(old_params, splitted_data, formulas,
             method="L-BFGS-B", 
             lower=options$lower_boundary, 
             upper=options$upper_boundary)$par
-            log2screen(options, rep("",100),"\r")
-            log2screen(options, gene_index, " of ", ngene, " are analysed\r")
+        log2screen(options, rep("",100),"\r")
+        log2screen(options, gene_index, " of ", ngene, " are analysed\r")
     }
     new_params <- as.data.frame(do.call(rbind, new_params))
     names(new_params) <- param_names
@@ -169,6 +169,8 @@ fitSharedParameters <- function(old_shared_params, count_data, formulas,
 
 evaluateLikelihood <- function(shared_params, individual_params,
                                count_data, formulas){
+    conditions <- names(formulas)
+    count_data <- count_data[ count_data$condition %in% conditions,]
     shared_objective <- ll_shared_params(count_data, formulas, 
         individual_params, names(shared_params))
     shared_objective(unlist(shared_params))
@@ -179,6 +181,8 @@ evaluateLikelihood <- function(shared_params, individual_params,
 # - shared_rel_tol
 fitModel <- function(count_data,  formulas, individual_params,
                      shared_params=NULL, options=list()){
+    conditions <- names(formulas)
+    count_data <- count_data[ count_data$condition %in% conditions,]
     splitted_data <- split(count_data, count_data$id)
     param_names <- setdiff(names(individual_params), "id")
     shared_param_names <- names(shared_params)
@@ -213,8 +217,11 @@ fitModel <- function(count_data,  formulas, individual_params,
             log2screen(opts, "Shared params\n")
             log2screen(opts, toString(shared_params),"\n")
         }
-        if(opts$update_inital_parameters){
-            # todo
+        if(!is.null(opts$result_name)){
+            assign(opts$result_name, 
+                value=list(individual_params=individual_params,
+                        shared_params=shared_params,
+                        env=globalenv()))
         }
     }
     list(individual_params=individual_params, shared_params=shared_params)
