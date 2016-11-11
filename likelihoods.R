@@ -132,18 +132,15 @@ fitIndividualParameters <- function(old_params, splitted_data, formulas,
     old_params <- split(old_params[,param_names],
                         old_params$id)
     new_params <- list()
-    for(gene_index in seq_along(old_params)){
-        objective <- ll_gene(splitted_data[[ids[gene_index]]], formulas, 
+    objectives <- lapply(splitted_data, ll_gene, formulas, 
                             param_names, shared_params)
-        new_params [[ids[gene_index]]] <- optim(
-            unlist(old_params[[ids[gene_index]]]), 
-            objective, 
+    new_params <- mapply(function(obj, olds){optim(
+            unlist(olds), 
+            obj, 
             method="L-BFGS-B", 
             lower=options$lower_boundary, 
-            upper=options$upper_boundary)$par
-        log2screen(options, rep("",100),"\r")
-        log2screen(options, gene_index, " of ", ngene, " are analysed\r")
-    }
+            upper=options$upper_boundary)$par},
+            objectives, old_params, SIMPLIFY=FALSE)
     new_params <- as.data.frame(do.call(rbind, new_params))
     names(new_params) <- param_names
     new_params$id <- ids
@@ -184,15 +181,15 @@ fitModel <- function(count_data,  formulas, individual_params,
     param_names <- setdiff(names(individual_params), "id")
     shared_param_names <- names(shared_params)
     opts <- list(
-        individual_rel_tol=rep(1e-2, length(param_names)),
-        shared_rel_tol=rep(1e-2, length(shared_param_names)),
+        individual_rel_tol=1e-2, 
+        shared_rel_tol=1e-2,
         verbose="silent",
         update_inital_parameters=FALSE)
     individual_rel_err <- 10*opts$individual_rel_tol
     shared_rel_err <- 10* opts$shared_rel_tol
     if(is.null(shared_params)) shared_rel_err <- 0
-    while(any(individual_rel_err > opts$individual_rel_tol) || 
-        any(shared_rel_err > opts$shared_rel_tol)){
+    while(individual_rel_err > opts$individual_rel_tol || 
+            shared_rel_err > opts$shared_rel_tol){
         shared_params <- as.list(shared_params)
         opts[names(options)] <- options
         # Fit params for every genes individually
