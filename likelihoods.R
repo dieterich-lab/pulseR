@@ -81,7 +81,6 @@ getMeansEstimatingFunction <- function(count_data, individual_params,
                               forms, shared_param_names){
     gene_number <- length(individual_params$id)
     individual_params$id <- as.factor(individual_params$id)
-    individual_params <- individual_params[order(individual_params$id),]
     forms_vector <- makeVector(forms)[[1]]
     condition_indexes <- sapply(count_data$condition, match, names(forms))
     means_indexes <- cbind(as.numeric(count_data$id), condition_indexes)
@@ -105,14 +104,14 @@ ll_shared_params <- function(count_data,forms,individual_params,
                                         forms, shared_param_names)
     function(shared_params){
         lambdas <- estimateMeans(shared_params)
-        #-sum(dpois(count_data$count, (lambdas+1e-10), log=TRUE))
-        -median(dpois(count_data$count, (lambdas+1e-10), log=TRUE))
+        -sum(dpois(count_data$count, (lambdas+1e-10), log=TRUE))
+        #-median(dpois(count_data$count, (lambdas+1e-10), log=TRUE))
     }
 }
 
 predict.expression <- function(count_data, model, forms){
     estimateMeans <- getMeansEstimatingFunction(count_data,
-    model$individual_params, forms, names(model$shared_params))
+        model$individual_params, forms, names(model$shared_params))
     lambdas <- estimateMeans(model$shared_params)
     list(prediction=lambdas,
          logL=dpois(count_data$count, (lambdas+1e-10), log=TRUE))
@@ -134,10 +133,10 @@ fitIndividualParameters <- function(old_params, splitted_data, formulas,
                         old_params$id)
     new_params <- list()
     for(gene_index in seq_along(old_params)){
-        objective <- ll_gene(splitted_data[[gene_index]], formulas, 
+        objective <- ll_gene(splitted_data[[ids[gene_index]]], formulas, 
                             param_names, shared_params)
-        new_params [[gene_index]] <- optim(
-            unlist(old_params[[gene_index]]), 
+        new_params [[ids[gene_index]]] <- optim(
+            unlist(old_params[[ids[gene_index]]]), 
             objective, 
             method="L-BFGS-B", 
             lower=options$lower_boundary, 
