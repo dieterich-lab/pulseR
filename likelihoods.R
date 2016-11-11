@@ -127,20 +127,19 @@ fitIndividualParameters <- function(old_params, splitted_data, formulas,
     if(verbose=="verbose"){
         ngene <- dim(old_params)[1]
     }
+    objectives <- lapply(splitted_data, ll_gene, formulas, 
+                            param_names, shared_params)
     ids <- old_params$id
     param_names <- setdiff(names(old_params), "id")
     old_params <- split(old_params[,param_names],
-                        old_params$id)
+                        old_params$id)[names(objectives)]
     new_params <- list()
-    objectives <- lapply(splitted_data, ll_gene, formulas, 
-                            param_names, shared_params)
-    new_params <- mapply(function(obj, olds){optim(
-            unlist(olds), 
-            obj, 
-            method="L-BFGS-B", 
+    new_params <- mcmapply(
+        function(obj, olds){
+            optim(unlist(olds), obj, method="L-BFGS-B", 
             lower=options$lower_boundary, 
             upper=options$upper_boundary)$par},
-            objectives, old_params, SIMPLIFY=FALSE)
+        objectives, old_params, SIMPLIFY=FALSE, mc.cores=6)
     new_params <- as.data.frame(do.call(rbind, new_params))
     names(new_params) <- param_names
     new_params$id <- ids
