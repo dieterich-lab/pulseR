@@ -93,10 +93,8 @@ getMeansEstimatingFunction <- function(count_data, individual_params,
     means_matrix <- matrix(0,ncol=length(forms), nrow=gene_number)
     function(shared_params){
         names(shared_params ) <- shared_param_names
-        for(i in 1:gene_number){
-            means_matrix[i,] <- eval(means_for_genes[[i]],
-                                     as.list(shared_params))
-        }
+        means_matrix <- do.call(rbind, 
+            lapply(means_for_genes, eval, envir=as.list(shared_params)))
         means_matrix[means_indexes]
     }
 }
