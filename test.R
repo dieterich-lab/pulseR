@@ -56,6 +56,20 @@ forms <- MeanFormulas(
   biotin_chase_Hypox = beta_chase * (mu_n * (1 - a_n) * a_h)
 )
 
+guess_params <- function(data, params) {
+  mean_expression <-
+    unlist(lapply(data, function(x)
+      mean(x$count[x$condition == "total_Norm"])))
+  guess <- data.frame(
+    id = params$id,
+    mu_n = mean_expression,
+    mu_h = mean_expression,
+    a_n = .1,
+    a_h = .1
+  )
+  guess
+}
+
 testIndividualGeneParams <- function(n = 2, replicates = 2) {
   g <- generateTestData(n = n, r = replicates)
   options <- list(
@@ -65,17 +79,9 @@ testIndividualGeneParams <- function(n = 2, replicates = 2) {
     upper_boundary_shared = rep(5, 4),
     cores = 2
   )
+  size <- 1e2
   data <- split(g$data, g$data$id)
-  mean_expression <-
-    unlist(lapply(data, function(x)
-      mean(x$count[x$condition == "total_Norm"])))
-  guess <- data.frame(
-    id = g$params$id,
-    mu_n = mean_expression,
-    mu_h = mean_expression,
-    a_n = .1,
-    a_h = .1
-  )
+  guess <- guess_params(data, g$params)
   estimation <-
     fitIndividualParameters(guess, data, forms, g$shared_params, options, size)
   errors <-
@@ -124,6 +130,9 @@ testFitModel <- function(n = 2, replicates = 2) {
     upper_boundary_shared = rep(5, 4),
     cores = 2
   )
+  mean_expression <-
+    unlist(lapply(split(d, d$id), function(x)
+      mean(x$count[x$condition == "total_Norm"])))
   fitResult <-
     fitModel(d,  forms, individual_params, g$shared_params, options)
   p <- fitResult$individual_params
