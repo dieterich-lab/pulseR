@@ -254,10 +254,12 @@ fitModel <- function(count_data,
     cores = 1
   )
   individual_rel_err <- 10 * opts$individual_rel_tol
-  shared_rel_err <- 10 * opts$shared_rel_tol
-  size <- 100
-  if (is.null(shared_params))
+  if (is.null(shared_params)) {
     shared_rel_err <- 0
+  } else {
+    shared_rel_err <- 10 * opts$shared_rel_tol
+  }
+  size <- 100
   while (individual_rel_err > opts$individual_rel_tol ||
          shared_rel_err > opts$shared_rel_tol) {
     shared_params <- as.list(shared_params)
@@ -290,8 +292,8 @@ fitModel <- function(count_data,
           options           = opts,
           size              = size
         )
-      shared_rel_err <-
-        1 - unlist(shared_params) / unlist(old_shared_params)
+      shared_rel_err <- max(
+        abs(1 - unlist(shared_params) / unlist(old_shared_params)))
       log2screen(opts, "Shared params\n")
       log2screen(opts, toString(shared_params), "\n")
     }
