@@ -54,12 +54,17 @@ countData
 ```{r}
 options <- list(
     lower_boundary = c(mu=1e-5, a=1e-5),
-    upper_boundary = c(mu=1e6, a=1))
+    upper_boundary = c(mu=1e6, a=1),
+    lower_boundary_shared = rep(1e-9, 4),
+    upper_boundary_shared = rep(5, 4),
+    cores = 2,
+    share_rel_tol = 1e-3
+    )
     
 ```
 4. Initialise a first guess:
 ```{r}
-initial_params <- data.frame(mu=rep(1e4,4), a=rep(.5,4))
+initial_params <- data.frame(mu=rep(1e3,4), a=rep(.5,4))
 initial_params$id <- levels(countData$id)
 initial_params
 ```
