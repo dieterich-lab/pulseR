@@ -17,7 +17,7 @@ generateTestDataSingle <- function(forms,
   )
 }
 
-generateTestData <- function(n, r) {
+generateTestData <- function(n, replicates) {
   genes <- letters[1:n]
   p <- data.frame(
     id = genes,
@@ -34,10 +34,13 @@ generateTestData <- function(n, r) {
   )
   size <- 1e2
   d <- lapply (seq_along(p$id), function(i) {
-    cbind(id = p$id[i], generateTestDataSingle(forms, p[i, -1], alphas, n = 2))
+    cbind(id = p$id[i],
+          generateTestDataSingle(forms, p[i, -1], alphas, n = replicates))
   })
-  data <- do.call(rbind,d)
-  list(data=data, params=p,shared_params=alphas)
+  data <- do.call(rbind, d)
+  list(data = data,
+       params = p,
+       shared_params = alphas)
 }
 
 forms <- MeanFormulas(
@@ -53,8 +56,8 @@ forms <- MeanFormulas(
   biotin_chase_Hypox = beta_chase * (mu_n * (1 - a_n) * a_h)
 )
 
-testIndividualGeneParams <- function(n = 2, r = 2) {
-  g <- generateTestData(n = n, r = r)
+testIndividualGeneParams <- function(n = 2, replicates = 2) {
+  g <- generateTestData(n = n, r = replicates)
   options <- list(
     lower_boundary = rep(1e-9, 4),
     upper_boundary = c(1e5, 1e5, 1, 1) - 1e-1,
@@ -62,14 +65,17 @@ testIndividualGeneParams <- function(n = 2, r = 2) {
     upper_boundary_shared = rep(5, 4),
     cores = 2
   )
+  data <- split(g$data, g$data$id)
+  mean_expression <-
+    unlist(lapply(data, function(x)
+      mean(x$count[x$condition == "total_Norm"])))
   guess <- data.frame(
     id = g$params$id,
-    mu_n = 2000,
-    mu_h = 2000,
-    a_n = .5,
-    a_h = .5
+    mu_n = mean_expression,
+    mu_h = mean_expression,
+    a_n = .1,
+    a_h = .1
   )
-  data <- split(g$data, g$data$id)
   estimation <-
     fitIndividualParameters(guess, data, forms, g$shared_params, options, size)
   errors <-
