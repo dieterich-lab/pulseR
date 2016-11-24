@@ -297,5 +297,5 @@ fitModel <- function(count_data,
     }
     size <- fitDispersion()
   }
-  list(individual_rel_err = individual_rel_err, shared_params = shared_params)
+  list(individual_params = individual_params, shared_params = shared_params)
 }
