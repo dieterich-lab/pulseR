@@ -84,39 +84,30 @@ testIndividualGeneParams <- function(n = 2, replicates = 2) {
   unlist(errors)
 }
 
-testSharedParams <- function() {
-  d <- list()
-  p <- data.frame(
-    mu_n = c(100, 1000),
-    mu_h = c(50, 500),
-    a_n = c(.5, .8),
-    a_h = c(.8, .5)
+testSharedParams <- function(n = 2, replicates = 2) {
+  g <- generateTestData(n = n, r = replicates)
+  options <- list(
+    lower_boundary = rep(1e-9, 4),
+    upper_boundary = c(1e5, 1e5, 1, 1) - 1e-1,
+    lower_boundary_shared = rep(1e-9, 4),
+    upper_boundary_shared = rep(5, 4),
+    cores = 2
   )
-  alphas <-
-    list(
-      alpha_chase = 2,
-      alpha_lab = 1.5,
-      beta_chase = 1,
-      beta_lab = .8
-    )
-  p$id <- c("a", "b")
-  for (i in seq_along(p$id)) {
-    d[[i]] <-
-      cbind(id = p$id[i], generateTestData(forms, p[i, 1:4], alphas, n = 2))
-  }
-  d <- do.call(rbind, d)
-  d$norm_factor <- 1
-  f <- ll_shared_params (d, forms, p, names(alphas), size = 1e3)
+  f <- ll_shared_params(
+    count_data = g$data,
+    forms = forms,
+    individual_params =  g$params,
+    shared_param_names = names(g$shared_params),
+    size = 1e2
+  )
   res <- optim(
-    rep(1, 4),
-    f,
+    par = runif(4, .3, 3),
+    fn = f,
     method = "L-BFGS-B",
-    lower = rep(1e-9, length(alphas)),
+    lower = rep(1e-9, length(g$shared_params)),
     upper = c(15, 15, 4, 4)
   )
-  res <- cbind(correct = unlist(alphas), estimated = res$par)
-  rownames(res) <- names(alphas)
-  res
+  abs(1 - unlist(g$shared_params) / res$par)
 }
 
 testFitModel <- function() {
