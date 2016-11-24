@@ -33,7 +33,7 @@ generateTestData <- function(n, replicates) {
     beta_lab = 1
   )
   size <- 1e2
-  d <- lapply (seq_along(p$id), function(i) {
+  d <- lapply(seq_along(p$id), function(i) {
     cbind(id = p$id[i],
           generateTestDataSingle(forms, p[i, -1], alphas, n = replicates))
   })
@@ -110,47 +110,30 @@ testSharedParams <- function(n = 2, replicates = 2) {
   abs(1 - unlist(g$shared_params) / res$par)
 }
 
-testFitModel <- function() {
-  # Make data
-  d <- list()
-  p <- data.frame(
-    mu_n = c(100, 1000),
-    mu_h = c(50, 500),
-    a_n = c(.5, .8),
-    a_h = c(.8, .5)
-  )
-  param_names <- names(p)
-  alphas <-
-    list(
-      alpha_chase = 2,
-      alpha_lab = 1.5,
-      beta_chase = 1,
-      beta_lab = .8
-    )
-  p$id <- c("b", "a")
-  for (i in seq_along(p$id)) {
-    d[[i]] <- cbind(id = p$id[i],
-                    generateTestData(forms, p[i, param_names], alphas, n = 2))
-  }
-  d <- do.call(rbind, d)
-  d$norm_factor <- 1
+testFitModel <- function(n = 2, replicates = 2) {
+  g <- generateTestData(n = n, r = replicates)
+  d <- g$data
   d <- d[sample(length(d$id)),]
-  # Fit
+  individual_params <- g$params[, which(names(g$params) != "id")]
+  individual_params[,] <- .1
+  individual_params$id <- g$params$id
   options <- list(
     lower_boundary = rep(1e-9, 4),
     upper_boundary = c(1e5, 1e5, 1, 1) - 1e-1,
     lower_boundary_shared = rep(1e-9, 4),
-    upper_boundary_shared = rep(5, 4)
+    upper_boundary_shared = rep(5, 4),
+    cores = 2
   )
-  individual_params <- as.data.frame(p[, -5])
-  individual_params[,] <- .1
-  individual_params$id <- p$id
   fitResult <-
-    fitModel (d,  forms, individual_params, alphas, options)
-  ip <- rbind(estimated = fitResult$individual_params,
-              correct = p)
-  ip <- split(ip, ip$id)
-  sp <- rbind(estimated = fitResult$shared_params, correct = alphas)
-  print(ip)
-  print(sp)
+    fitModel(d,  forms, individual_params, g$shared_params, options)
+  p <- fitResult$individual_params
+  errors <-
+    abs(1 - p[, which(names(p) != "id"), drop = FALSE] /
+          g$params[, which(names(g$params) != "id"), drop = FALSE])
+  list(
+    individual_err = errors,
+    shared_err = abs(
+      1 - unlist(fitResult$shared_params) / unlist(g$shared_params)
+    )
+  )
 }
