@@ -1,3 +1,5 @@
+library(parallel)
+
 #from pryr package
 substitute_q <- function (x, env)
 {
@@ -63,35 +65,34 @@ contaminate <- function(formulas,
 }
 
 
-ll_gene <-
-  function(count_data,
-           forms,
-           param_names,
-           size,
-           shared_params = NULL) {
-    conditions <- count_data$condition
-    counts <- count_data$count
-    norm_factors <- count_data$norm_factor
-    stopifnot(!is.null(conditions),
-              !is.null(norm_factors),
-              !is.null(counts))
-    mean_indexes <- sapply(conditions, match, names(forms))
-    if (!is.null(shared_params) && !anyNA(forms))
-      forms <- lapply(forms, substitute_q, shared_params)
-    means_vector <- makeVector(forms)
-    funquote <- substitute(function(params) {
-      names(params) <- param_names
-      mus <- eval(means_vector, as.list(params))
-      lambdas <- mus[mean_indexes] + 1e-10
-      - sum(dnbinom(
-        counts,
-        mu = lambdas * norm_factors,
-        log = TRUE,
-        size = size
-      ))
-    }, parent.frame())
-    eval(funquote)
-  }
+ll_gene <- function(count_data,
+                    formulas,
+                    param_names,
+                    size,
+                    shared_params = NULL) {
+  conditions <- count_data$condition
+  counts <- count_data$count
+  norm_factors <- count_data$norm_factor
+  stopifnot(!is.null(conditions),
+            !is.null(norm_factors),
+            !is.null(counts))
+  mean_indexes <- sapply(conditions, match, names(formulas))
+  if (!is.null(shared_params) && !anyNA(formulas))
+    formulas <- lapply(formulas, substitute_q, shared_params)
+  means_vector <- makeVector(formulas)
+  funquote <- substitute(function(params) {
+    names(params) <- param_names
+    mus <- eval(means_vector, as.list(params))
+    lambdas <- mus[mean_indexes] + 1e-10
+    - sum(dnbinom(
+      counts,
+      mu = lambdas * norm_factors,
+      log = TRUE,
+      size = size
+    ))
+  }, parent.frame())
+  eval(funquote)
+}
 
 getMeansEstimatingFunction <- function(count_data,
                                        individual_params,
@@ -107,14 +108,14 @@ getMeansEstimatingFunction <- function(count_data,
   means_for_genes <- list()
   for (i in 1:gene_number) {
     means_for_genes[[i]] <-
-      substitute_q(forms_vector, env = individual_params[i,])
+      substitute_q(forms_vector, env = individual_params[i, ])
   }
   means_matrix <-
     matrix(0, ncol = length(forms), nrow = gene_number)
   function(shared_params) {
     names(shared_params) <- shared_param_names
-    means_matrix <- do.call(rbind,
-                            lapply(means_for_genes, eval, envir = as.list(shared_params)))
+    means_matrix <- do.call(rbind, lapply(means_for_genes, eval,
+                                          envir = as.list(shared_params)))
     means_matrix[means_indexes]
   }
 }
@@ -158,14 +159,17 @@ fitIndividualParameters <- function(old_params,
                                     splitted_data,
                                     formulas,
                                     shared_params,
-                                    options) {
-  verbose <- options$verbose
-  if (verbose == "verbose") {
-    ngene <- dim(old_params)[1]
-  }
+                                    options,
+                                    size) {
   param_names <- setdiff(names(old_params), "id")
-  objectives <- lapply(splitted_data, ll_gene, formulas,
-                       param_names, shared_params)
+  objectives <- lapply(
+    splitted_data,
+    ll_gene,
+    formulas = formulas,
+    param_names = param_names,
+    size = size,
+    shared_params = shared_params
+  )
   ids <- old_params$id
   old_params <- split(old_params[, param_names],
                       old_params$id)[names(objectives)]
