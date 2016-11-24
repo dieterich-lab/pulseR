@@ -199,11 +199,13 @@ fitSharedParameters <- function(old_shared_params,
                                 count_data,
                                 formulas,
                                 individual_params,
-                                options) {
+                                options,
+                                size) {
   shared_objective <- ll_shared_params(count_data,
                                        formulas,
                                        individual_params,
-                                       names(old_shared_params))
+                                       names(old_shared_params),
+                                       size)
   shared_params <- optim(
     unlist(old_shared_params),
     shared_objective,
@@ -228,6 +230,8 @@ evaluateLikelihood <- function(shared_params,
   shared_objective(unlist(shared_params))
 }
 
+fitDispersion <- function() 100
+
 # options is a list with records
 # - individual_rel_err
 # - shared_rel_tol
@@ -238,7 +242,7 @@ fitModel <- function(count_data,
                      options = list()) {
   require(parallel)
   conditions <- names(formulas)
-  count_data <- count_data[count_data$condition %in% conditions, ]
+  count_data <- count_data[count_data$condition %in% conditions,]
   splitted_data <- split(count_data, count_data$id)
   param_names <- setdiff(names(individual_params), "id")
   shared_param_names <- names(shared_params)
@@ -251,6 +255,7 @@ fitModel <- function(count_data,
   )
   individual_rel_err <- 10 * opts$individual_rel_tol
   shared_rel_err <- 10 * opts$shared_rel_tol
+  size <- 100
   if (is.null(shared_params))
     shared_rel_err <- 0
   while (individual_rel_err > opts$individual_rel_tol ||
@@ -260,8 +265,15 @@ fitModel <- function(count_data,
     # Fit params for every genes individually
     log2screen(opts, "Fitting gene-specific params")
     old_params <- individual_params
-    individual_params <-  fitIndividualParameters(old_params, splitted_data,
-                                                  formulas, shared_params, opts)
+    individual_params <-
+      fitIndividualParameters(
+        old_params = old_params,
+        splitted_data = splitted_data,
+        formulas = formulas,
+        shared_params = shared_params,
+        options = opts,
+        size = size
+      )
     individual_rel_err <-
       max(abs(1 - individual_params[, param_names] / old_params[, param_names]))
     # Fit shared params
@@ -270,26 +282,20 @@ fitModel <- function(count_data,
       log2screen(opts, "Fitting shared params")
       old_shared_params <- shared_params
       shared_params <-
-        fitSharedParameters(shared_params,
-                            count_data,
-                            formulas,
-                            individual_params,
-                            opts)
+        fitSharedParameters(
+          old_shared_params = shared_params,
+          count_data        = count_data,
+          formulas          = formulas,
+          individual_params = individual_params,
+          options           = opts,
+          size              = size
+        )
       shared_rel_err <-
         1 - unlist(shared_params) / unlist(old_shared_params)
       log2screen(opts, "Shared params\n")
       log2screen(opts, toString(shared_params), "\n")
     }
-    if (!is.null(opts$result_name)) {
-      assign(
-        opts$result_name,
-        value = list(
-          individual_params = individual_params,
-          shared_params = shared_params
-        ),
-        env = globalenv()
-      )
-    }
+    size <- fitDispersion()
   }
-  list(individual_params = individual_params, shared_params = shared_params)
+  list(individual_rel_err = individual_rel_err, shared_params = shared_params)
 }
