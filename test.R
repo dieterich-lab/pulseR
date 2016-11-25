@@ -40,6 +40,7 @@ generateTestData <- function(n, replicates) {
   data <- do.call(rbind, d)
   list(data = data,
        params = p,
+       size=size,
        shared_params = alphas)
 }
 
@@ -79,11 +80,10 @@ testIndividualGeneParams <- function(n = 2, replicates = 2) {
     upper_boundary_shared = rep(5, 4),
     cores = 2
   )
-  size <- 1e2
   data <- split(g$data, g$data$id)
   guess <- guess_params(data, g$params)
-  estimation <-
-    fitIndividualParameters(guess, data, forms, g$shared_params, options, size)
+  estimation <- fitIndividualParameters(guess, data, forms, g$shared_params,
+                                        options, g$size)
   errors <-
     abs(1 - estimation[, which(names(estimation) != "id"), drop = FALSE] /
           g$params[, which(names(g$params) != "id"), drop = FALSE])
@@ -99,21 +99,36 @@ testSharedParams <- function(n = 2, replicates = 2) {
     upper_boundary_shared = rep(5, 4),
     cores = 2
   )
-  f <- ll_shared_params(
-    count_data = g$data,
-    forms = forms,
-    individual_params =  g$params,
-    shared_param_names = names(g$shared_params),
-    size = 1e2
+  shared_guess <- lapply(g$shared_params, function(x) runif(1, .3, 3.))
+  
+  res <- fitSharedParameters (shared_guess,
+                       g$data,
+                       forms,
+                       g$params,
+                       options,
+                       g$size)
+  abs(1 - unlist(g$shared_params) / unlist(res))
+}
+
+testFitDispersion <- function(n = 2, replicates = 2) {
+  g <- generateTestData(n = n, replicates = replicates)
+  options <- list(
+    lower_boundary = rep(1e-9, 4),
+    upper_boundary = c(1e5, 1e5, 1, 1) - 1e-1,
+    lower_boundary_shared = rep(1e-9, 4),
+    upper_boundary_shared = rep(5, 4),
+    lower_boundary_size = 1 / 10,
+    upper_boundary_size = 1e10,
+    cores = 2
   )
-  res <- optim(
-    par = runif(4, .3, 3),
-    fn = f,
-    method = "L-BFGS-B",
-    lower = rep(1e-9, length(g$shared_params)),
-    upper = c(15, 15, 4, 4)
-  )
-  abs(1 - unlist(g$shared_params) / res$par)
+  dispersion_guess <- runif(1, 1 / 10, 1e3)
+  res <- fitDispersion(g$shared_params,
+                       g$data,
+                       forms,
+                       g$params,
+                       options,
+                       dispersion_guess)
+  abs(1 - g$size / res)
 }
 
 testFitModel <- function(n = 2, replicates = 2) {
@@ -137,7 +152,10 @@ testFitModel <- function(n = 2, replicates = 2) {
   p <- fitResult$individual_params
   errors <- abs(1 - p[, which(names(p) != "id"), drop = FALSE] /
                   g$params[, which(names(g$params) != "id"), drop = FALSE])
-  list(individual_err = errors,
-       shared_err =
-         abs(1 - unlist(fitResult$shared_params) / unlist(g$shared_params)))
+  list(
+    individual_err = errors,
+    shared_err = abs(1 - unlist(fitResult$shared_params) /
+                       unlist(g$shared_params)),
+    size_err = abs(1 - fitResult$size / g$size)
+  )
 }
