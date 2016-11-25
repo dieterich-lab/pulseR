@@ -140,6 +140,27 @@ ll_shared_params <- function(count_data,
   }
 }
 
+ll_dispersion <- function(count_data,
+                          forms,
+                          individual_params,
+                          shared_params,
+                          size) {
+  estimateMeans <-
+    getMeansEstimatingFunction(count_data, individual_params,
+                               forms, names(shared_params))
+  lambdas <- estimateMeans(shared_params) + 1e-10
+  lambdas <- lambdas * count_data$norm_factor
+  function(size) {
+    -sum(dnbinom(
+      x = count_data$count,
+      mu = lambdas,
+      log = TRUE,
+      size = size
+    ))
+  }
+}
+
+
 predict.expression <- function(count_data, model, forms) {
   estimateMeans <- getMeansEstimatingFunction(count_data,
                                               model$individual_params,
@@ -230,7 +251,22 @@ evaluateLikelihood <- function(shared_params,
   shared_objective(unlist(shared_params))
 }
 
-fitDispersion <- function() 100
+fitDispersion <- function(shared_params,
+                          count_data,
+                          formulas,
+                          individual_params,
+                          options,
+                          size) {
+  dispersion_objective <- ll_dispersion(count_data,
+                                        formulas,
+                                        individual_params,
+                                        shared_params,
+                                        size)
+  size <- optimise(dispersion_objective,
+                   interval = unlist(options[c("lower_boundary_size",
+                                               "upper_boundary_size")]))$minimum
+  size
+}
 
 # options is a list with records
 # - individual_rel_err
@@ -242,7 +278,7 @@ fitModel <- function(count_data,
                      options = list()) {
   require(parallel)
   conditions <- names(formulas)
-  count_data <- count_data[count_data$condition %in% conditions,]
+  count_data <- count_data[count_data$condition %in% conditions, ]
   splitted_data <- split(count_data, count_data$id)
   param_names <- setdiff(names(individual_params), "id")
   shared_param_names <- names(shared_params)
@@ -251,7 +287,9 @@ fitModel <- function(count_data,
     shared_rel_tol = 1e-2,
     verbose = "silent",
     update_inital_parameters = FALSE,
-    cores = 1
+    cores = 1,
+    lower_boundary_size = 10,
+    upper_boundary_size = 1e10
   )
   individual_rel_err <- 10 * opts$individual_rel_tol
   if (is.null(shared_params)) {
@@ -259,11 +297,11 @@ fitModel <- function(count_data,
   } else {
     shared_rel_err <- 10 * opts$shared_rel_tol
   }
-  size <- 100
+  size <- 1000
+  opts[names(options)] <- options
   while (individual_rel_err > opts$individual_rel_tol ||
          shared_rel_err > opts$shared_rel_tol) {
     shared_params <- as.list(shared_params)
-    opts[names(options)] <- options
     # Fit params for every genes individually
     log2screen(opts, "Fitting gene-specific params")
     old_params <- individual_params
@@ -292,12 +330,22 @@ fitModel <- function(count_data,
           options           = opts,
           size              = size
         )
-      shared_rel_err <- max(
-        abs(1 - unlist(shared_params) / unlist(old_shared_params)))
+      shared_rel_err <- max(abs(1 - unlist(shared_params) / unlist(old_shared_params)))
       log2screen(opts, "Shared params\n")
       log2screen(opts, toString(shared_params), "\n")
     }
-    size <- fitDispersion()
+    size <- fitDispersion(
+      shared_params = shared_params,
+      count_data = count_data,
+      formulas = formulas,
+      individual_params = individual_params,
+      options = opts,
+      size = size
+    )
   }
-  list(individual_params = individual_params, shared_params = shared_params)
+  list(
+    individual_params = individual_params,
+    shared_params = shared_params,
+    size = size
+  )
 }
