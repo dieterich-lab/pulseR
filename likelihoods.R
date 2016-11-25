@@ -4,36 +4,8 @@ library(parallel)
 substitute_q <- function (x, env)
 {
   stopifnot(is.language(x))
-  env <- to_env(env)
   call <- substitute(substitute(x, env), list(x = x))
   eval(call)
-}
-
-# from pryr package
-to_env <-  function (x, quiet = FALSE)
-{
-  if (is.environment(x)) {
-    x
-  }
-  else if (is.list(x)) {
-    list2env(x)
-  }
-  else if (is.function(x)) {
-    environment(x)
-  }
-  else if (length(x) == 1 && is.character(x)) {
-    if (!quiet)
-      message("Using environment ", x)
-    as.environment(x)
-  }
-  else if (length(x) == 1 && is.numeric(x) && x > 0) {
-    if (!quiet)
-      message("Using environment ", search()[x])
-    as.environment(x)
-  }
-  else {
-    stop("Input can not be coerced to an environment", call. = FALSE)
-  }
 }
 
 MeanFormulas <- function(...) {
