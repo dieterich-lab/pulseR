@@ -71,7 +71,7 @@ getMeansEstimatingFunction <- function(count_data,
                                        forms,
                                        shared_param_names) {
   gene_number <- length(individual_params$id)
-  individual_params$id <- as.factor(individual_params$id)
+  #individual_params$id <- as.factor(individual_params$id)
   forms_vector <- makeVector(forms)[[1]]
   condition_indexes <-
     sapply(count_data$condition, match, names(forms))
@@ -251,9 +251,11 @@ fitModel <- function(count_data,
                      shared_params = NULL,
                      options = list()) {
   require(parallel)
+  params <- params[order(params$id),]
+  count_data <- count_data[order(count_data$id),]
   conditions <- names(formulas)
   count_data <- count_data[count_data$condition %in% conditions, ]
-  #count_data <- count_data[order(count_data$id),]
+  count_data <- count_data[order(count_data$id),]
   splitted_data <- split(count_data, count_data$id)
   param_names <- setdiff(names(params), "id")
   opts <- list(
@@ -286,11 +288,9 @@ fitModel <- function(count_data,
       options = opts,
       size = size
     )
-    print(params)
     rel_err <- getMaxRelDifference(params[, param_names], old_params[, param_names])
     # Fit shared params
     if (!is.null(shared_params)) {
-      print(unlist(shared_params))
       log2screen(opts, rep(" ", 100, "\r"))
       log2screen(opts, "Fitting shared params")
       old_shared_params <- shared_params
@@ -314,7 +314,6 @@ fitModel <- function(count_data,
       options = opts,
       size = size
     )
-    print(size)
   }
   list(
     individual_params = params,

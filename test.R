@@ -20,10 +20,6 @@ generateTestDataSingle <- function(forms,
 generateTestData <- function(n, replicates) {
   genes <- replicate(n, paste0(letters[sample(25, 10)], collapse = ""))
   genes <- paste0("ENS0000000000000000000000", genes)
- # genes <-sort(genes)
-  genes <- letters[1:n]
- # genes <- 1:n
-  print(genes)
   p <- data.frame(
     id = genes,
     mu_n = runif(n, 1e2, 50000),
@@ -87,6 +83,8 @@ testIndividualGeneParams <- function(n = 2, replicates = 2) {
     upper_boundary_shared = rep(5, 4),
     cores = 2
   )
+  g$data <- g$data[order(g$data$id),]
+  g$params <- g$params[order(g$params$id),]
   data <- split(g$data, g$data$id)
   guess <- guess_params(data, g$params)
   estimation <- fitIndividualParameters(guess, data, forms, g$shared_params,
@@ -106,6 +104,8 @@ testSharedParams <- function(n = 2, replicates = 2) {
     upper_boundary_shared = rep(5, 4),
     cores = 2
   )
+  g$data <- g$data[order(g$data$id),]
+  g$params <- g$params[order(g$params$id),]
   shared_guess <- lapply(g$shared_params, function(x) runif(1, .3, 3.))
   
   res <- fitSharedParameters (shared_guess,
@@ -141,7 +141,7 @@ testFitDispersion <- function(n = 2, replicates = 2) {
 testFitModel <- function(n = 2, replicates = 2) {
   g <- generateTestData(n = n, replicates = replicates)
   d <- g$data
-  #d <- d[sample(length(d$id)), ]
+  d <- d[sample(length(d$id)), ]
   individual_params <- g$params[, which(names(g$params) != "id")]
   individual_params[, ] <- .1
   individual_params$id <- g$params$id
@@ -158,6 +158,8 @@ testFitModel <- function(n = 2, replicates = 2) {
   shared_guess <- lapply(g$shared_params, function(x) runif(1, .3, 3.))
   fitResult <- fitModel(d,  forms, guess, shared_guess, options)
   p <- fitResult$individual_params
+  g$params <- g$params[order(g$params$id),]
+  p <- p[order(p$id),]
   errors <- (1 - p[, which(names(p) != "id"), drop = FALSE] /
                   g$params[, which(names(g$params) != "id"), drop = FALSE])
   list(
