@@ -18,23 +18,24 @@ generateTestDataSingle <- function(forms,
 }
 
 generateTestData <- function(n, replicates) {
-  genes <- paste0("ENS0000000000000000", letters[1:n])
+  genes <- replicate(n, paste0(letters[sample(25, 10)], collapse = ""))
+  genes <- paste0("ENS0000000000000000000000", genes)
+ # genes <-sort(genes)
   genes <- letters[1:n]
-  genes <- replicate(n, paste0(letters[sample(25, n)], collapse = ""))
-  # genes <- 1:n
+ # genes <- 1:n
   print(genes)
   p <- data.frame(
     id = genes,
-    mu_n = runif(n, 1e3, 5000),
-    mu_h = runif(n, 1e3, 5000),
+    mu_n = runif(n, 1e2, 50000),
+    mu_h = runif(n, 1e2, 50000),
     a_n  = runif(n, .05, .8),
     a_h  = runif(n, .05, .8)
   )
   alphas <- list(
     alpha_chase = 1,
-    alpha_lab = 1,
+    alpha_lab = 2,
     beta_chase = 1,
-    beta_lab = 1
+    beta_lab = 2
   )
   size <- 1e2
   d <- lapply(seq_along(p$id), function(i) {
@@ -140,17 +141,18 @@ testFitDispersion <- function(n = 2, replicates = 2) {
 testFitModel <- function(n = 2, replicates = 2) {
   g <- generateTestData(n = n, replicates = replicates)
   d <- g$data
-  d <- d[sample(length(d$id)), ]
+  #d <- d[sample(length(d$id)), ]
   individual_params <- g$params[, which(names(g$params) != "id")]
   individual_params[, ] <- .1
   individual_params$id <- g$params$id
   options <- list(
-    lower_boundary = rep(1e-9, 4),
+    lower_boundary =c(1,1,0,0),
     upper_boundary = c(1e5, 1e5, 1, 1) - 1e-1,
     lower_boundary_shared = rep(1e-9, 4),
     upper_boundary_shared = rep(5, 4),
-    cores = 2,
-    share_rel_tol = 1e-3
+    lower_boundary_size = 1 / 10,
+    upper_boundary_size = 1e10,
+    cores = 2
   )
   guess <- guess_params(split(d, d$id), individual_params)
   shared_guess <- lapply(g$shared_params, function(x) runif(1, .3, 3.))
