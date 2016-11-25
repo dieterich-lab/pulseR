@@ -150,12 +150,12 @@ testFitModel <- function(n = 2, replicates = 2) {
   shared_guess <- lapply(g$shared_params, function(x) runif(1, .3, 3.))
   fitResult <- fitModel(d,  forms, guess, shared_guess, options)
   p <- fitResult$individual_params
-  errors <- abs(1 - p[, which(names(p) != "id"), drop = FALSE] /
+  errors <- (1 - p[, which(names(p) != "id"), drop = FALSE] /
                   g$params[, which(names(g$params) != "id"), drop = FALSE])
   list(
     individual_err = errors,
-    shared_err = abs(1 - unlist(fitResult$shared_params) /
+    shared_err = (1 - unlist(fitResult$shared_params) /
                        unlist(g$shared_params)),
-    size_err = abs(1 - fitResult$size / g$size)
+    size_err = (1 - fitResult$size / g$size)
   )
 }
