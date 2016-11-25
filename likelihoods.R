@@ -169,14 +169,16 @@ fitIndividualParameters <- function(old_params,
   new_params <- list()
   new_params <- mcmapply(
     function(obj, olds) {
+      olds <- unlist(olds)
       optim(
-        unlist(olds),
+        olds,
         obj,
         method = "L-BFGS-B",
         lower = options$lower_boundary,
-        upper = options$upper_boundary
+        upper = options$upper_boundary,
+        control=list(parscale = olds)
       )$par
-    },
+    }, 
     objectives,
     old_params,
     SIMPLIFY = FALSE,
@@ -283,7 +285,7 @@ fitModel <- function(count_data,
       options = opts,
       size = size
     )
-    rel_err <- max(abs(1 - params[, param_names] / old_params[, param_names]))
+    rel_err <- getMaxRelDifference(params[, param_names], old_params[, param_names])
     # Fit shared params
     if (!is.null(shared_params)) {
       log2screen(opts, rep(" ", 100, "\r"))
@@ -297,8 +299,7 @@ fitModel <- function(count_data,
         options           = opts,
         size              = size
       )
-      shared_rel_err <- max(abs(1 - unlist(shared_params) /
-                                  unlist(old_shared_params)))
+      shared_rel_err <- getMaxRelDifference(shared_params, old_shared_params)
       log2screen(opts, "Shared params\n")
       log2screen(opts, toString(shared_params), "\n")
     }
@@ -317,3 +318,5 @@ fitModel <- function(count_data,
     size = size
   )
 }
+
+getMaxRelDifference <- function(x,y) max(abs(1 - unlist(x)/unlist(y)))
