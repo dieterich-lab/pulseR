@@ -18,7 +18,11 @@ generateTestDataSingle <- function(forms,
 }
 
 generateTestData <- function(n, replicates) {
+  genes <- paste0("ENS0000000000000000", letters[1:n])
   genes <- letters[1:n]
+  genes <- replicate(n, paste0(letters[sample(25, n)], collapse = ""))
+  # genes <- 1:n
+  print(genes)
   p <- data.frame(
     id = genes,
     mu_n = runif(n, 1e3, 5000),
@@ -38,10 +42,12 @@ generateTestData <- function(n, replicates) {
           generateTestDataSingle(forms, p[i, -1], alphas, n = replicates))
   })
   data <- do.call(rbind, d)
-  list(data = data,
-       params = p,
-       size=size,
-       shared_params = alphas)
+  list(
+    data = data,
+    params = p,
+    size = size,
+    shared_params = alphas
+  )
 }
 
 forms <- MeanFormulas(
