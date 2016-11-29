@@ -31,11 +31,19 @@ contaminate <- function(formulas,
     deparse(substitute(contaminant_condition))
   f1 <- deparse(formulas[[target_condition]])
   f2 <- deparse(formulas[[contaminant_condition]])
-  e <-
-    paste("(1-", coef_name, ")*(", f1, ")+", coef_name, "*(", f2, ")")
+  e <- paste("(1-", coef_name, ")*(", f1, ")+", coef_name, "*(", f2, ")")
   parse(text = e)[[1]]
 }
 
+constructFormulas <- function(formulas, conditions) {
+  result <- lapply(rownames(conditions), function(x) {
+    sampleCondition <- conditions[x, 1L]
+    substitute_q(formulas[[sampleCondition]],
+                 conditions[x, -1, drop = FALSE])
+  })
+  names(result) <- rownames(conditions)
+  result
+}
 
 ll_gene <- function(count_data,
                     formulas,
