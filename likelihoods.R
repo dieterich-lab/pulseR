@@ -45,24 +45,21 @@ constructFormulas <- function(formulas, conditions) {
   result
 }
 
-ll_gene <- function(count_data,
+ll_gene <- function(counts,
+                    conditions,
                     formulas,
                     param_names,
                     size,
+                    norm_factors = rep(1, dim(counts)[2]),
                     shared_params = NULL) {
-  conditions <- count_data$condition
-  counts <- count_data$count
-  norm_factors <- count_data$norm_factor
-  stopifnot(!is.null(conditions),
-            !is.null(norm_factors),
-            !is.null(counts))
   mean_indexes <- sapply(conditions, match, names(formulas))
   if (!is.null(shared_params) && !anyNA(formulas))
     formulas <- lapply(formulas, substitute_q, shared_params)
   means_vector <- makeVector(formulas)
-  funquote <- substitute(function(params) {
+  funquote <- function(params) {
     names(params) <- param_names
     mus <- eval(means_vector, as.list(params))
+    #  mus <- with(as.list(params),.(means_vector))
     lambdas <- mus[mean_indexes] + 1e-10
     - sum(dnbinom(
       counts,
@@ -70,8 +67,8 @@ ll_gene <- function(count_data,
       log = TRUE,
       size = size
     ))
-  }, parent.frame())
-  eval(funquote)
+  }
+  funquote
 }
 
 getMeansEstimatingFunction <- function(count_data,
