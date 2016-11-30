@@ -114,13 +114,13 @@ testSharedParams <- function(n = 2, replicates = 2) {
     upper_boundary_shared = rep(5, 4),
     cores = 2
   )
-  g$data <- g$data[order(g$data$id),]
-  g$params <- g$params[order(g$params$id),]
   shared_guess <- lapply(g$shared_params, function(x) runif(1, .3, 3.))
+  data <- split(g$data, rownames(g$data))
+  params <- split(g$params, rownames(g$params))
   res <- fitSharedParameters (shared_guess,
-                       g$data,
+                       data,
                        forms,
-                       g$params,
+                       params,
                        options,
                        g$size)
   abs(1 - unlist(g$shared_params) / unlist(res))
