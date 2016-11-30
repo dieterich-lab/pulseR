@@ -218,14 +218,18 @@ fitSharedParameters <- function(old_shared_params,
 
 evaluateLikelihood <- function(shared_params,
                                individual_params,
+                               size,
                                count_data,
                                formulas) {
   conditions <- names(formulas)
   count_data <- count_data[count_data$condition %in% conditions, ]
-  shared_objective <- ll_shared_params(count_data,
-                                       formulas,
-                                       individual_params,
-                                       names(shared_params))
+  shared_objective <- ll_shared_params(
+    count_data = count_data,
+    forms = formulas,
+    individual_params = individual_params,
+    shared_param_names = names(shared_params),
+    size = size
+  )
   shared_objective(unlist(shared_params))
 }
 
