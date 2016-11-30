@@ -66,12 +66,11 @@ forms <- MeanFormulas(
   biotin_chase_Hypox = beta_chase * (mu_n * (1 - a_n) * a_h)
 )
 
-guess_params <- function(data, params) {
-  mean_expression <-
-    unlist(lapply(data, function(x)
-      mean(x$count[x$condition == "total_Norm"])))
+guess_params <- function(data, conditions) {
+  totals <- data[, conditions$condition=="total_Norm"]
+  mean_expression <- apply(X=totals, FUN=mean, MARGIN=2)
   guess <- data.frame(
-    id = params$id,
+    id = names(mean_expression),
     mu_n = mean_expression,
     mu_h = mean_expression,
     a_n = .1,
