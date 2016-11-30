@@ -152,45 +152,45 @@ log2screen <- function(options, ...) {
     cat(...)
 }
 
+## params are a matrix with ids in rownames
+# counts are splitted
+# order is the same as in parameters
 fitIndividualParameters <- function(old_params,
-                                    splitted_data,
+                                    splitted_counts,
+                                    conditions,
                                     formulas,
                                     shared_params,
+                                    norm_factors = rep(1, dim(conditions)[1]),
                                     options,
                                     size) {
-  param_names <- setdiff(names(old_params), "id")
-  objectives <- lapply(
-    splitted_data,
-    ll_gene,
+  param_names <- names(old_params[[1]])
+  objective <- ll_gene(
+    conditions = conditions$condition,
     formulas = formulas,
     param_names = param_names,
     size = size,
+    norm_factors = norm_factors,
     shared_params = shared_params
   )
-  ids <- old_params$id
-  old_params <- split(old_params[, param_names],
-                      old_params$id)[names(objectives)]
   new_params <- list()
   new_params <- mcmapply(
-    function(obj, olds) {
+    function(olds, gene_counts) {
       olds <- unlist(olds)
       optim(
         olds,
-        obj,
+        objective,
         method = "L-BFGS-B",
         lower = options$lower_boundary,
         upper = options$upper_boundary,
-        control=list(parscale = olds)
+        control = list(parscale = olds),
+        counts = gene_counts
       )$par
-    }, 
-    objectives,
+    },
     old_params,
+    splitted_counts,
     SIMPLIFY = FALSE,
     mc.cores = options$cores
   )
-  new_params <- as.data.frame(do.call(rbind, new_params))
-  names(new_params) <- param_names
-  new_params$id <- ids
   new_params
 }
 

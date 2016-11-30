@@ -68,20 +68,20 @@ forms <- MeanFormulas(
 )
 
 guess_params <- function(data, conditions) {
-  totals <- data[, conditions$condition=="total_Norm"]
-  mean_expression <- apply(X=totals, FUN=mean, MARGIN=2)
+  totals <- data[, conditions$condition=="total_Norm", drop=FALSE]
+  mean_expression <- apply(X=totals, FUN=mean, MARGIN=1)
   guess <- data.frame(
-    id = names(mean_expression),
     mu_n = mean_expression,
     mu_h = mean_expression,
     a_n = .1,
     a_h = .1
   )
+  rownames(guess) <- rownames(data)
   guess
 }
 
 testIndividualGeneParams <- function(n = 2, replicates = 2) {
-  g <- generateTestData(n = n, r = replicates)
+  g <- generateTestData(n = n, replicates = replicates)
   options <- list(
     lower_boundary = rep(1e-9, 4),
     upper_boundary = c(1e5, 1e5, 1, 1) - 1e-1,
@@ -90,14 +90,19 @@ testIndividualGeneParams <- function(n = 2, replicates = 2) {
     cores = 2
   )
   data <- split(g$data, rownames(g$data))
-  g$params <- g$params[order(g$params$id),]
   guess <- guess_params(g$data, g$conditions)
-  estimation <- fitIndividualParameters(guess, data, forms, g$shared_params,
-                                        options, g$size)
-  errors <-
-    abs(1 - estimation[, which(names(estimation) != "id"), drop = FALSE] /
-          g$params[, which(names(g$params) != "id"), drop = FALSE])
-  unlist(errors)
+  guess <- split(guess, rownames(guess))
+  estimation <- fitIndividualParameters(
+    old_params = guess,
+    splitted_counts = data,
+    conditions = g$conditions,
+    formulas = forms,
+    shared_params = g$shared_params,
+    options = options,
+    size = g$size
+  )
+  errors <- abs(1 - do.call(rbind, estimation)[rownames(g$params),] / g$params)
+  errors
 }
 
 testSharedParams <- function(n = 2, replicates = 2) {
@@ -112,7 +117,6 @@ testSharedParams <- function(n = 2, replicates = 2) {
   g$data <- g$data[order(g$data$id),]
   g$params <- g$params[order(g$params$id),]
   shared_guess <- lapply(g$shared_params, function(x) runif(1, .3, 3.))
-  
   res <- fitSharedParameters (shared_guess,
                        g$data,
                        forms,
