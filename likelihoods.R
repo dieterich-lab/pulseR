@@ -45,8 +45,7 @@ constructFormulas <- function(formulas, conditions) {
   result
 }
 
-ll_gene <- function(counts,
-                    conditions,
+ll_gene <- function(conditions,
                     formulas,
                     param_names,
                     size,
@@ -56,12 +55,12 @@ ll_gene <- function(counts,
   if (!is.null(shared_params) && !anyNA(formulas))
     formulas <- lapply(formulas, substitute_q, shared_params)
   means_vector <- makeVector(formulas)
-  funquote <- function(params) {
+  funquote <- function(params, counts) {
     names(params) <- param_names
     mus <- eval(means_vector, as.list(params))
     #  mus <- with(as.list(params),.(means_vector))
     lambdas <- mus[mean_indexes] + 1e-10
-    - sum(dnbinom(
+    -sum(dnbinom(
       counts,
       mu = lambdas * norm_factors,
       log = TRUE,
