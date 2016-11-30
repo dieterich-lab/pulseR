@@ -100,19 +100,33 @@ ll_shared_params <- function(count_data,
                              shared_param_names,
                              size) {
   function(shared_params) {
-    mean_indexes <- sapply(conditions, match, names(formulas))
-    means <- lapply(formulas, function(x){
-         eval(substitute_q(x, shared_params), individual_params)
-    })
-    means <- do.call(cbind, means) + 1e-10
+    means <- getMeans (shared_params,
+                       shared_param_names,
+                       formulas,
+                       individual_params)
+  mean_indexes <- sapply(conditions, match, names(formulas))
     lambdas <- means[, mean_indexes]
-    -sum(dnbinom(
+    - sum(dnbinom(
       x = count_data,
       mu = lambdas * norm_factors,
       log = TRUE,
       size = size
     ))
   }
+}
+
+getMeans <- function(shared_params,
+                     shared_param_names,
+                     formulas,
+                     individual_params) {
+  names(shared_params) <- shared_param_names
+  shared_params <- as.list(shared_params)
+  means <- lapply(formulas, function(x) {
+    eval(substitute_q(x, shared_params),
+         envir = as.list(individual_params))
+  })
+  means <- do.call(cbind, means) + 1e-10
+  means
 }
 
 ll_dispersion <- function(count_data,
@@ -137,10 +151,6 @@ ll_dispersion <- function(count_data,
 
 
 predict.expression <- function(count_data, model, forms) {
-  estimateMeans <- getMeansEstimatingFunction(count_data,
-                                              model$individual_params,
-                                              forms,
-                                              names(model$shared_params))
   lambdas <- estimateMeans(model$shared_params)
   list(prediction = lambdas,
        logL = dpois(count_data$count, (lambdas + 1e-10), log = TRUE))
@@ -194,16 +204,22 @@ fitIndividualParameters <- function(old_params,
 }
 
 fitSharedParameters <- function(old_shared_params,
-                                splitted_counts,
+                                count_data,
+                                conditions,
                                 formulas,
                                 individual_params,
+                                norm_factors,
                                 options,
                                 size) {
-  shared_objective <- ll_shared_params(splitted_counts,
-                                       formulas,
-                                       individual_params,
-                                       names(old_shared_params),
-                                       size)
+  shared_objective <- ll_shared_params(
+    count_data = count_data,
+    conditions = conditions$condition,
+    norm_factors = norm_factors,
+    formulas = formulas,
+    individual_params = individual_params,
+    shared_param_names =  names(old_shared_params),
+    size =  size
+  )
   shared_params <- optim(
     unlist(old_shared_params),
     shared_objective,
@@ -216,18 +232,20 @@ fitSharedParameters <- function(old_shared_params,
 }
 
 evaluateLikelihood <- function(shared_params,
-                               individual_params,
-                               size,
                                count_data,
-                               formulas) {
-  conditions <- names(formulas)
-  count_data <- count_data[count_data$condition %in% conditions, ]
+                               conditions,
+                               formulas,
+                               individual_params,
+                               norm_factors,
+                               size) {
   shared_objective <- ll_shared_params(
     count_data = count_data,
-    forms = formulas,
+    conditions = conditions$condition,
+    norm_factors = norm_factors,
+    formulas = formulas,
     individual_params = individual_params,
-    shared_param_names = names(shared_params),
-    size = size
+    shared_param_names =  names(old_shared_params),
+    size =  size
   )
   shared_objective(unlist(shared_params))
 }
