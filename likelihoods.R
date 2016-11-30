@@ -19,7 +19,7 @@ makeVector <- function(forms) {
                   ),
                   collapse = ","),
                   ")")
-  parse(text = string)
+  parse(text = string)[[1]]
 }
 
 contaminate <- function(formulas,
