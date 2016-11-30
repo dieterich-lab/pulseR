@@ -106,7 +106,7 @@ testIndividualGeneParams <- function(n = 2, replicates = 2) {
 }
 
 testSharedParams <- function(n = 2, replicates = 2) {
-  g <- generateTestData(n = n, r = replicates)
+  g <- generateTestData(n = n, replicates = replicates)
   options <- list(
     lower_boundary = rep(1e-9, 4),
     upper_boundary = c(1e5, 1e5, 1, 1) - 1e-1,
@@ -115,14 +115,22 @@ testSharedParams <- function(n = 2, replicates = 2) {
     cores = 2
   )
   shared_guess <- lapply(g$shared_params, function(x) runif(1, .3, 3.))
-  data <- split(g$data, rownames(g$data))
-  params <- split(g$params, rownames(g$params))
-  res <- fitSharedParameters (shared_guess,
-                       data,
-                       forms,
-                       params,
-                       options,
-                       g$size)
+  #data <- split(g$data, rownames(g$data))
+  data <- g$data
+  #params <- split(g$params, rownames(g$params))
+  params <- g$params
+  norm_factors <- 1
+  conditions <- g$conditions
+  res <- fitSharedParameters (
+    old_shared_params = shared_guess,
+    count_data = data,
+    conditions = conditions,
+    formulas = forms,
+    individual_params = params,
+    norm_factors = norm_factors,
+    options = options,
+    size = g$size
+  )
   abs(1 - unlist(g$shared_params) / unlist(res))
 }
 
