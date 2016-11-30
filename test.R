@@ -24,12 +24,12 @@ generateTestData <- function(n, replicates) {
   genes <- replicate(n, paste0(letters[sample(25, 10)], collapse = ""))
   genes <- paste0("ENS00000", genes)
   p <- data.frame(
-    id = genes,
     mu_n = runif(n, 1e2, 50000),
     mu_h = runif(n, 1e2, 50000),
     a_n  = runif(n, .05, .8),
     a_h  = runif(n, .05, .8)
   )
+  rownames(p) <- genes
   alphas <- list(
     alpha_chase = 1,
     alpha_lab = 2,
@@ -37,8 +37,9 @@ generateTestData <- function(n, replicates) {
     beta_lab = 2
   )
   size <- 1e2
-  d <- lapply(seq_along(p$id), function(i) {
-    generateTestDataSingle(forms, p[i, -1], alphas, n = replicates)
+  d <- lapply(seq_along(rownames(p)), function(i) {
+    generateTestDataSingle(forms, p[i, ], alphas,
+                           conditions = conditions$condition)
   })
   data <- do.call(rbind, d)
   rownames(data) <- genes
@@ -88,10 +89,9 @@ testIndividualGeneParams <- function(n = 2, replicates = 2) {
     upper_boundary_shared = rep(5, 4),
     cores = 2
   )
-  g$data <- g$data[order(g$data$id),]
+  data <- split(g$data, rownames(g$data))
   g$params <- g$params[order(g$params$id),]
-  data <- split(g$data, g$data$id)
-  guess <- guess_params(data, g$params)
+  guess <- guess_params(g$data, g$conditions)
   estimation <- fitIndividualParameters(guess, data, forms, g$shared_params,
                                         options, g$size)
   errors <-
