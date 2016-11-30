@@ -3,14 +3,14 @@ source("likelihoods.R")
 generateTestDataSingle <- function(forms,
                                    individual_params,
                                    shared_params,
-                                   conditions=names(forms),
+                                   conditions = rep(names(forms), n),
                                    n = 1,
                                    size = 100) {
   means <- sapply(forms, eval,
                   c(as.list(individual_params), as.list(shared_params)))
   indexes <- match(conditions, names(forms))
-  counts <- rnbinom(n = length(conditions) * n,
-                    mu = means[indexes],
+  counts <- rnbinom(n    = length(conditions),
+                    mu   = means[indexes],
                     size = size)
   counts
 }
