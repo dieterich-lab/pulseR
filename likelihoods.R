@@ -100,11 +100,11 @@ ll_shared_params <- function(count_data,
                              shared_param_names,
                              size) {
   function(shared_params) {
+  names(shared_params) <- shared_param_names
     means <- getMeans (shared_params,
-                       shared_param_names,
                        formulas,
                        individual_params)
-  mean_indexes <- sapply(conditions, match, names(formulas))
+    mean_indexes <- sapply(conditions, match, names(formulas))
     lambdas <- means[, mean_indexes]
     - sum(dnbinom(
       x = count_data,
@@ -116,10 +116,8 @@ ll_shared_params <- function(count_data,
 }
 
 getMeans <- function(shared_params,
-                     shared_param_names,
                      formulas,
                      individual_params) {
-  names(shared_params) <- shared_param_names
   shared_params <- as.list(shared_params)
   means <- lapply(formulas, function(x) {
     eval(substitute_q(x, shared_params),
@@ -130,14 +128,17 @@ getMeans <- function(shared_params,
 }
 
 ll_dispersion <- function(count_data,
+                          conditions,
                           forms,
                           individual_params,
                           shared_params,
                           size) {
-  estimateMeans <-
-    getMeansEstimatingFunction(count_data, individual_params,
-                               forms, names(shared_params))
-  lambdas <- estimateMeans(shared_params) + 1e-10
+  means <- getMeans(shared_params,
+                     shared_param_names,
+                     formulas,
+                     individual_params)
+  mean_indexes <- sapply(conditions, match, names(formulas))
+  lambdas <- means[, mean_indexes]
   lambdas <- lambdas * count_data$norm_factor
   function(size) {
     -sum(dnbinom(
