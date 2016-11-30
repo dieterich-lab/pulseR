@@ -70,24 +70,20 @@ ll_gene <- function(conditions,
   funquote
 }
 
+## Individual params as list
 getMeansEstimatingFunction <- function(count_data,
                                        individual_params,
                                        forms,
                                        shared_param_names) {
-  gene_number <- length(individual_params$id)
-  #individual_params$id <- as.factor(individual_params$id)
-  forms_vector <- makeVector(forms)[[1]]
-  condition_indexes <-
-    sapply(count_data$condition, match, names(forms))
-  means_indexes <-
-    cbind(as.numeric(count_data$id), condition_indexes)
+  gene_number <- length(count_data)
+  forms_vector <- makeVector(forms)
+  mean_indexes <- sapply(conditions$condition, match, names(forms))
   means_for_genes <- list()
   for (i in 1:gene_number) {
     means_for_genes[[i]] <-
       substitute_q(forms_vector, env = individual_params[i, ])
   }
-  means_matrix <-
-    matrix(0, ncol = length(forms), nrow = gene_number)
+  means_matrix <- matrix(0, ncol = length(forms), nrow = gene_number)
   function(shared_params) {
     names(shared_params) <- shared_param_names
     means_matrix <- do.call(rbind, lapply(means_for_genes, eval,
@@ -97,18 +93,21 @@ getMeansEstimatingFunction <- function(count_data,
 }
 
 ll_shared_params <- function(count_data,
-                             forms,
+                             conditions,
+                             norm_factors,
+                             formulas,
                              individual_params,
                              shared_param_names,
                              size) {
-  estimateMeans <-
-    getMeansEstimatingFunction(count_data, individual_params,
-                               forms, shared_param_names)
-  norm_factors <- count_data$norm_factor
   function(shared_params) {
-    lambdas <- estimateMeans(shared_params) + 1e-10
+    mean_indexes <- sapply(conditions, match, names(formulas))
+    means <- lapply(formulas, function(x){
+         eval(substitute_q(x, shared_params), individual_params)
+    })
+    means <- do.call(cbind, means) + 1e-10
+    lambdas <- means[, mean_indexes]
     -sum(dnbinom(
-      x = count_data$count,
+      x = count_data,
       mu = lambdas * norm_factors,
       log = TRUE,
       size = size
@@ -195,12 +194,12 @@ fitIndividualParameters <- function(old_params,
 }
 
 fitSharedParameters <- function(old_shared_params,
-                                count_data,
+                                splitted_counts,
                                 formulas,
                                 individual_params,
                                 options,
                                 size) {
-  shared_objective <- ll_shared_params(count_data,
+  shared_objective <- ll_shared_params(splitted_counts,
                                        formulas,
                                        individual_params,
                                        names(old_shared_params),
