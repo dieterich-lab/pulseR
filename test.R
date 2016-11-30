@@ -3,23 +3,26 @@ source("likelihoods.R")
 generateTestDataSingle <- function(forms,
                                    individual_params,
                                    shared_params,
+                                   conditions=names(forms),
                                    n = 1,
                                    size = 100) {
   means <- sapply(forms, eval,
                   c(as.list(individual_params), as.list(shared_params)))
-  counts <- rnbinom(n = length(means) * n,
-                    mu = means,
+  indexes <- match(conditions, names(forms))
+  counts <- rnbinom(n = length(conditions) * n,
+                    mu = means[indexes],
                     size = size)
-  data.frame(
-    condition = rep(names(forms), n),
-    count = counts,
-    norm_factor = 1
-  )
+  counts
 }
 
 generateTestData <- function(n, replicates) {
+  conditions <- list()
+  conditions$sample <- replicate(length(forms) * replicates,
+                                 paste0(letters[sample(25, 10)], collapse = ""))
+  conditions$condition <- names(forms)
+  conditions <- as.data.frame(conditions, stringAsFactors = FALSE)
   genes <- replicate(n, paste0(letters[sample(25, 10)], collapse = ""))
-  genes <- paste0("ENS0000000000000000000000", genes)
+  genes <- paste0("ENS00000", genes)
   p <- data.frame(
     id = genes,
     mu_n = runif(n, 1e2, 50000),
@@ -35,12 +38,15 @@ generateTestData <- function(n, replicates) {
   )
   size <- 1e2
   d <- lapply(seq_along(p$id), function(i) {
-    cbind(id = p$id[i],
-          generateTestDataSingle(forms, p[i, -1], alphas, n = replicates))
+    generateTestDataSingle(forms, p[i, -1], alphas, n = replicates)
   })
   data <- do.call(rbind, d)
+  rownames(data) <- genes
+  colnames(data) <- conditions$sample
+  rownames(conditions) <- conditions$sample
   list(
     data = data,
+    conditions = conditions[, -1, drop = FALSE],
     params = p,
     size = size,
     shared_params = alphas
