@@ -3,7 +3,6 @@ library(parallel)
 #from pryr package
 substitute_q <- function (x, env)
 {
-  stopifnot(is.language(x))
   call <- substitute(substitute(x, env), list(x = x))
   eval(call)
 }
