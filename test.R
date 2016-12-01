@@ -46,9 +46,9 @@ generateTestData <- function(n, replicates) {
   colnames(data) <- conditions$sample
   rownames(conditions) <- conditions$sample
   list(
-    data = data,
+    data = data[order(rownames(data)),],
     conditions = conditions[, -1, drop = FALSE],
-    params = p,
+    params = p[order(rownames(p)),],
     size = size,
     shared_params = alphas
   )
@@ -91,7 +91,6 @@ testIndividualGeneParams <- function(n = 2, replicates = 2) {
   )
   data <- split(g$data, rownames(g$data))
   guess <- guess_params(g$data, g$conditions)
-  guess <- split(guess, rownames(guess))
   estimation <- fitIndividualParameters(
     old_params = guess,
     splitted_counts = data,
@@ -101,7 +100,7 @@ testIndividualGeneParams <- function(n = 2, replicates = 2) {
     options = options,
     size = g$size
   )
-  errors <- abs(1 - do.call(rbind, estimation)[rownames(g$params),] / g$params)
+  errors <- abs(1 -estimation[rownames(g$params),] / g$params)
   errors
 }
 
@@ -161,10 +160,6 @@ testFitDispersion <- function(n = 2, replicates = 2) {
 testFitModel <- function(n = 2, replicates = 2) {
   g <- generateTestData(n = n, replicates = replicates)
   d <- g$data
-  d <- d[sample(length(d$id)), ]
-  individual_params <- g$params[, which(names(g$params) != "id")]
-  individual_params[, ] <- .1
-  individual_params$id <- g$params$id
   options <- list(
     lower_boundary =c(1,1,0,0),
     upper_boundary = c(1e5, 1e5, 1, 1) - 1e-1,
