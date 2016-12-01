@@ -89,11 +89,10 @@ testIndividualGeneParams <- function(n = 2, replicates = 2) {
     upper_boundary_shared = rep(5, 4),
     cores = 2
   )
-  data <- split(g$data, rownames(g$data))
   guess <- guess_params(g$data, g$conditions)
   estimation <- fitIndividualParameters(
     old_params = guess,
-    splitted_counts = data,
+    count_data = g$data,
     conditions = g$conditions,
     formulas = forms,
     shared_params = g$shared_params,
