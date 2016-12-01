@@ -166,7 +166,7 @@ testFitModel <- function(n = 2, replicates = 2) {
     upper_boundary_shared = rep(5, 4),
     lower_boundary_size = 1 / 10,
     upper_boundary_size = 1e10,
-    cores = 2
+    cores = 1
   )
   guess <- guess_params(g$data, g$conditions)
   shared_guess <- lapply(g$shared_params, function(x) runif(1, .3, 3.))
