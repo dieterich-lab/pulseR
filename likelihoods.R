@@ -199,7 +199,7 @@ fitIndividualParameters <- function(old_params,
   )
   new_params <- do.call(rbind, new_params)
   rownames(new_params) <- rownames(old_params)
-  new_params
+  as.data.frame(new_params)
 }
 
 fitSharedParameters <- function(old_shared_params,
@@ -275,18 +275,13 @@ fitDispersion <- function(shared_params,
 # - individual_rel_err
 # - shared_rel_tol
 fitModel <- function(count_data,
+                     conditions,
                      formulas,
                      params,
                      shared_params = NULL,
                      options = list()) {
   require(parallel)
-  params <- params[order(params$id),]
-  count_data <- count_data[order(count_data$id),]
-  conditions <- names(formulas)
-  count_data <- count_data[count_data$condition %in% conditions, ]
-  count_data <- count_data[order(count_data$id),]
-  splitted_data <- split(count_data, count_data$id)
-  param_names <- setdiff(names(params), "id")
+  param_names <- names(params)
   opts <- list(
     rel_tol = 1e-2,
     shared_rel_tol = 1e-2,
@@ -303,6 +298,7 @@ fitModel <- function(count_data,
     shared_rel_err <- 10 * opts$shared_rel_tol
   }
   size <- 1e2
+  norm_factors <- 1
   opts[names(options)] <- options
   while (rel_err > opts$rel_tol ||
          shared_rel_err > opts$shared_rel_tol) {
@@ -311,7 +307,7 @@ fitModel <- function(count_data,
     old_params <- params
     params <- fitIndividualParameters(
       old_params = old_params,
-      splitted_counts = splitted_data,
+      count_data = count_data,
       conditions = conditions,
       formulas = formulas,
       shared_params = shared_params,
@@ -328,8 +324,10 @@ fitModel <- function(count_data,
       shared_params <- fitSharedParameters(
         old_shared_params = shared_params,
         count_data        = count_data,
+        conditions        = conditions,
         formulas          = formulas,
         individual_params = params,
+        norm_factors      = norm_factors,
         options           = opts,
         size              = size
       )

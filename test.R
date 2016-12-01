@@ -158,7 +158,6 @@ testFitDispersion <- function(n = 2, replicates = 2) {
 
 testFitModel <- function(n = 2, replicates = 2) {
   g <- generateTestData(n = n, replicates = replicates)
-  d <- g$data
   options <- list(
     lower_boundary =c(1,1,0,0),
     upper_boundary = c(1e5, 1e5, 1, 1) - 1e-1,
@@ -168,14 +167,18 @@ testFitModel <- function(n = 2, replicates = 2) {
     upper_boundary_size = 1e10,
     cores = 2
   )
-  guess <- guess_params(split(d, d$id), individual_params)
+  guess <- guess_params(g$data, g$conditions)
   shared_guess <- lapply(g$shared_params, function(x) runif(1, .3, 3.))
-  fitResult <- fitModel(d,  forms, guess, shared_guess, options)
+  fitResult <- fitModel(
+    count_data    = g$data,
+    conditions    = g$conditions,
+    formulas      = forms,
+    params        = guess,
+    shared_params = shared_guess,
+    options       = options
+  )
   p <- fitResult$individual_params
-  g$params <- g$params[order(g$params$id),]
-  p <- p[order(p$id),]
-  errors <- (1 - p[, which(names(p) != "id"), drop = FALSE] /
-                  g$params[, which(names(g$params) != "id"), drop = FALSE])
+  errors <- (1 - p / g$params)
   list(
     individual_err = errors,
     shared_err = (1 - unlist(fitResult$shared_params) /
