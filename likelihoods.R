@@ -57,11 +57,11 @@ ll_gene <- function(conditions,
   funquote <- function(params, counts) {
     names(params) <- param_names
     mus <- eval(means_vector, as.list(params))
-    lambdas <- mus[mean_indexes] + 1e-10
+    lambdas <- norm_factors * mus[mean_indexes] + 1e-10
     -sum(dnbinom(
-      counts,
-      mu = lambdas * norm_factors,
-      log = TRUE,
+      x    = counts,
+      mu   = lambdas, 
+      log  = TRUE,
       size = size
     ))
   }
@@ -106,9 +106,9 @@ ll_shared_params <- function(count_data,
     mean_indexes <- sapply(conditions, match, names(formulas))
     lambdas <- means[, mean_indexes]
     - sum(dnbinom(
-      x = count_data,
-      mu = lambdas * norm_factors,
-      log = TRUE,
+      x    = count_data,
+      mu   = lambdas * norm_factors,
+      log  = TRUE,
       size = size
     ))
   }
