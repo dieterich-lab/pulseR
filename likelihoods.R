@@ -162,7 +162,6 @@ log2screen <- function(options, ...) {
 }
 
 ## params are a matrix with ids in rownames
-# counts are splitted
 # order is the same as in parameters
 fitIndividualParameters <- function(old_params,
                                     count_data,
