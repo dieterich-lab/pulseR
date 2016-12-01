@@ -341,3 +341,19 @@ fitModel <- function(count_data,
 }
 
 getMaxRelDifference <- function(x,y) max(abs(1 - unlist(x)/unlist(y)))
+
+findDeseqFactorsSingle <- function(count_data, spikeins)
+{
+  loggeomeans <- rowMeans(log(count_data))
+  deseqFactors <-  apply(count_data, 2, function(x) {
+    exp(median(log(x) - loggeomeans, na.rm = TRUE))
+  })
+  deseqFactors
+}
+
+findDeseqFactors <- function(count_data, conditions, spikeins) {
+  lapply(split(rownames(conditions), conditions$condition),
+         function(samples) {
+           findDeseqFactorsSingle(count_data[, samples], spikeins)
+         })
+}
