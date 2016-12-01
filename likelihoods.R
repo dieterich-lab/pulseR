@@ -165,14 +165,14 @@ log2screen <- function(options, ...) {
 # counts are splitted
 # order is the same as in parameters
 fitIndividualParameters <- function(old_params,
-                                    splitted_counts,
+                                    count_data,
                                     conditions,
                                     formulas,
                                     shared_params,
-                                    norm_factors = rep(1, dim(conditions)[1]),
+                                    norm_factors,
                                     options,
                                     size) {
-  param_names <- names(old_params[[1]])
+  param_names <- colnames(old_params)
   objective <- ll_gene(
     conditions = conditions$condition,
     formulas = formulas,
@@ -182,9 +182,10 @@ fitIndividualParameters <- function(old_params,
     shared_params = shared_params
   )
   new_params <- list()
-  new_params <- mcmapply(
-    function(olds, gene_counts) {
-      olds <- unlist(olds)
+  new_params <- mclapply(
+    X = seq_len(dim(old_params)[1]),
+    FUN = function(i) {
+      olds <- old_params[i, ]
       optim(
         olds,
         objective,
@@ -192,14 +193,13 @@ fitIndividualParameters <- function(old_params,
         lower = options$lower_boundary,
         upper = options$upper_boundary,
         control = list(parscale = olds),
-        counts = gene_counts
+        counts = count_data[i, ]
       )$par
     },
-    old_params,
-    splitted_counts,
-    SIMPLIFY = FALSE,
     mc.cores = options$cores
   )
+  new_params <- do.call(rbind, new_params)
+  rownames(new_params) <- rownames(old_params)
   new_params
 }
 
@@ -312,13 +312,15 @@ fitModel <- function(count_data,
     old_params <- params
     params <- fitIndividualParameters(
       old_params = old_params,
-      splitted_data = splitted_data,
+      splitted_counts = splitted_data,
+      conditions = conditions,
       formulas = formulas,
       shared_params = shared_params,
+      norm_factors = norm_factors,
       options = opts,
       size = size
     )
-    rel_err <- getMaxRelDifference(params[, param_names], old_params[, param_names])
+    rel_err <- getMaxRelDifference(params, old_params)
     # Fit shared params
     if (!is.null(shared_params)) {
       log2screen(opts, rep(" ", 100, "\r"))
