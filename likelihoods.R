@@ -245,7 +245,7 @@ evaluateLikelihood <- function(shared_params,
     norm_factors = norm_factors,
     formulas = formulas,
     individual_params = individual_params,
-    shared_param_names =  names(old_shared_params),
+    shared_param_names =  names(shared_params),
     size =  size
   )
   shared_objective(unlist(shared_params))
