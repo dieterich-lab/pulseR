@@ -115,9 +115,7 @@ testSharedParams <- function(n = 2, replicates = 2) {
     cores = 2
   )
   shared_guess <- lapply(g$shared_params, function(x) runif(1, .3, 3.))
-  #data <- split(g$data, rownames(g$data))
   data <- g$data
-  #params <- split(g$params, rownames(g$params))
   params <- g$params
   norm_factors <- 1
   conditions <- g$conditions

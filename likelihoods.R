@@ -73,17 +73,18 @@ ll_gene <- function(conditions,
 ## Individual params as list
 getMeansEstimatingFunction <- function(count_data,
                                        individual_params,
-                                       forms,
+                                       formulas,
                                        shared_param_names) {
   gene_number <- length(count_data)
-  forms_vector <- makeVector(forms)
-  mean_indexes <- sapply(conditions$condition, match, names(forms))
+  forms_vector <- makeVector(formulas)
+  mean_indexes <- sapply(conditions$condition, match, names(formulas))
   means_for_genes <- list()
   for (i in 1:gene_number) {
     means_for_genes[[i]] <-
-      substitute_q(forms_vector, env = individual_params[i, ])
+      substitute_q(forms_vector, env = individual_params[i,])
   }
-  means_matrix <- matrix(0, ncol = length(forms), nrow = gene_number)
+  means_matrix <-
+    matrix(0, ncol = length(formulas), nrow = gene_number)
   function(shared_params) {
     names(shared_params) <- shared_param_names
     means_matrix <- do.call(rbind, lapply(means_for_genes, eval,
