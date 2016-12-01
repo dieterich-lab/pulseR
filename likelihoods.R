@@ -341,8 +341,10 @@ fitModel <- function(count_data,
     size <- fitDispersion(
       shared_params = shared_params,
       count_data = count_data,
+      conditions = conditions,
       formulas = formulas,
       individual_params = params,
+      norm_factors = norm_factors,
       options = opts,
       size = size
     )
