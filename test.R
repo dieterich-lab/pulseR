@@ -16,6 +16,7 @@ generateTestDataSingle <- function(forms,
 }
 
 generateTestData <- function(n, replicates) {
+  set.seed(259)
   conditions <- list()
   conditions$sample <- replicate(length(forms) * replicates,
                                  paste0(letters[sample(25, 10)], collapse = ""))
