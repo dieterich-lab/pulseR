@@ -147,11 +147,22 @@ ll_dispersion <- function(count_data,
   }
 }
 
-
-predict.expression <- function(count_data, model, forms) {
-  lambdas <- estimateMeans(model$shared_params)
-  list(prediction = lambdas,
-       logL = dpois(count_data$count, (lambdas + 1e-10), log = TRUE))
+predict.expression <- function(count_data,
+                               conditions,
+                               formulas,
+                               fit) {
+  means <- getMeans(fit$shared_params,
+                    formulas,
+                    fit$individual_params)
+  mean_indexes <- sapply(conditions, match, names(formulas))
+  lambdas <- means[, mean_indexes]
+  llog <- -(dnbinom(
+    x = count_data,
+    mu = lambdas * fit$norm_factors,
+    log = TRUE,
+    size = fit$size
+  ))
+  list(preditions = lambdas, llog = llog)
 }
 
 log2screen <- function(options, ...) {
@@ -347,7 +358,8 @@ fitModel <- function(count_data,
   list(
     individual_params = params,
     shared_params = shared_params,
-    size = size
+    size = size,
+    norm_factors = norm_factors
   )
 }
 
