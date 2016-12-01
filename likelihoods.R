@@ -129,21 +129,19 @@ getMeans <- function(shared_params,
 
 ll_dispersion <- function(count_data,
                           conditions,
-                          forms,
+                          norm_factors,
+                          formulas,
                           individual_params,
-                          shared_params,
-                          size) {
-  means <- getMeans(shared_params,
-                     shared_param_names,
-                     formulas,
-                     individual_params)
-  mean_indexes <- sapply(conditions, match, names(formulas))
-  lambdas <- means[, mean_indexes]
-  lambdas <- lambdas * count_data$norm_factor
+                          shared_params) {
   function(size) {
-    -sum(dnbinom(
-      x = count_data$count,
-      mu = lambdas,
+    means <- getMeans(shared_params,
+                      formulas,
+                      individual_params)
+    mean_indexes <- sapply(conditions, match, names(formulas))
+    lambdas <- means[, mean_indexes]
+    - sum(dnbinom(
+      x = count_data,
+      mu = lambdas * norm_factors,
       log = TRUE,
       size = size
     ))
@@ -253,15 +251,20 @@ evaluateLikelihood <- function(shared_params,
 
 fitDispersion <- function(shared_params,
                           count_data,
+                          conditions,
+                          norm_factors,
                           formulas,
                           individual_params,
                           options,
                           size) {
-  dispersion_objective <- ll_dispersion(count_data,
-                                        formulas,
-                                        individual_params,
-                                        shared_params,
-                                        size)
+  dispersion_objective <- ll_dispersion(
+    count_data = count_data,
+    conditions = conditions,
+    norm_factors = norm_factors,
+    formulas =  formulas,
+    individual_params =  individual_params,
+    shared_params =  shared_params
+  )
   size <- optimise(dispersion_objective,
                    interval = unlist(options[c("lower_boundary_size",
                                                "upper_boundary_size")]))$minimum
