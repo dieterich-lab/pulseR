@@ -57,7 +57,6 @@ ll_gene <- function(conditions,
   funquote <- function(params, counts) {
     names(params) <- param_names
     mus <- eval(means_vector, as.list(params))
-    #  mus <- with(as.list(params),.(means_vector))
     lambdas <- mus[mean_indexes] + 1e-10
     -sum(dnbinom(
       counts,
@@ -160,7 +159,7 @@ log2screen <- function(options, ...) {
     cat(...)
 }
 
-## params are a matrix with ids in rownames
+## params are a data.frame with ids in rownames
 # order is the same as in parameters
 fitIndividualParameters <- function(old_params,
                                     count_data,
