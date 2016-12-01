@@ -262,6 +262,7 @@ fitDispersion <- function(shared_params,
 # - shared_rel_tol
 fitModel <- function(count_data,
                      conditions,
+                     norm_factors,
                      formulas,
                      params,
                      shared_params = NULL,
@@ -284,7 +285,6 @@ fitModel <- function(count_data,
     shared_rel_err <- 10 * opts$shared_rel_tol
   }
   size <- 1e2
-  norm_factors <- 1
   opts[names(options)] <- options
   while (rel_err > opts$rel_tol ||
          shared_rel_err > opts$shared_rel_tol) {

@@ -94,6 +94,7 @@ testIndividualGeneParams <- function(n = 2, replicates = 2) {
   estimation <- fitIndividualParameters(
     old_params = guess,
     count_data = g$data,
+    norm_factors = 1,
     conditions = g$conditions,
     formulas = forms,
     shared_params = g$shared_params,
@@ -173,6 +174,7 @@ testFitModel <- function(n = 2, replicates = 2) {
   fitResult <- fitModel(
     count_data    = g$data,
     conditions    = g$conditions,
+    norm_factors  = 1,
     formulas      = forms,
     params        = guess,
     shared_params = shared_guess,
