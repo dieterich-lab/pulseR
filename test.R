@@ -146,12 +146,17 @@ testFitDispersion <- function(n = 2, replicates = 2) {
     cores = 2
   )
   dispersion_guess <- runif(1, 1 / 10, 1e3)
-  res <- fitDispersion(g$shared_params,
-                       g$data,
-                       forms,
-                       g$params,
-                       options,
-                       dispersion_guess)
+  norm_factors <- 1
+  res <- fitDispersion(
+    shared_params = g$shared_params,
+    conditions = g$conditions,
+    count_data = g$data,
+    norm_factors = norm_factors,
+    formulas = forms,
+    individual_params = g$params,
+    options = options,
+    size = dispersion_guess
+  )
   abs(1 - g$size / res)
 }
 
