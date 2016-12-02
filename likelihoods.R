@@ -225,19 +225,8 @@ fitDispersion <- function(shared_params,
   size
 }
 
-# options is a list with records
-# - individual_rel_err
-# - shared_rel_tol
-fitModel <- function(count_data,
-                     conditions,
-                     norm_factors,
-                     formulas,
-                     params,
-                     shared_params = NULL,
-                     options = list()) {
-  require(parallel)
-  param_names <- names(params)
-  opts <- list(
+defaultParams <- function(){
+  list(
     rel_tol = 1e-2,
     shared_rel_tol = 1e-2,
     verbose = "silent",
@@ -246,6 +235,18 @@ fitModel <- function(count_data,
     lower_boundary_size = 10,
     upper_boundary_size = 1e10
   )
+}
+
+# options is a list with records
+# - individual_rel_err
+# - shared_rel_tol
+fitModel <- function(pulseData,
+                     params,
+                     shared_params = NULL,
+                     options = list()) {
+  require(parallel)
+  opts <- defaultParams()
+  param_names <- names(params)
   rel_err <- 10 * opts$rel_tol
   if (is.null(shared_params)) {
     shared_rel_err <- 0
