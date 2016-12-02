@@ -4,8 +4,9 @@ PulseData <- function(count_data,
                       formulas,
                       spikeins = rownames(count_data)) {
   e <- new.env()
-  e$count_data <- count_data
-  e$conditions <- conditions
+  samples <- sort(colnames(count_data))
+  e$count_data <- count_data[, samples]
+  e$conditions <- conditions[samples,,drop=FALSE]
   e$formulas <- formulas
   e$spikeins <- spikeins
   e
@@ -15,7 +16,8 @@ findDeseqFactorsSingle <- function(count_data)
 {
   loggeomeans <- rowMeans(log(count_data))
   deseqFactors <-  apply(count_data, 2, function(x) {
-    exp(median(log(x) - loggeomeans, na.rm = TRUE))
+    exp(median((log(x) - loggeomeans)[is.finite(loggeomeans) & x > 0],
+               na.rm = TRUE))
   })
   deseqFactors
 }
