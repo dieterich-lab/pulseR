@@ -127,7 +127,7 @@ predict.expression <- function(pulseData, fit) {
   mean_indexes <- sapply(pulseData$conditions, match, names(pulseData$formulas))
   lambdas <- means[, mean_indexes]
   llog <- -(dnbinom(
-    x = count_data,
+    x = pulseData$count_data,
     mu = lambdas * pusleData$norm_factors,
     log = TRUE,
     size = fit$size
@@ -197,17 +197,11 @@ fitSharedParameters <- function(old_shared_params,
 }
 
 evaluateLikelihood <- function(shared_params,
-                               count_data,
-                               conditions,
-                               formulas,
+                               pulseData,
                                individual_params,
-                               norm_factors,
                                size) {
   shared_objective <- ll_shared_params(
-    count_data = count_data,
-    conditions = conditions$condition,
-    norm_factors = norm_factors,
-    formulas = formulas,
+    pulseData,
     individual_params = individual_params,
     shared_param_names =  names(shared_params),
     size =  size
