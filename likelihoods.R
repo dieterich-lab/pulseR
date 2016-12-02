@@ -44,14 +44,15 @@ constructFormulas <- function(formulas, conditions) {
   result
 }
 
-ll_gene <- function(conditions,
-                    formulas,
+ll_gene <- function(pulseData,
                     param_names,
                     size,
-                    norm_factors = rep(1, dim(counts)[2]),
                     shared_params = NULL) {
-  mean_indexes <- sapply(conditions, match, names(formulas))
-  if (!is.null(shared_params) && !anyNA(formulas))
+  mean_indexes <- sapply(pulseData$conditions,
+                         match, names(pulseData$formulas))
+  formulas <- pulseData$formulas
+  norm_factors <- pulseData$norm_factors
+  if (!is.null(shared_params))
     formulas <- lapply(formulas, substitute_q, shared_params)
   means_vector <- makeVector(formulas)
   funquote <- function(params, counts) {
@@ -60,7 +61,7 @@ ll_gene <- function(conditions,
     lambdas <- norm_factors * mus[mean_indexes] + 1e-10
     -sum(dnbinom(
       x    = counts,
-      mu   = lambdas, 
+      mu   = lambdas,
       log  = TRUE,
       size = size
     ))
@@ -91,9 +92,7 @@ ll_shared_params <- function(count_data,
   }
 }
 
-getMeans <- function(shared_params,
-                     formulas,
-                     individual_params) {
+getMeans <- function(shared_params, formulas, individual_params) {
   shared_params <- as.list(shared_params)
   means <- lapply(formulas, function(x) {
     eval(substitute_q(x, shared_params),
@@ -149,23 +148,16 @@ log2screen <- function(options, ...) {
 
 ## params are a data.frame with ids in rownames
 # order is the same as in parameters
-fitIndividualParameters <- function(old_params,
-                                    count_data,
-                                    conditions,
-                                    formulas,
+fitIndividualParameters <- function(pulseData,
+                                    old_params,
                                     shared_params,
-                                    norm_factors,
                                     options,
                                     size) {
   param_names <- colnames(old_params)
-  objective <- ll_gene(
-    conditions = conditions$condition,
-    formulas = formulas,
-    param_names = param_names,
-    size = size,
-    norm_factors = norm_factors,
-    shared_params = shared_params
-  )
+  objective <- ll_gene(pulseData = pulseData,
+                       param_names = param_names,
+                       size = size,
+                       shared_params = shared_params)
   new_params <- list()
   new_params <- mclapply(
     X = seq_len(dim(old_params)[1]),
@@ -178,7 +170,7 @@ fitIndividualParameters <- function(old_params,
         lower = options$lower_boundary,
         upper = options$upper_boundary,
         control = list(parscale = olds),
-        counts = count_data[i, ]
+        counts = pulseData$count_data[i, ]
       )$par
     },
     mc.cores = options$cores
@@ -341,23 +333,3 @@ fitModel <- function(count_data,
 }
 
 getMaxRelDifference <- function(x,y) max(abs(1 - unlist(x)/unlist(y)))
-
-findDeseqFactorsSingle <- function(count_data)
-{
-  loggeomeans <- rowMeans(log(count_data))
-  deseqFactors <-  apply(count_data, 2, function(x) {
-    exp(median(log(x) - loggeomeans, na.rm = TRUE))
-  })
-  deseqFactors
-}
-
-findDeseqFactors <- function(count_data,
-                             conditions,
-                             spikeins=rownames(count_data)) {
-  deseqFactors <- lapply(split(rownames(conditions), conditions),
-         function(samples) {
-           findDeseqFactorsSingle(count_data[spikeins, samples])
-         })
-  names(deseqFactors) <- NULL
-  unlist(deseqFactors)[colnames(count_data)]
-}

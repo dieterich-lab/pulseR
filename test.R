@@ -47,7 +47,7 @@ generateTestData <- function(n, replicates) {
   colnames(data) <- conditions$sample
   rownames(conditions) <- conditions$sample
   list(
-    data = data[order(rownames(data)),],
+    count_data = data[order(rownames(data)),],
     conditions = conditions[, -1, drop = FALSE],
     params = p[order(rownames(p)),],
     size = size,
@@ -90,13 +90,12 @@ testIndividualGeneParams <- function(n = 2, replicates = 2) {
     upper_boundary_shared = rep(5, 4),
     cores = 2
   )
-  guess <- guess_params(g$data, g$conditions)
+  pd <- PulseData(g$count_data, g$conditions, forms)
+  normalise(pd)
+  guess <- guess_params(pd$count_data, pd$conditions)
   estimation <- fitIndividualParameters(
     old_params = guess,
-    count_data = g$data,
-    norm_factors = 1,
-    conditions = g$conditions,
-    formulas = forms,
+    pulseData = pd,
     shared_params = g$shared_params,
     options = options,
     size = g$size
@@ -189,3 +188,4 @@ testFitModel <- function(n = 2, replicates = 2) {
     size_err = (1 - fitResult$size / g$size)
   )
 }
+
