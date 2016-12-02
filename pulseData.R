@@ -26,9 +26,9 @@ findDeseqFactorsSingle <- function(count_data)
 findDeseqFactors <- function(count_data,
                              conditions,
                              spikeins) {
-  deseqFactors <- lapply(split(rownames(conditions), conditions),
+  deseqFactors <- lapply(split(names(conditions), conditions),
                          function(samples) {
-                           findDeseqFactorsSingle(count_data[spikeins, samples])
+                           findDeseqFactorsSingle(count_data[spikeins, samples, drop=FALSE])
                          })
   names(deseqFactors) <- NULL
   unlist(deseqFactors)[colnames(count_data)]
@@ -38,10 +38,12 @@ normalise <- function(pulseData, fractions) {
   if (missing(fractions)) {
     conditions <- pulseData$conditions[, 1]
   } else {
-    conditions <- pulseData$conditions[, all.vars(fractions)]
+    conditions <- pulseData$conditions[, all.vars(fractions), drop=FALSE]
+    conditions <- apply(conditions, 1, paste, collapse = ".")
   }
+  names(conditions) <- rownames(pulseData$conditions)
   pulseData$norm_factors <- findDeseqFactors(pulseData$count_data,
-                                             pulseData$conditions,
+                                             conditions,
                                              pulseData$spikeins)
   pulseData
 }
