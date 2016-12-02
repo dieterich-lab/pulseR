@@ -10,7 +10,7 @@ PulseData <- function(count_data,
   e$spikeins <- spikeins
   e
 }
- 
+
 findDeseqFactorsSingle <- function(count_data)
 {
   loggeomeans <- rowMeans(log(count_data))
