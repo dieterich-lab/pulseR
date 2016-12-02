@@ -81,7 +81,7 @@ guess_params <- function(data, conditions) {
   guess
 }
 
-testIndividualGeneParams <- function(n = 2, replicates = 2) {
+cookWorkEnvironment <- function(n,replicates) {
   g <- generateTestData(n = n, replicates = replicates)
   options <- list(
     lower_boundary = rep(1e-9, 4),
@@ -92,12 +92,23 @@ testIndividualGeneParams <- function(n = 2, replicates = 2) {
   )
   pd <- PulseData(g$count_data, g$conditions, forms)
   normalise(pd)
+  g$count_data <- NULL
+  g$conditions <- NULL
+  list(pd = pd,
+       options = options,
+       params = g)
+}
+
+testIndividualGeneParams <- function(n = 2, replicates = 2) {
+  wenv <- cookWorkEnvironment(n,replicates)
+  pd <- wenv$pd
+  g <- wenv$params
   guess <- guess_params(pd$count_data, pd$conditions)
   estimation <- fitIndividualParameters(
     old_params = guess,
     pulseData = pd,
     shared_params = g$shared_params,
-    options = options,
+    options = wenv$options,
     size = g$size
   )
   errors <- abs(1 -estimation[rownames(g$params),] / g$params)
