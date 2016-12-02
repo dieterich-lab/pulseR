@@ -48,17 +48,17 @@ ll_gene <- function(pulseData,
                     param_names,
                     size,
                     shared_params = NULL) {
-  mean_indexes <- sapply(pulseData$conditions,
+  mean_indexes <- sapply(pulseData$conditions[,1],
                          match, names(pulseData$formulas))
   formulas <- pulseData$formulas
   norm_factors <- pulseData$norm_factors
   if (!is.null(shared_params))
     formulas <- lapply(formulas, substitute_q, shared_params)
-  means_vector <- makeVector(formulas)
+  means_vector <-  makeVector(formulas)
   funquote <- function(params, counts) {
     names(params) <- param_names
     mus <- eval(means_vector, as.list(params))
-    lambdas <- norm_factors * mus[mean_indexes] + 1e-10
+    lambdas <- norm_factors * mus[mean_indexes] 
     -sum(dnbinom(
       x    = counts,
       mu   = lambdas,
@@ -79,7 +79,7 @@ ll_shared_params <- function(pulseData,
                       pulseData$formulas,
                       individual_params)
     mean_indexes <-
-      sapply(pulseData$conditions, match, names(pulseData$formulas))
+      sapply(pulseData$conditions[,1], match, names(pulseData$formulas))
     lambdas <- means[, mean_indexes]
     - sum(
       dnbinom(
@@ -98,7 +98,7 @@ getMeans <- function(shared_params, formulas, individual_params) {
     eval(substitute_q(x, shared_params),
          envir = as.list(individual_params))
   })
-  means <- do.call(cbind, means) + 1e-10
+  means <- do.call(cbind, means) 
   means
 }
 
@@ -110,7 +110,7 @@ ll_dispersion <- function(pulseData,
                       pulseData$formulas,
                       individual_params)
     mean_indexes <-
-      sapply(pulseData$conditions, match, names(pulseData$formulas))
+      sapply(pulseData$conditions[,1], match, names(pulseData$formulas))
     lambdas <- means[, mean_indexes]
     -sum(dnbinom(
         x    = pulseData$count_data,
@@ -168,11 +168,11 @@ fitIndividualParameters <- function(pulseData,
         method = "L-BFGS-B",
         lower = options$lower_boundary,
         upper = options$upper_boundary,
-        control = list(parscale = olds),
+        control = list(parscale = options$parscales),
         counts = pulseData$count_data[i,]
       )$par
-    },
-    mc.cores = options$cores
+    }
+    ,mc.cores = options$cores
   )
   new_params <- do.call(rbind, new_params)
   rownames(new_params) <- rownames(old_params)
@@ -252,10 +252,14 @@ fitModel <- function(pulseData,
   require(parallel)
   opts <- defaultParams()
   param_names <- names(params)
+  opts$parscales <- mapply(max,
+                           abs(options$upper_boundary),
+                           abs(options$lower_boundary))
   rel_err <- 10 * opts$rel_tol
   if (is.null(shared_params)) {
     shared_rel_err <- 0
   } else {
+    shared_params <- as.list(shared_params)
     shared_rel_err <- 10 * opts$shared_rel_tol
   }
   size <- 1e2
