@@ -69,23 +69,21 @@ ll_gene <- function(pulseData,
   funquote
 }
 
-ll_shared_params <- function(count_data,
-                             conditions,
-                             norm_factors,
-                             formulas,
+ll_shared_params <- function(pulseData,
                              individual_params,
                              shared_param_names,
                              size) {
   function(shared_params) {
-  names(shared_params) <- shared_param_names
-    means <- getMeans (shared_params,
-                       formulas,
-                       individual_params)
-    mean_indexes <- sapply(conditions, match, names(formulas))
+    names(shared_params) <- shared_param_names
+    means <- getMeans(shared_params,
+                      pulseData$formulas,
+                      individual_params)
+    mean_indexes <-
+      sapply(pulseData$conditions, match, names(pulseData$formulas))
     lambdas <- means[, mean_indexes]
-    - sum(dnbinom(
-      x    = count_data,
-      mu   = lambdas * norm_factors,
+    -sum(dnbinom(
+      x    = pulseData$count_data,
+      mu   = lambdas * pulseData$norm_factors,
       log  = TRUE,
       size = size
     ))
@@ -181,18 +179,12 @@ fitIndividualParameters <- function(pulseData,
 }
 
 fitSharedParameters <- function(old_shared_params,
-                                count_data,
-                                conditions,
-                                formulas,
+                                pulseData,
                                 individual_params,
-                                norm_factors,
                                 options,
                                 size) {
   shared_objective <- ll_shared_params(
-    count_data = count_data,
-    conditions = conditions$condition,
-    norm_factors = norm_factors,
-    formulas = formulas,
+    pulseData,
     individual_params = individual_params,
     shared_param_names =  names(old_shared_params),
     size =  size
@@ -301,11 +293,8 @@ fitModel <- function(count_data,
       old_shared_params <- shared_params
       shared_params <- fitSharedParameters(
         old_shared_params = shared_params,
-        count_data        = count_data,
-        conditions        = conditions,
-        formulas          = formulas,
+        pulseData = pulseData,
         individual_params = params,
-        norm_factors      = norm_factors,
         options           = opts,
         size              = size
       )

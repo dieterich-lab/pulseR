@@ -116,27 +116,15 @@ testIndividualGeneParams <- function(n = 2, replicates = 2) {
 }
 
 testSharedParams <- function(n = 2, replicates = 2) {
-  g <- generateTestData(n = n, replicates = replicates)
-  options <- list(
-    lower_boundary = rep(1e-9, 4),
-    upper_boundary = c(1e5, 1e5, 1, 1) - 1e-1,
-    lower_boundary_shared = rep(1e-9, 4),
-    upper_boundary_shared = rep(5, 4),
-    cores = 2
-  )
+  wenv <- cookWorkEnvironment(n,replicates)
+  pd <- wenv$pd
+  g <- wenv$params
   shared_guess <- lapply(g$shared_params, function(x) runif(1, .3, 3.))
-  data <- g$data
-  params <- g$params
-  norm_factors <- 1
-  conditions <- g$conditions
   res <- fitSharedParameters (
     old_shared_params = shared_guess,
-    count_data = data,
-    conditions = conditions,
-    formulas = forms,
-    individual_params = params,
-    norm_factors = norm_factors,
-    options = options,
+    pulseData = pd,
+    individual_params = g$params,
+    options = wenv$options,
     size = g$size
   )
   abs(1 - unlist(g$shared_params) / unlist(res))
