@@ -148,26 +148,16 @@ testFitDispersion <- function(n = 2, replicates = 2) {
 }
 
 testFitModel <- function(n = 2, replicates = 2) {
-  g <- generateTestData(n = n, replicates = replicates)
-  options <- list(
-    lower_boundary =c(1,1,0,0),
-    upper_boundary = c(1e5, 1e5, 1, 1) - 1e-1,
-    lower_boundary_shared = rep(1e-9, 4),
-    upper_boundary_shared = rep(5, 4),
-    lower_boundary_size = 1 / 10,
-    upper_boundary_size = 1e10,
-    cores = 1
-  )
-  guess <- guess_params(g$data, g$conditions)
+  wenv <- cookWorkEnvironment(n,replicates)
+  pd <- wenv$pd
+  g <- wenv$params
+  guess <- guess_params(pd$count_data, pd$conditions)
   shared_guess <- lapply(g$shared_params, function(x) runif(1, .3, 3.))
   fitResult <- fitModel(
-    count_data    = g$data,
-    conditions    = g$conditions,
-    norm_factors  = 1,
-    formulas      = forms,
+    pulseData = pd,
     params        = guess,
     shared_params = shared_guess,
-    options       = options
+    options       = wenv$options
   )
   p <- fitResult$individual_params
   errors <- (1 - p / g$params)
