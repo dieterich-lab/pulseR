@@ -354,7 +354,7 @@ findDeseqFactorsSingle <- function(count_data)
 findDeseqFactors <- function(count_data,
                              conditions,
                              spikeins=rownames(count_data)) {
-  deseqFactors <- lapply(split(rownames(conditions), conditions$condition),
+  deseqFactors <- lapply(split(rownames(conditions), conditions),
          function(samples) {
            findDeseqFactorsSingle(count_data[spikeins, samples])
          })
