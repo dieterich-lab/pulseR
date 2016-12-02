@@ -100,39 +100,35 @@ getMeans <- function(shared_params, formulas, individual_params) {
   means
 }
 
-ll_dispersion <- function(count_data,
-                          conditions,
-                          norm_factors,
-                          formulas,
+ll_dispersion <- function(pulseData,
                           individual_params,
                           shared_params) {
   function(size) {
     means <- getMeans(shared_params,
-                      formulas,
+                      pulseData$formulas,
                       individual_params)
-    mean_indexes <- sapply(conditions, match, names(formulas))
+    mean_indexes <-
+      sapply(pulseData$conditions, match, names(pulseData$formulas))
     lambdas <- means[, mean_indexes]
     - sum(dnbinom(
-      x = count_data,
-      mu = lambdas * norm_factors,
-      log = TRUE,
-      size = size
-    ))
+        x = pulseData$count_data,
+        mu = lambdas * pulseData$norm_factors,
+        log = TRUE,
+        size = size
+      )
+    )
   }
 }
 
-predict.expression <- function(count_data,
-                               conditions,
-                               formulas,
-                               fit) {
+predict.expression <- function(pulseData, fit) {
   means <- getMeans(fit$shared_params,
-                    formulas,
+                    pulseData$formulas,
                     fit$individual_params)
-  mean_indexes <- sapply(conditions, match, names(formulas))
+  mean_indexes <- sapply(pulseData$conditions, match, names(pulseData$formulas))
   lambdas <- means[, mean_indexes]
   llog <- -(dnbinom(
     x = count_data,
-    mu = lambdas * fit$norm_factors,
+    mu = lambdas * pusleData$norm_factors,
     log = TRUE,
     size = fit$size
   ))
@@ -220,18 +216,12 @@ evaluateLikelihood <- function(shared_params,
 }
 
 fitDispersion <- function(shared_params,
-                          count_data,
-                          conditions,
-                          norm_factors,
-                          formulas,
+                          pulseData,
                           individual_params,
                           options,
                           size) {
   dispersion_objective <- ll_dispersion(
-    count_data = count_data,
-    conditions = conditions,
-    norm_factors = norm_factors,
-    formulas =  formulas,
+    pulseData,
     individual_params =  individual_params,
     shared_params =  shared_params
   )
@@ -304,11 +294,8 @@ fitModel <- function(count_data,
     }
     size <- fitDispersion(
       shared_params = shared_params,
-      count_data = count_data,
-      conditions = conditions,
-      formulas = formulas,
+      pulseData = pulseData,
       individual_params = params,
-      norm_factors = norm_factors,
       options = opts,
       size = size
     )
