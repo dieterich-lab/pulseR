@@ -56,18 +56,20 @@ generateTestData <- function(n, replicates) {
   )
 }
 
-forms <- MeanFormulas(
-  total_Norm         = mu_n,
-  total_Hypox        = mu_n * a_h + mu_h,
-  flow_lab_Norm      = alpha_lab * (mu_n * a_n),
-  biotin_lab_Norm    = beta_lab * mu_n * (1 - a_n),
-  flow_lab_Hypox     = alpha_lab * (mu_n * a_h),
-  biotin_lab_Hypox   = beta_lab * mu_h,
-  flow_chase_Norm    = alpha_chase * mu_n * (1 - (1 - a_n) * a_n),
-  biotin_chase_Norm  = beta_chase * mu_n * (1 - a_n) * a_n,
-  flow_chase_Hypox   = alpha_chase * (mu_h + mu_n * a_n * a_h),
-  biotin_chase_Hypox = beta_chase * (mu_n * (1 - a_n) * a_h)
-)
+getFormulas <- function() {
+  MeanFormulas(
+    total_Norm         = mu_n,
+    total_Hypox        = mu_n * a_h + mu_h,
+    flow_lab_Norm      = alpha_lab * (mu_n * a_n),
+    biotin_lab_Norm    = beta_lab * mu_n * (1 - a_n),
+    flow_lab_Hypox     = alpha_lab * (mu_n * a_h),
+    biotin_lab_Hypox   = beta_lab * mu_h,
+    flow_chase_Norm    = alpha_chase * mu_n * (1 - (1 - a_n) * a_n),
+    biotin_chase_Norm  = beta_chase * mu_n * (1 - a_n) * a_n,
+    flow_chase_Hypox   = alpha_chase * (mu_h + mu_n * a_n * a_h),
+    biotin_chase_Hypox = beta_chase * (mu_n * (1 - a_n) * a_h)
+  )
+}
 
 guess_params <- function(data, conditions) {
   totals <- data[, conditions$condition == "total_Norm", drop = FALSE]
@@ -83,6 +85,7 @@ guess_params <- function(data, conditions) {
 }
 
 cookWorkEnvironment <- function(n, replicates) {
+  formulas <- getFormulas()
   g <- generateTestData(n = n, replicates = replicates)
   options <- list(
     lower_boundary = rep(1e-9, 4),
@@ -93,7 +96,7 @@ cookWorkEnvironment <- function(n, replicates) {
     upper_boundary_size = 1e3,
     cores = 2
   )
-  pd <- PulseData(g$count_data, g$conditions, forms)
+  pd <- PulseData(g$count_data, g$conditions, formulas)
   normalise(pd)
   g$count_data <- NULL
   g$conditions <- NULL
