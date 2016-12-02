@@ -81,12 +81,14 @@ ll_shared_params <- function(pulseData,
     mean_indexes <-
       sapply(pulseData$conditions, match, names(pulseData$formulas))
     lambdas <- means[, mean_indexes]
-    -sum(dnbinom(
-      x    = pulseData$count_data,
-      mu   = lambdas * pulseData$norm_factors,
-      log  = TRUE,
-      size = size
-    ))
+    - sum(
+      dnbinom(
+        x    = pulseData$count_data,
+        mu   = lambdas * pulseData$norm_factors,
+        log  = TRUE,
+        size = size
+      )
+    )
   }
 }
 
@@ -110,10 +112,10 @@ ll_dispersion <- function(pulseData,
     mean_indexes <-
       sapply(pulseData$conditions, match, names(pulseData$formulas))
     lambdas <- means[, mean_indexes]
-    - sum(dnbinom(
-        x = pulseData$count_data,
-        mu = lambdas * pulseData$norm_factors,
-        log = TRUE,
+    -sum(dnbinom(
+        x    = pulseData$count_data,
+        mu   = lambdas * pulseData$norm_factors,
+        log  = TRUE,
         size = size
       )
     )
@@ -124,14 +126,15 @@ predict.expression <- function(pulseData, fit) {
   means <- getMeans(fit$shared_params,
                     pulseData$formulas,
                     fit$individual_params)
-  mean_indexes <- sapply(pulseData$conditions, match, names(pulseData$formulas))
+  mean_indexes <-
+    sapply(pulseData$conditions, match, names(pulseData$formulas))
   lambdas <- means[, mean_indexes]
-  llog <- -(dnbinom(
+  llog <- -dnbinom(
     x = pulseData$count_data,
     mu = lambdas * pusleData$norm_factors,
     log = TRUE,
     size = fit$size
-  ))
+  )
   list(preditions = lambdas, llog = llog)
 }
 
@@ -148,15 +151,17 @@ fitIndividualParameters <- function(pulseData,
                                     options,
                                     size) {
   param_names <- colnames(old_params)
-  objective <- ll_gene(pulseData = pulseData,
-                       param_names = param_names,
-                       size = size,
-                       shared_params = shared_params)
+  objective <- ll_gene(
+    pulseData = pulseData,
+    param_names = param_names,
+    size = size,
+    shared_params = shared_params
+  )
   new_params <- list()
   new_params <- mclapply(
     X = seq_len(dim(old_params)[1]),
     FUN = function(i) {
-      olds <- old_params[i, ]
+      olds <- old_params[i,]
       optim(
         olds,
         objective,
@@ -164,7 +169,7 @@ fitIndividualParameters <- function(pulseData,
         lower = options$lower_boundary,
         upper = options$upper_boundary,
         control = list(parscale = olds),
-        counts = pulseData$count_data[i, ]
+        counts = pulseData$count_data[i,]
       )$par
     },
     mc.cores = options$cores
@@ -215,7 +220,7 @@ fitDispersion <- function(shared_params,
                           options,
                           size) {
   dispersion_objective <- ll_dispersion(
-    pulseData,
+    pulseData = pulseData,
     individual_params =  individual_params,
     shared_params =  shared_params
   )
@@ -225,7 +230,7 @@ fitDispersion <- function(shared_params,
   size
 }
 
-defaultParams <- function(){
+defaultParams <- function() {
   list(
     rel_tol = 1e-2,
     shared_rel_tol = 1e-2,
@@ -280,7 +285,8 @@ fitModel <- function(pulseData,
         options           = opts,
         size              = size
       )
-      shared_rel_err <- getMaxRelDifference(shared_params, old_shared_params)
+      shared_rel_err <-
+        getMaxRelDifference(shared_params, old_shared_params)
       log2screen(opts, "Shared params\n")
       log2screen(opts, toString(shared_params), "\n")
     }

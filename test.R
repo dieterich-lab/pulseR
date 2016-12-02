@@ -22,7 +22,8 @@ generateTestData <- function(n, replicates) {
                                  paste0(letters[sample(25, 10)], collapse = ""))
   conditions$condition <- names(forms)
   conditions <- as.data.frame(conditions, stringAsFactors = FALSE)
-  genes <- replicate(n, paste0(letters[sample(25, 10)], collapse = ""))
+  genes <-
+    replicate(n, paste0(letters[sample(25, 10)], collapse = ""))
   genes <- paste0("ENS00000", genes)
   p <- data.frame(
     mu_n = runif(n, 1e2, 50000),
@@ -39,7 +40,7 @@ generateTestData <- function(n, replicates) {
   )
   size <- 1e2
   d <- lapply(seq_along(rownames(p)), function(i) {
-    generateTestDataSingle(forms, p[i, ], alphas,
+    generateTestDataSingle(forms, p[i,], alphas,
                            conditions = conditions$condition)
   })
   data <- do.call(rbind, d)
@@ -47,9 +48,9 @@ generateTestData <- function(n, replicates) {
   colnames(data) <- conditions$sample
   rownames(conditions) <- conditions$sample
   list(
-    count_data = data[order(rownames(data)),],
+    count_data = data[order(rownames(data)), ],
     conditions = conditions[, -1, drop = FALSE],
-    params = p[order(rownames(p)),],
+    params = p[order(rownames(p)), ],
     size = size,
     shared_params = alphas
   )
@@ -69,8 +70,8 @@ forms <- MeanFormulas(
 )
 
 guess_params <- function(data, conditions) {
-  totals <- data[, conditions$condition=="total_Norm", drop=FALSE]
-  mean_expression <- apply(X=totals, FUN=mean, MARGIN=1)
+  totals <- data[, conditions$condition == "total_Norm", drop = FALSE]
+  mean_expression <- apply(X = totals, FUN = mean, MARGIN = 1)
   guess <- data.frame(
     mu_n = mean_expression,
     mu_h = mean_expression,
@@ -81,7 +82,7 @@ guess_params <- function(data, conditions) {
   guess
 }
 
-cookWorkEnvironment <- function(n,replicates) {
+cookWorkEnvironment <- function(n, replicates) {
   g <- generateTestData(n = n, replicates = replicates)
   options <- list(
     lower_boundary = rep(1e-9, 4),
@@ -102,7 +103,7 @@ cookWorkEnvironment <- function(n,replicates) {
 }
 
 testIndividualGeneParams <- function(n = 2, replicates = 2) {
-  wenv <- cookWorkEnvironment(n,replicates)
+  wenv <- cookWorkEnvironment(n, replicates)
   pd <- wenv$pd
   g <- wenv$params
   guess <- guess_params(pd$count_data, pd$conditions)
@@ -113,15 +114,17 @@ testIndividualGeneParams <- function(n = 2, replicates = 2) {
     options = wenv$options,
     size = g$size
   )
-  errors <- abs(1 -estimation[rownames(g$params),] / g$params)
+  errors <- abs(1 - estimation[rownames(g$params), ] / g$params)
   errors
 }
 
 testSharedParams <- function(n = 2, replicates = 2) {
-  wenv <- cookWorkEnvironment(n,replicates)
+  wenv <- cookWorkEnvironment(n, replicates)
   pd <- wenv$pd
   g <- wenv$params
-  shared_guess <- lapply(g$shared_params, function(x) runif(1, .3, 3.))
+  shared_guess <-
+    lapply(g$shared_params, function(x)
+      runif(1, .3, 3.))
   res <- fitSharedParameters (
     old_shared_params = shared_guess,
     pulseData = pd,
@@ -133,7 +136,7 @@ testSharedParams <- function(n = 2, replicates = 2) {
 }
 
 testFitDispersion <- function(n = 2, replicates = 2) {
-  wenv <- cookWorkEnvironment(n,replicates)
+  wenv <- cookWorkEnvironment(n, replicates)
   pd <- wenv$pd
   g <- wenv$params
   dispersion_guess <- runif(1, 1 / 10, 1e3)
@@ -148,11 +151,13 @@ testFitDispersion <- function(n = 2, replicates = 2) {
 }
 
 testFitModel <- function(n = 2, replicates = 2) {
-  wenv <- cookWorkEnvironment(n,replicates)
+  wenv <- cookWorkEnvironment(n, replicates)
   pd <- wenv$pd
   g <- wenv$params
   guess <- guess_params(pd$count_data, pd$conditions)
-  shared_guess <- lapply(g$shared_params, function(x) runif(1, .3, 3.))
+  shared_guess <-
+    lapply(g$shared_params, function(x)
+      runif(1, .3, 3.))
   fitResult <- fitModel(
     pulseData = pd,
     params        = guess,
@@ -163,9 +168,10 @@ testFitModel <- function(n = 2, replicates = 2) {
   errors <- (1 - p / g$params)
   list(
     individual_err = errors,
-    shared_err = (1 - unlist(fitResult$shared_params) /
-                       unlist(g$shared_params)),
+    shared_err = (
+      1 - unlist(fitResult$shared_params) /
+        unlist(g$shared_params)
+    ),
     size_err = (1 - fitResult$size / g$size)
   )
 }
-
