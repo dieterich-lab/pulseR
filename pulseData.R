@@ -20,6 +20,7 @@ findDeseqFactorsSingle <- function(count_data)
   deseqFactors
 }
 
+# conditions  - factor to split samples for normalisation
 findDeseqFactors <- function(count_data,
                              conditions,
                              spikeins) {
