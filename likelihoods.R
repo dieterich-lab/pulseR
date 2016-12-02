@@ -262,11 +262,8 @@ fitModel <- function(pulseData,
     old_params <- params
     params <- fitIndividualParameters(
       old_params = old_params,
-      count_data = count_data,
-      conditions = conditions,
-      formulas = formulas,
+      pulseData = pulseData,
       shared_params = shared_params,
-      norm_factors = norm_factors,
       options = opts,
       size = size
     )
@@ -298,8 +295,7 @@ fitModel <- function(pulseData,
   list(
     individual_params = params,
     shared_params = shared_params,
-    size = size,
-    norm_factors = norm_factors
+    size = size
   )
 }
 
