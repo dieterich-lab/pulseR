@@ -88,6 +88,8 @@ cookWorkEnvironment <- function(n,replicates) {
     upper_boundary = c(1e5, 1e5, 1, 1) - 1e-1,
     lower_boundary_shared = rep(1e-9, 4),
     upper_boundary_shared = rep(5, 4),
+    lower_boundary_size = 0,
+    upper_boundary_size = 1e3,
     cores = 2
   )
   pd <- PulseData(g$count_data, g$conditions, forms)
@@ -131,26 +133,15 @@ testSharedParams <- function(n = 2, replicates = 2) {
 }
 
 testFitDispersion <- function(n = 2, replicates = 2) {
-  g <- generateTestData(n = n, replicates = replicates)
-  options <- list(
-    lower_boundary = rep(1e-9, 4),
-    upper_boundary = c(1e5, 1e5, 1, 1) - 1e-1,
-    lower_boundary_shared = rep(1e-9, 4),
-    upper_boundary_shared = rep(5, 4),
-    lower_boundary_size = 1 / 10,
-    upper_boundary_size = 1e10,
-    cores = 2
-  )
+  wenv <- cookWorkEnvironment(n,replicates)
+  pd <- wenv$pd
+  g <- wenv$params
   dispersion_guess <- runif(1, 1 / 10, 1e3)
-  norm_factors <- 1
   res <- fitDispersion(
     shared_params = g$shared_params,
-    conditions = g$conditions,
-    count_data = g$data,
-    norm_factors = norm_factors,
-    formulas = forms,
+    pulseData = pd,
     individual_params = g$params,
-    options = options,
+    options = wenv$options,
     size = dispersion_guess
   )
   abs(1 - g$size / res)
