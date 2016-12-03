@@ -117,16 +117,16 @@ ggsave(filename="logo.png", plot=q3, height=7,width=7)
 trace <- function(){
   q <- plotCircle()
   q <- AddText(q)
-  t <- seq(from=0, to=1, by=1/10)
+  t <- seq(from=0, to=1, by=1/40)
   lapply(t, function(x){
      print(plotDNA(q,t=x))})
   q <- plotDNA(q)
 
   frac <- .3
-  t <- seq(from=0, to=frac, by=1/10)
+  t <- seq(from=0, to=frac, by=1/60)
   lapply(t, function(x){
      print(plotPulse(q,t=x))})
-  t <- seq(from=frac, to=1, by=1/10)
+  t <- seq(from=frac, to=1, by=1/40)
   lapply(t, function(x){
      print(plotPulse(q,t=x))})
 }
