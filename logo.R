@@ -29,10 +29,23 @@ DNA <- function(a,b,y,size, n, phi0,s,decay){
 
 
 ## Ploting
-plotCircle <- function(){
+plotCircle <- function(color, alpha=1){
   phi <- 2*pi * 1:101/100
   circle <- data.frame(x=R*sin(phi), y=R*cos(phi))
   q0 <- ggplot() +  geom_polygon(data=circle, aes(x=x,y=y)) + theme_void()
+  if(missing(color))
+   q0 <- q0 + theme(
+    panel.background = element_rect(fill = "transparent",colour = NA), # or theme_blank()
+    panel.grid.minor = element_blank(),
+    panel.grid.major = element_blank(),
+    plot.background  = element_rect(fill = "transparent",colour = NA)
+  ) else
+   q0 <- q0 + theme(
+    panel.background = element_rect(fill = alpha(color, alpha),colour = NA), # or theme_blank()
+    panel.grid.minor = element_blank(),
+    panel.grid.major = element_blank(),
+    plot.background  = element_rect(fill = alpha(color, alpha),colour = NA)
+              )
   q0
 }
 
