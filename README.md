@@ -1,4 +1,6 @@
 # pulseR 
+<img src="logo.png" width="100">
+
 
 Tools for the analysis of RNA metabolic kinetics from RNAseq data.
 
