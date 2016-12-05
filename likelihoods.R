@@ -122,20 +122,23 @@ ll_dispersion <- function(pulseData,
   }
 }
 
-predict.expression <- function(pulseData, fit) {
+predict.expression <- function(fit, pulseData) {
   means <- getMeans(fit$shared_params,
-                    pulseData$formulas,
+                    fit$formulas,
                     fit$individual_params)
-  mean_indexes <-
-    sapply(pulseData$conditions, match, names(pulseData$formulas))
-  lambdas <- means[, mean_indexes]
-  llog <- -dnbinom(
-    x = pulseData$count_data,
-    mu = lambdas * pusleData$norm_factors,
-    log = TRUE,
-    size = fit$size
-  )
-  list(preditions = lambdas, llog = llog)
+  llog <- NULL
+  if (!missing(pulseData)) {
+    mean_indexes <-
+      sapply(pulseData$conditions[, 1], match, names(pulseData$formulas))
+    means <- means[, mean_indexes] * pulseData$norm_factors
+    llog <- dnbinom(
+      x = pulseData$count_data,
+      mu = means,
+      log = TRUE,
+      size = fit$size
+    )
+  }
+  list(preditions = means, llog = llog)
 }
 
 log2screen <- function(options, ...) {
@@ -305,7 +308,8 @@ fitModel <- function(pulseData,
   list(
     individual_params = params,
     shared_params = shared_params,
-    size = size
+    size = size, 
+    formulas = pd$formulas
   )
 }
 
