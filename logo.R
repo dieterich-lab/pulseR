@@ -29,35 +29,39 @@ DNA <- function(a,b,y,size, n, phi0,s,decay){
 
 
 ## Ploting
-plotCircle <- function(color, alpha=1){
+plotCircle <- function(color="black", alpha=.8){
   phi <- 2*pi * 1:101/100
   circle <- data.frame(x=R*sin(phi), y=R*cos(phi))
-  q0 <- ggplot() +  geom_polygon(data=circle, aes(x=x,y=y)) + theme_void()
+  q0 <- ggplot() + theme_void()
   if(missing(color))
-   q0 <- q0 + theme(
-    panel.background = element_rect(fill = "transparent",colour = NA), # or theme_blank()
+   q0 <- q0 +
+    geom_polygon(data=circle, aes(x=x,y=y), fill=color, alpha=alpha ) +
+   theme(
+    panel.background = element_rect(fill = "transparent",colour = NA),
     panel.grid.minor = element_blank(),
     panel.grid.major = element_blank(),
     plot.background  = element_rect(fill = "transparent",colour = NA)
   ) else
-   q0 <- q0 + theme(
-    panel.background = element_rect(fill = alpha(color, alpha),colour = NA), # or theme_blank()
+   q0 <- q0 +
+    geom_polygon(data=circle, aes(x=x,y=y), fill=color, alpha=0) +
+   theme(
+    panel.background = element_rect(fill = NA, colour = NA),
     panel.grid.minor = element_blank(),
     panel.grid.major = element_blank(),
     plot.background  = element_rect(fill = alpha(color, alpha),colour = NA)
-              )
+    )
   q0
 }
+plotCircle("black")
 
-
-plotDNA <- function(q0, t=1){
+plotDNA <- function(q0, t=1, color="green"){
   n <- dim(DNA1)[1]
   nas <- is.na(DNA1$y1)
   q1 <- q0 +
     geom_line(data=DNA1[1:round(t*n),],
-              aes(x=x, y=y2), color="green", alpha=.7, size=lineWidth) +
+              aes(x=x, y=y2), color=color, alpha=.7, size=lineWidth) +
     geom_line(data=DNA1[!nas & 1:n < round(t*n),],
-              aes(x=x, y=y1), color="green", alpha=.8, size=lineWidth)
+              aes(x=x, y=y1), color=color, alpha=.8, size=lineWidth)
   if(t < 1){
     p <- DNA1[round(t*n),]
     q1 <- AddPoint(q1, p$x, p$y1)
@@ -66,10 +70,10 @@ plotDNA <- function(q0, t=1){
   q1
 }
 
-plotPulse <- function(q1, t=1){
+plotPulse <- function(q1, t=1, color="green"){
   n <- dim(pulse)[1]
   q2 <- q1 + geom_line(data=pulse[1:round(t*n),], aes(x=x,y=y),
-                      color="green", alpha=.9, size=lineWidth)
+                      color=color, alpha=.9, size=lineWidth)
   if(t < 1){
     p <- pulse[round(t*n),]
     q2 <- AddPoint(q2, p$x, p$y)
@@ -77,9 +81,9 @@ plotPulse <- function(q1, t=1){
   q2
 }
 
-AddText <- function(q){
+AddText <- function(q, color="white"){
   q3 <-  q + geom_text(aes(x=4.3, y=1.0, label="pulseR"),
-                        color="white", size=28, family="Ubuntu Mono"
+                        color=color, size=28, family="Ubuntu Mono"
                         , fontface="italic"
                       )
   q3
@@ -123,25 +127,38 @@ q <- plotCircle()
 q <- AddText(q)
 q <- plotDNA(q)
 q <- plotPulse(q)
-ggsave(filename="logo.png", plot=q3, height=7,width=7)
+ggsave(filename="logo.png", plot=q, height=7,width=7)
+
+q <- plotCircle("white")
+q <- AddText(q, "black")
+q <- plotDNA(q, color="darkgreen")
+q <- plotPulse(q, color="darkgreen")
+ggsave(filename="logo_white.png", plot=q, height=7,width=7)
 
 ## animation
 
-trace <- function(){
-  q <- plotCircle()
-  q <- AddText(q)
+trace <- function(bgcolor, dnacolor="green",textcolor="white", alpha=.8){
+  if(missing(bgcolor))
+    q <- plotCircle()
+  else
+    q <- plotCircle(bgcolor, alpha)
+  q <- AddText(q, textcolor)
   t <- seq(from=0, to=1, by=1/35)
   lapply(t, function(x){
-     print(plotDNA(q,t=x))})
-  q <- plotDNA(q)
+     print(plotDNA(q,t=x, color=dnacolor))})
+  q <- plotDNA(q, color=dnacolor)
 
   frac <- .3
   t <- seq(from=0, to=frac, by=1/70)
   lapply(t, function(x){
-     print(plotPulse(q,t=x))})
+     print(plotPulse(q,t=x, color=dnacolor))})
   t <- seq(from=frac, to=1, by=1/70)
   lapply(t, function(x){
-     print(plotPulse(q,t=x))})
+     print(plotPulse(q,t=x, color=dnacolor))})
 }
 
 saveGIF(trace(), interval=.02, movie.name="logo.gif")
+saveGIF(trace("black"), interval=.02,
+        movie.name="logo_background.gif")
+saveGIF(trace("white", "darkgreen", "black"), interval=.02,
+        movie.name="logo__white_background.gif")
