@@ -27,8 +27,6 @@ generateTestData <- function(n,
                              replicates,
                              forms,
                              conditions){
-  if (missing(conditions))
-    conditions <-  conditionsFromFormulas(forms, replicates)
   set.seed(259)
   genes <- replicate(n, paste0(letters[sample(25, 10)], collapse = ""))
   genes <- paste0("ENS00000", genes)
@@ -106,7 +104,8 @@ cookWorkEnvironment <- function(n,
                                        replicates = replicates)
   g <- generateTestData(n = n,
                         replicates = replicates,
-                        forms = formulas)
+                        forms = formulas, 
+                        conditions = conditions)
   options <- list(
     lower_boundary = rep(1e-9, 4),
     upper_boundary = c(1e5, 1e5, 1, 1) - 1e-1,
