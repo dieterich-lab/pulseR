@@ -5,7 +5,7 @@ PulseData <- function(count_data,
                       spikeins = rownames(count_data)) {
   e <- new.env()
   samples <- sort(colnames(count_data))
-  e$count_data <- count_data[, samples]
+  e$count_data <- as.matrix(count_data[, samples])
   e$conditions <- conditions[samples,,drop=FALSE]
   e$formulas <- formulas
   e$spikeins <- spikeins
