@@ -3,7 +3,7 @@
 generateTestDataSingle <- function(forms,
                                    individual_params,
                                    shared_params,
-                                   conditions = rep(names(forms), n),
+                                   conditions,
                                    n = 1,
                                    size = 100) {
   means <- sapply(forms, eval,
@@ -15,15 +15,22 @@ generateTestDataSingle <- function(forms,
   counts
 }
 
-generateTestData <- function(n, replicates, forms=getFormulas()) {
-  set.seed(259)
-  conditions <- list()
-  conditions$sample <- replicate(length(forms) * replicates,
+conditionsFromFormulas <- function(forms, replicates) {
+  conditions <- data.frame(condition = rep(names(forms), replicates))
+  rownames(conditions) <- replicate(length(forms) * replicates,
                                  paste0(letters[sample(25, 10)], collapse = ""))
-  conditions$condition <- names(forms)
   conditions <- as.data.frame(conditions, stringAsFactors = FALSE)
-  genes <-
-    replicate(n, paste0(letters[sample(25, 10)], collapse = ""))
+  conditions
+}
+
+generateTestData <- function(n,
+                             replicates,
+                             forms,
+                             conditions){
+  if (missing(conditions))
+    conditions <-  conditionsFromFormulas(forms, replicates)
+  set.seed(259)
+  genes <- replicate(n, paste0(letters[sample(25, 10)], collapse = ""))
   genes <- paste0("ENS00000", genes)
   p <- data.frame(
     mu_n = runif(n, 1e2, 50000),
@@ -41,15 +48,14 @@ generateTestData <- function(n, replicates, forms=getFormulas()) {
   size <- 1e2
   d <- lapply(seq_along(rownames(p)), function(i) {
     generateTestDataSingle(forms, p[i,], alphas,
-                           conditions = conditions$condition)
+                           conditions = conditions[,1])
   })
   data <- do.call(rbind, d)
   rownames(data) <- genes
-  colnames(data) <- conditions$sample
-  rownames(conditions) <- conditions$sample
+  colnames(data) <- rownames(conditions)
   list(
     count_data = data[order(rownames(data)), ],
-    conditions = conditions[, -1, drop = FALSE],
+    conditions = conditions,
     params = p[order(rownames(p)), ],
     size = size,
     shared_params = alphas
@@ -92,9 +98,15 @@ guess_params <- function(data, conditions) {
   guess
 }
 
-cookWorkEnvironment <- function(n, replicates) {
-  formulas <- getFormulas()
-  g <- generateTestData(n = n, replicates = replicates)
+cookWorkEnvironment <- function(n,
+                                replicates,
+                                formulas=getFormulas(),
+                                conditions) {
+  conditions <- conditionsFromFormulas(forms = formulas,
+                                       replicates = replicates)
+  g <- generateTestData(n = n,
+                        replicates = replicates,
+                        forms = formulas)
   options <- list(
     lower_boundary = rep(1e-9, 4),
     upper_boundary = c(1e5, 1e5, 1, 1) - 1e-1,
