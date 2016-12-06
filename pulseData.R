@@ -7,8 +7,9 @@ PulseData <- function(count_data,
   e <- new.env()
   samples <- sort(colnames(count_data))
   e$count_data <- as.matrix(count_data[, samples])
-  e$conditions <- conditions[samples,,drop=FALSE]
-  e$formulas <- formulas
+  t <- addKnownShared(formulas, conditions)
+  e$conditions <- t$conditions[samples]
+  e$formulas <- t$formulas
   e$spikeins <- spikeins
   e
 }
@@ -27,7 +28,7 @@ findDeseqFactorsSingle <- function(count_data)
 findDeseqFactors <- function(count_data,
                              conditions,
                              spikeins) {
-  deseqFactors <- lapply(split(names(conditions), conditions),
+  deseqFactors <- lapply(split(rownames(conditions), conditions),
                          function(samples) {
                            findDeseqFactorsSingle(count_data[spikeins, samples, drop=FALSE])
                          })
@@ -37,12 +38,12 @@ findDeseqFactors <- function(count_data,
 
 normalise <- function(pulseData, fractions) {
   if (missing(fractions)) {
-    conditions <- pulseData$conditions[, 1]
+    conditions <- as.data.frame(pulseData$conditions)[,1,drop=FALSE]
   } else {
     conditions <- pulseData$conditions[, all.vars(fractions), drop=FALSE]
     conditions <- apply(conditions, 1, paste, collapse = ".")
+    names(conditions) <- rownames(pulseData$conditions)
   }
-  names(conditions) <- rownames(pulseData$conditions)
   pulseData$norm_factors <- findDeseqFactors(pulseData$count_data,
                                              conditions,
                                              pulseData$spikeins)
@@ -50,7 +51,7 @@ normalise <- function(pulseData, fractions) {
 }
 
 addKnownShared <- function(formulas, conditions){
-  if (dim(conditions)[2] == 1)
+  if (dim(as.matrix(conditions))[2] == 1)
     return(list(formulas = formulas,
                 conditions = conditions))
   knownParams <- which(
@@ -59,10 +60,11 @@ addKnownShared <- function(formulas, conditions){
   interactions <- interaction(conditions,drop = TRUE)
   conditions <- unique(conditions)
   evaledFormulas <- lapply(seq_along(conditions[,1]), function(i){
-    substitute_q(formulas[[conditions[i,1]]],
+    substitute_q(formulas[[as.character(conditions[i,1])]],
                  as.list(conditions[i,-1, drop=FALSE]))
   })
   names(evaledFormulas) <- interactions
+  names(interactions) <- rownames(conditions)
   list(formulas = evaledFormulas,
        conditions = interactions)
 }

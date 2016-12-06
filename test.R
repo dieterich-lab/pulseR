@@ -16,10 +16,9 @@ generateTestDataSingle <- function(forms,
 }
 
 conditionsFromFormulas <- function(forms, replicates) {
-  conditions <- data.frame(condition = rep(names(forms), replicates))
-  rownames(conditions) <- replicate(length(forms) * replicates,
+  conditions <-rep(names(forms), replicates)
+  names(conditions) <- replicate(length(forms) * replicates,
                                  paste0(letters[sample(25, 10)], collapse = ""))
-  conditions <- as.data.frame(conditions, stringAsFactors = FALSE)
   conditions
 }
 
@@ -46,11 +45,11 @@ generateTestData <- function(n,
   size <- 1e2
   d <- lapply(seq_along(rownames(p)), function(i) {
     generateTestDataSingle(forms, p[i,], alphas,
-                           conditions = conditions[,1])
+                           conditions = conditions)
   })
   data <- do.call(rbind, d)
   rownames(data) <- genes
-  colnames(data) <- rownames(conditions)
+  colnames(data) <- names(conditions)
   list(
     count_data = data[order(rownames(data)), ],
     conditions = conditions,
@@ -84,7 +83,7 @@ getFormulasWithHyperParams <- function() {
 }
 
 guess_params <- function(data, conditions) {
-  totals <- data[, conditions$condition == "total_Norm", drop = FALSE]
+  totals <- data[, conditions == "total_Norm", drop = FALSE]
   mean_expression <- apply(X = totals, FUN = mean, MARGIN = 1)
   guess <- data.frame(
     mu_n = mean_expression,

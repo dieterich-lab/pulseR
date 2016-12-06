@@ -48,7 +48,7 @@ ll_gene <- function(pulseData,
                     param_names,
                     size,
                     shared_params = NULL) {
-  mean_indexes <- sapply(pulseData$conditions[,1],
+  mean_indexes <- sapply(pulseData$conditions,
                          match, names(pulseData$formulas))
   formulas <- pulseData$formulas
   norm_factors <- pulseData$norm_factors
@@ -79,7 +79,7 @@ ll_shared_params <- function(pulseData,
                       pulseData$formulas,
                       individual_params)
     mean_indexes <-
-      sapply(pulseData$conditions[,1], match, names(pulseData$formulas))
+      sapply(pulseData$conditions, match, names(pulseData$formulas))
     lambdas <- means[, mean_indexes]
     - sum(
       dnbinom(
@@ -110,7 +110,7 @@ ll_dispersion <- function(pulseData,
                       pulseData$formulas,
                       individual_params)
     mean_indexes <-
-      sapply(pulseData$conditions[,1], match, names(pulseData$formulas))
+      sapply(pulseData$conditions, match, names(pulseData$formulas))
     lambdas <- means[, mean_indexes]
     -sum(dnbinom(
         x    = pulseData$count_data,
@@ -131,6 +131,7 @@ predict.expression <- function(fit, pulseData) {
     mean_indexes <-
       sapply(pulseData$conditions[, 1], match, names(pulseData$formulas))
     means <- means[, mean_indexes] * pulseData$norm_factors
+    colnames(means) <- colnames(pulseData$count_data)
     llog <- dnbinom(
       x = pulseData$count_data,
       mu = means,
@@ -138,7 +139,7 @@ predict.expression <- function(fit, pulseData) {
       size = fit$size
     )
   }
-  list(preditions = means, llog = llog)
+  list(predictions = means, llog = llog)
 }
 
 log2screen <- function(options, ...) {
@@ -251,6 +252,7 @@ defaultParams <- function() {
 fitModel <- function(pulseData,
                      params,
                      shared_params = NULL,
+                     size=100,
                      options = list()) {
   require(parallel)
   opts <- defaultParams()
@@ -265,12 +267,11 @@ fitModel <- function(pulseData,
     shared_params <- as.list(shared_params)
     shared_rel_err <- 10 * opts$shared_rel_tol
   }
-  size <- 1e2
   opts[names(options)] <- options
   while (rel_err > opts$rel_tol ||
          shared_rel_err > opts$shared_rel_tol) {
     # Fit params for every genes individually
-    log2screen(opts, "Fitting gene-specific params")
+    log2screen(opts, "Fitting gene-specific params\n")
     old_params <- params
     params <- fitIndividualParameters(
       old_params = old_params,
@@ -282,8 +283,7 @@ fitModel <- function(pulseData,
     rel_err <- getMaxRelDifference(params, old_params)
     # Fit shared params
     if (!is.null(shared_params)) {
-      log2screen(opts, rep(" ", 100, "\r"))
-      log2screen(opts, "Fitting shared params")
+      log2screen(opts, "Fitting shared params\n")
       old_shared_params <- shared_params
       shared_params <- fitSharedParameters(
         old_shared_params = shared_params,
