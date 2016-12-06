@@ -15,9 +15,8 @@ generateTestDataSingle <- function(forms,
   counts
 }
 
-generateTestData <- function(n, replicates) {
+generateTestData <- function(n, replicates, forms=getFormulas()) {
   set.seed(259)
-  forms <- getFormulas()
   conditions <- list()
   conditions$sample <- replicate(length(forms) * replicates,
                                  paste0(letters[sample(25, 10)], collapse = ""))
@@ -69,6 +68,14 @@ getFormulas <- function() {
     biotin_chase_Norm  = beta_chase * mu_n * (1 - a_n) * a_n,
     flow_chase_Hypox   = alpha_chase * (mu_h + mu_n * a_n * a_h),
     biotin_chase_Hypox = beta_chase * (mu_n * (1 - a_n) * a_h)
+  )
+}
+
+getFormulasWithHyperParams <- function() {
+  MeanFormulas(
+    total = mu_n,
+    flow_lab      = alpha_lab * (mu_n * a_n^time),
+    biotin_lab    = beta_lab * mu_n * (1 - a_n^time)
   )
 }
 
