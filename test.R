@@ -26,7 +26,6 @@ generateTestData <- function(n,
                              replicates,
                              forms,
                              conditions){
-  set.seed(259)
   genes <- replicate(n, paste0(letters[sample(25, 10)], collapse = ""))
   genes <- paste0("ENS00000", genes)
   p <- data.frame(
@@ -99,6 +98,7 @@ cookWorkEnvironment <- function(n,
                                 replicates,
                                 formulas=getFormulas(),
                                 conditions) {
+  set.seed(259)
   conditions <- conditionsFromFormulas(forms = formulas,
                                        replicates = replicates)
   g <- generateTestData(n = n,

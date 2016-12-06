@@ -309,7 +309,7 @@ fitModel <- function(pulseData,
     individual_params = params,
     shared_params = shared_params,
     size = size, 
-    formulas = pd$formulas
+    formulas = pulseData$formulas
   )
 }
 
