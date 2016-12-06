@@ -2,7 +2,8 @@
 PulseData <- function(count_data,
                       conditions,
                       formulas,
-                      spikeins = rownames(count_data)) {
+                      spikeins = rownames(count_data),
+                      normalisation = NULL) {
   e <- new.env()
   samples <- sort(colnames(count_data))
   e$count_data <- as.matrix(count_data[, samples])
@@ -52,6 +53,9 @@ addKnownShared <- function(formulas, conditions){
   if (dim(conditions)[2] == 1)
     return(list(formulas = formulas,
                 conditions = conditions))
+  knownParams <- which(
+    colnames(conditions) %in% unlist(lapply(formulas, all.vars)))
+  conditions <- conditions[, c(1,knownParams)]
   interactions <- interaction(conditions,drop = TRUE)
   conditions <- unique(conditions)
   evaledFormulas <- lapply(seq_along(conditions[,1]), function(i){
