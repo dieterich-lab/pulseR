@@ -49,6 +49,9 @@ normalise <- function(pulseData, fractions) {
 }
 
 addKnownShared <- function(formulas, conditions){
+  if (dim(conditions)[2] == 1)
+    return(list(formulas = formulas,
+                conditions = conditions))
   interactions <- interaction(conditions,drop = TRUE)
   conditions <- unique(conditions)
   evaledFormulas <- lapply(seq_along(conditions[,1]), function(i){
