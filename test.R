@@ -1,4 +1,4 @@
-source("likelihoods.R")
+#source("likelihoods.R")
 
 generateTestDataSingle <- function(forms,
                                    individual_params,
@@ -17,6 +17,7 @@ generateTestDataSingle <- function(forms,
 
 generateTestData <- function(n, replicates) {
   set.seed(259)
+  forms <- getFormulas()
   conditions <- list()
   conditions$sample <- replicate(length(forms) * replicates,
                                  paste0(letters[sample(25, 10)], collapse = ""))
@@ -94,8 +95,11 @@ cookWorkEnvironment <- function(n, replicates) {
     upper_boundary_shared = rep(5, 4),
     lower_boundary_size = 0,
     upper_boundary_size = 1e3,
-    cores = 2
+    cores = 4
   )
+  options$parscales <- mapply(max,
+                           abs(options$upper_boundary),
+                           abs(options$lower_boundary))
   pd <- PulseData(g$count_data, g$conditions, formulas)
   normalise(pd)
   g$count_data <- NULL
