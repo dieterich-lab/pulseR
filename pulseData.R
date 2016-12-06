@@ -47,3 +47,15 @@ normalise <- function(pulseData, fractions) {
                                              pulseData$spikeins)
   pulseData
 }
+
+addKnownShared <- function(formulas, conditions){
+  interactions <- interaction(conditions,drop = TRUE)
+  conditions <- unique(conditions)
+  evaledFormulas <- lapply(seq_along(conditions[,1]), function(i){
+    substitute_q(formulas[[conditions[i,1]]],
+                 as.list(conditions[i,-1, drop=FALSE]))
+  })
+  names(evaledFormulas) <- interactions
+  list(formulas = evaledFormulas,
+       conditions = interactions)
+}
