@@ -18,8 +18,14 @@ findDeseqFactorsSingle <- function(count_data)
 {
   loggeomeans <- rowMeans(log(count_data))
   deseqFactors <-  apply(count_data, 2, function(x) {
-    exp(median((log(x) - loggeomeans)[is.finite(loggeomeans) & x > 0],
-               na.rm = TRUE))
+    finitePositive <- is.finite(loggeomeans) & x > 0
+    if(any(finitePositive))
+      res <- exp(median((log(x) - loggeomeans)[finitePositive], na.rm = TRUE))
+    else {
+      stop("Can't normalise accross a condition. 
+              Too many zero expressed genes. ")
+    }
+    res  
   })
   deseqFactors
 }
