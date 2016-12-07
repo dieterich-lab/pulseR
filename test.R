@@ -81,17 +81,13 @@ getFormulasWithHyperParams <- function() {
   )
 }
 
-guess_params <- function(data, conditions) {
-  totals <- data[, conditions == "total_Norm", drop = FALSE]
-  mean_expression <- apply(X = totals, FUN = mean, MARGIN = 1)
-  guess <- data.frame(
-    mu_n = mean_expression,
-    mu_h = mean_expression,
-    a_n = .1,
-    a_h = .1
-  )
-  rownames(guess) <- rownames(data)
-  guess
+guess_params <- function(wenv) {
+  guess <-(apply(wenv$params$params, 2,median))
+  guess <- matrix(guess, nrow=dim(wenv$params$params)[1],
+                  ncol=length(guess), byrow=TRUE)
+  rownames(guess) <- rownames(wenv$params$params)
+  colnames(guess) <- colnames(wenv$params$params)
+  guess + 1e-10
 }
 
 cookWorkEnvironment <- function(n,
@@ -126,11 +122,12 @@ cookWorkEnvironment <- function(n,
        params = g)
 }
 
-testIndividualGeneParams <- function(n = 2, replicates = 2) {
-  wenv <- cookWorkEnvironment(n, replicates)
+testIndividualGeneParams <- function(n = 2, replicates = 2, wenv) {
+  if(missing(wenv))
+    wenv <- cookWorkEnvironment(n, replicates)
   pd <- wenv$pd
   g <- wenv$params
-  guess <- guess_params(pd$count_data, pd$conditions)
+  guess <- guess_params(wenv)
   estimation <- fitIndividualParameters(
     old_params = guess,
     pulseData = pd,
@@ -142,8 +139,9 @@ testIndividualGeneParams <- function(n = 2, replicates = 2) {
   errors
 }
 
-testSharedParams <- function(n = 2, replicates = 2) {
-  wenv <- cookWorkEnvironment(n, replicates)
+testSharedParams <- function(n = 2, replicates = 2, wenv) {
+  if(missing(wenv))
+    wenv <- cookWorkEnvironment(n, replicates)
   pd <- wenv$pd
   g <- wenv$params
   shared_guess <-
@@ -159,8 +157,9 @@ testSharedParams <- function(n = 2, replicates = 2) {
   abs(1 - unlist(g$shared_params) / unlist(res))
 }
 
-testFitDispersion <- function(n = 2, replicates = 2) {
-  wenv <- cookWorkEnvironment(n, replicates)
+testFitDispersion <- function(n = 2, replicates = 2, wenv) {
+  if(missing(wenv))
+    wenv <- cookWorkEnvironment(n, replicates)
   pd <- wenv$pd
   g <- wenv$params
   dispersion_guess <- runif(1, 1 / 10, 1e3)
@@ -174,11 +173,12 @@ testFitDispersion <- function(n = 2, replicates = 2) {
   abs(1 - g$size / res)
 }
 
-testFitModel <- function(n = 2, replicates = 2) {
-  wenv <- cookWorkEnvironment(n, replicates)
+testFitModel <- function(n = 2, replicates = 2, wenv) {
+  if(missing(wenv))
+    wenv <- cookWorkEnvironment(n, replicates)
   pd <- wenv$pd
   g <- wenv$params
-  guess <- guess_params(pd$count_data, pd$conditions)
+  guess <- guess_params(wenv)
   shared_guess <-
     lapply(g$shared_params, function(x)
       runif(1, .3, 3.))
@@ -200,12 +200,12 @@ testFitModel <- function(n = 2, replicates = 2) {
   )
 }
 
-                                formulas=getFormulasWithHyperParams()
 cookWorkEnvironmentWithTime <- function(n,
                                 replicates,
                                 time_n = 3,
                                 formulas=getFormulasWithHyperParams(),
                                 conditions) {
+  set.seed(259)
   conditions <-data.frame(
     condition = conditionsFromFormulas(forms = formulas, 
                                        replicates = replicates * time_n))
