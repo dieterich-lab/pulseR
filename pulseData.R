@@ -58,7 +58,6 @@ addKnownShared <- function(formulas, conditions){
     colnames(conditions) %in% unlist(lapply(formulas, all.vars)))
   conditions <- conditions[, c(1,knownParams)]
   interactions <- interaction(conditions,drop = TRUE)
-  conditions <- unique(conditions)
   evaledFormulas <- lapply(seq_along(conditions[,1]), function(i){
     substitute_q(formulas[[as.character(conditions[i,1])]],
                  as.list(conditions[i,-1, drop=FALSE]))
