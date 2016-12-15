@@ -1,5 +1,5 @@
 ## Tests for data with several time points
-
+source("test.R")
 cookWorkEnvironmentWithTime <- function(n,
                                 replicates,
                                 time_n = 3,
