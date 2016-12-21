@@ -124,9 +124,7 @@ cookWorkEnvironment <- function(n,
        params = g)
 }
 
-testIndividualGeneParams <- function(n = 2, replicates = 2, wenv) {
-  if(missing(wenv))
-    wenv <- cookWorkEnvironment(n, replicates)
+testIndividualGeneParams <- function(wenv) {
   pd <- wenv$pd
   g <- wenv$params
   guess <- guess_params(wenv)
