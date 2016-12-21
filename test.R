@@ -1,3 +1,6 @@
+source("likelihoods.R")
+source("fit.R")
+source("pulseData.R")
 
 generateTestDataSingle <- function(forms,
                                    individual_params,
