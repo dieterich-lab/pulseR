@@ -58,18 +58,18 @@ normalise <- function(pulseData, fractions) {
 
 addKnownShared <- function(formulas, conditions){
   if (dim(as.matrix(conditions))[2] == 1)
-    return(list(formulas = formulas,
-                conditions = conditions))
-  knownParams <- which(
-    colnames(conditions) %in% unlist(lapply(formulas, all.vars)))
+    return(
+      list(formulas = formulas,
+        conditions  = conditions))
+  knownParams <- which( colnames(conditions) %in% unlist(lapply(formulas, all.vars)))
   conditions <- conditions[, c(1,knownParams)]
   interactions <- interaction(conditions,drop = TRUE)
   evaledFormulas <- lapply(seq_along(conditions[,1]), function(i){
     substitute_q(formulas[[as.character(conditions[i,1])]],
-                 as.list(conditions[i,-1, drop=FALSE]))
-  })
+      as.list(conditions[i,-1, drop=FALSE]))
+      })
   names(evaledFormulas) <- interactions
-  names(interactions) <- rownames(conditions)
+  names(interactions)   <- rownames(conditions)
   list(formulas = evaledFormulas,
-       conditions = interactions)
+    conditions  = interactions)
 }
