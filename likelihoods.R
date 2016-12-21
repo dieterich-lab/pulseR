@@ -92,6 +92,30 @@ ll_shared_params <- function(pulseData,
   }
 }
 
+ll_norm_factors <- function(
+  pulseData,
+  individual_params,
+  shared_params,
+  size) {
+  means <- getMeans(shared_params,
+    pulseData$formulas,
+    individual_params)
+  mean_indexes <- sapply(pulseData$conditions, match, names(pulseData$formulas))
+  lambdas <- means[, mean_indexes]
+  norm_indexes <- as.numeric(conditions$fraction)
+  function(norm_factors) {
+    norm_factors <- c(1,norm_factors)
+    - sum(
+      dnbinom(
+        x    = pulseData$count_data,
+        mu   = lambdas * norm_factors,
+        log  = TRUE,
+        size = size
+      )
+    )
+  }
+}
+
 getMeans <- function(shared_params, formulas, individual_params) {
   shared_params <- as.list(shared_params)
   means <- lapply(formulas, function(x) {
