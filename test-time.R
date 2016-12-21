@@ -1,5 +1,6 @@
 ## Tests for data with several time points
 source("test.R")
+
 cookWorkEnvironmentWithTime <- function(n,
                                 replicates,
                                 time_n = 3,
@@ -8,14 +9,15 @@ cookWorkEnvironmentWithTime <- function(n,
   conditions <-data.frame(
     condition = conditionsFromFormulas(forms = formulas, 
                                        replicates = replicates * time_n))
+  conditions$fraction <- conditions$condition # add scale info
   conditions$time <- rep(1:time_n, each=length(formulas))
   conditions$dummy <- "i_will_fail_your_code"
   t <- addKnownShared(formulas, conditions)
-  conditions <- t$conditions
+  conditions$condition <- t$conditions
   formulas <- t$formulas
-  g <- generateTestDataWithTime(n = n,
+  g <- generateTestDataWithTime(n  = n,
                         replicates = replicates,
-                        forms = formulas,
+                        forms      = formulas,
                         conditions = conditions)
   options <- list(
     lower_boundary = rep(1e-9, 2),
@@ -73,8 +75,8 @@ generateTestDataWithTime <- function(n,
 testTimeData <- function(n=10, replicates=10){
   wenv <- cookWorkEnvironmentWithTime (
     n, replicates, time_n = 3, getFormulasWithHyperParams()) 
-  testIndividualGeneParams(n, replicates, wenv) 
-  testSharedParams(n, replicates, wenv) 
-  testFitModel(n, replicates, wenv)
+  testIndividualGeneParams(wenv) 
+  testSharedParams(wenv) 
+  testFitModel(wenv)
   return("OK")
 }
