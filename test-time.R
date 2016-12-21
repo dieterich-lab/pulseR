@@ -3,8 +3,7 @@ source("test.R")
 cookWorkEnvironmentWithTime <- function(n,
                                 replicates,
                                 time_n = 3,
-                                formulas=getFormulasWithHyperParams(),
-                                conditions) {
+                                formulas=getFormulasWithHyperParams()) {
   set.seed(259)
   conditions <-data.frame(
     condition = conditionsFromFormulas(forms = formulas, 
@@ -69,4 +68,13 @@ generateTestDataWithTime <- function(n,
     size = size,
     shared_params = alphas
   )
+}
+
+testTimeData <- function(n=10, replicates=10){
+  wenv <- cookWorkEnvironmentWithTime (
+    n, replicates, time_n = 3, getFormulasWithHyperParams()) 
+  testIndividualGeneParams(n, replicates, wenv) 
+  testSharedParams(n, replicates, wenv) 
+  testFitModel(n, replicates, wenv)
+  return("OK")
 }
