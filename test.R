@@ -20,7 +20,7 @@ generateTestDataSingle <- function(forms,
 conditionsFromFormulas <- function(forms, replicates) {
   conditions <-rep(names(forms), replicates)
   names(conditions) <- replicate(length(forms) * replicates,
-                                 paste0(letters[sample(25, 10)], collapse = ""))
+                                 paste0("sample_",letters[sample(25, 10)], collapse = ""))
   conditions
 }
 
