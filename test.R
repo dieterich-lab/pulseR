@@ -138,12 +138,11 @@ testIndividualGeneParams <- function(n = 2, replicates = 2, wenv) {
     size = g$size
   )
   errors <- abs(1 - estimation[rownames(g$params), ] / g$params)
+  stopifnot(max(errors) < 0.05)
   errors
 }
 
-testSharedParams <- function(n = 2, replicates = 2, wenv) {
-  if(missing(wenv))
-    wenv <- cookWorkEnvironment(n, replicates)
+testSharedParams <- function(wenv) {
   pd <- wenv$pd
   g <- wenv$params
   shared_guess <-
@@ -156,12 +155,12 @@ testSharedParams <- function(n = 2, replicates = 2, wenv) {
     options = wenv$options,
     size = g$size
   )
-  abs(1 - unlist(g$shared_params) / unlist(res))
+  errors <- abs(1 - unlist(g$shared_params) / unlist(res))
+  stopifnot(max(errors) < 0.05)
+  errors
 }
 
-testFitDispersion <- function(n = 2, replicates = 2, wenv) {
-  if(missing(wenv))
-    wenv <- cookWorkEnvironment(n, replicates)
+testFitDispersion <- function(wenv) {
   pd <- wenv$pd
   g <- wenv$params
   dispersion_guess <- runif(1, 1 / 10, 1e3)
@@ -172,12 +171,12 @@ testFitDispersion <- function(n = 2, replicates = 2, wenv) {
     options = wenv$options,
     size = dispersion_guess
   )
-  abs(1 - g$size / res)
+  errors <- abs(1 - g$size / res)
+  stopifnot(max(errors) < 0.05)
+  errors
 }
 
-testFitModel <- function(n = 2, replicates = 2, wenv) {
-  if(missing(wenv))
-    wenv <- cookWorkEnvironment(n, replicates)
+testFitModel <- function(wenv) {
   pd <- wenv$pd
   g <- wenv$params
   guess <- guess_params(wenv)
@@ -192,7 +191,7 @@ testFitModel <- function(n = 2, replicates = 2, wenv) {
   )
   p <- fitResult$individual_params
   errors <- (1 - p / g$params)
-  list(
+  res <- list(
     individual_err = errors,
     shared_err = (
       1 - unlist(fitResult$shared_params) /
@@ -200,4 +199,6 @@ testFitModel <- function(n = 2, replicates = 2, wenv) {
     ),
     size_err = (1 - fitResult$size / g$size)
   )
+  stopifnot(max(unlist(res)) < 0.05)
+  res
 }
