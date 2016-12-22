@@ -2,18 +2,26 @@ source("likelihoods.R")
 source("fit.R")
 source("pulseData.R")
 
-generateTestDataSingle <- function(forms,
-                                   individual_params,
-                                   shared_params,
-                                   conditions,
-                                   n = 1,
-                                   size = 100) {
-  means <- sapply(forms, eval,
-                  c(as.list(individual_params), as.list(shared_params)))
-  indexes <- match(conditions, names(forms))
-  counts <- rnbinom(n    = length(conditions),
-                    mu   = means[indexes],
-                    size = size)
+generateTestDataFrom <- function(forms, par, conditions) {
+  counts <- list()
+  for(i in seq_along(par$individual_params[,1])){
+    means <- sapply(forms, eval, 
+      c(as.list(par$individual_params[i,]),
+        as.list(par$shared_params)))
+    # normalise
+    if(!is.null(conditions$fraction_indexes)){
+      fraction_indexes <- match(as.integer(conditions$fraction))
+      means <- means * c(1, par$fraction_factors)[fraction_indexes]
+    }
+    indexes <- match(conditions$condition, names(forms))
+    counts[[i]] <- rnbinom(
+      n    = length(conditions$condition),
+      mu   = means[indexes],
+      size = par$size)
+  }
+  counts <- do.call(rbind, counts)
+  rownames(counts) <- rownames(par$individual_params)
+  colnames(counts) <- rownames(conditions)
   counts
 }
 
@@ -30,34 +38,25 @@ generateTestData <- function(n,
                              conditions){
   genes <- replicate(n, paste0(letters[sample(25, 10)], collapse = ""))
   genes <- paste0("ENS00000", genes)
-  p <- data.frame(
+  par <- list()
+  par$individual_params <- data.frame(
     mu_n = runif(n, 1e2, 50000),
     mu_h = runif(n, 1e2, 50000),
     a_n  = runif(n, .05, .8),
     a_h  = runif(n, .05, .8)
   )
-  rownames(p) <- genes
-  alphas <- list(
+  rownames(par$individual_params) <- genes
+  par$individual_params <- par$individual_params[order(rownames(par$individual_params)),]
+  par$shared_params <- list(
     alpha_chase = 1,
     alpha_lab = 2,
     beta_chase = 1,
     beta_lab = 2
   )
-  size <- 1e2
-  d <- lapply(seq_along(rownames(p)), function(i) {
-    generateTestDataSingle(forms, p[i,], alphas,
-                           conditions = conditions)
-  })
-  data <- do.call(rbind, d)
-  rownames(data) <- genes
-  colnames(data) <- names(conditions)
-  list(
-    count_data = data[order(rownames(data)), ],
-    conditions = conditions,
-    params = p[order(rownames(p)), ],
-    size = size,
-    shared_params = alphas
-  )
+  par$size <- 1e2
+  d <- generateTestDataFrom(forms, par, conditions)
+  d <- d[order(rownames(d)),]
+  list( count_data=d, par=par, conditions = conditions)
 }
 
 getFormulas <- function() {
@@ -84,11 +83,11 @@ getFormulasWithHyperParams <- function() {
 }
 
 guess_params <- function(wenv) {
-  guess <-(apply(wenv$params$params, 2,median))
-  guess <- matrix(guess, nrow=dim(wenv$params$params)[1],
+  guess <-(apply(wenv$par$individual_params, 2,median))
+  guess <- matrix(guess, nrow=dim(wenv$par$individual_params)[1],
                   ncol=length(guess), byrow=TRUE)
-  rownames(guess) <- rownames(wenv$params$params)
-  colnames(guess) <- colnames(wenv$params$params)
+  rownames(guess) <- rownames(wenv$par$individual_params)
+  colnames(guess) <- colnames(wenv$par$individual_params)
   guess + 1e-10
 }
 
@@ -97,8 +96,10 @@ cookWorkEnvironment <- function(n,
                                 formulas=getFormulas(),
                                 conditions) {
   set.seed(259)
-  conditions <- conditionsFromFormulas(forms = formulas,
+  conditions <- list()
+  conditions$condition <- conditionsFromFormulas(forms = formulas,
                                        replicates = replicates)
+  conditions <- as.data.frame(conditions)
   g <- generateTestData(n = n,
                         replicates = replicates,
                         forms = formulas, 
@@ -121,22 +122,20 @@ cookWorkEnvironment <- function(n,
   g$conditions <- NULL
   list(pd = pd,
        options = options,
-       params = g)
+       par = g$par)
 }
 
-testIndividualGeneParams <- function(wenv) {
+testIndividualGeneParams <- function(wenv, thres=.05) {
   pd <- wenv$pd
-  g <- wenv$params
   guess <- guess_params(wenv)
   estimation <- fitIndividualParameters(
-    old_params = guess,
     pulseData = pd,
-    shared_params = g$shared_params,
-    options = wenv$options,
-    size = g$size
+    par = wenv$par,
+    options = wenv$options
   )
-  errors <- abs(1 - estimation[rownames(g$params), ] / g$params)
-  stopifnot(max(errors) < 0.05)
+  estimation <- estimation[rownames(wenv$par$individual_params), ]
+  errors <- abs(1 - estimation / wenv$par$individual_params)
+  stopifnot(max(errors) < thres)
   errors
 }
 
@@ -199,4 +198,13 @@ testFitModel <- function(wenv) {
   )
   stopifnot(max(unlist(res)) < 0.05)
   res
+}
+
+
+testAll <- function(n=10, replicates=10){
+  wenv <- cookWorkEnvironment(n, replicates,  getFormulas()) 
+  testIndividualGeneParams(wenv) 
+  testSharedParams(wenv) 
+  #testFitModel(wenv)
+  return("OK")
 }
