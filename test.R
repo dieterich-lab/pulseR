@@ -127,37 +127,32 @@ cookWorkEnvironment <- function(n,
 
 testIndividualGeneParams <- function(wenv, thres=.05) {
   pd <- wenv$pd
-  guess <- guess_params(wenv)
+  true_params <- wenv$par$individual_params
+  par <- wenv$par
+  par$individual_params <- guess_params(wenv)
   estimation <- fitIndividualParameters(
     pulseData = pd,
     par = wenv$par,
     options = wenv$options
   )
   estimation <- estimation[rownames(wenv$par$individual_params), ]
-  errors <- abs(1 - estimation / wenv$par$individual_params)
+  errors <- abs(1 - estimation / true_params)
   stopifnot(max(errors) < thres)
   errors
 }
 
-testSharedParams <- function(wenv) {
+testSharedParams <- function(wenv, thres=0.05) {
   pd <- wenv$pd
-  g <- wenv$params
-  shared_guess <-
-    lapply(g$shared_params, function(x)
-      runif(1, .3, 3.))
-  res <- fitSharedParameters (
-    old_shared_params = shared_guess,
-    pulseData = pd,
-    individual_params = g$params,
-    options = wenv$options,
-    size = g$size
-  )
-  errors <- abs(1 - unlist(g$shared_params) / unlist(res))
-  stopifnot(max(errors) < 0.05)
+  true_params <- wenv$par$shared_params
+  shared_guess <- lapply(wenv$par$shared_params, function(x) runif(1, .3, 3.))
+  wenv$par$shared_params <- shared_guess
+  res <- fitSharedParameters (pd, wenv$par, wenv$options)
+  errors <- abs(1 - unlist(true_params) / unlist(res))
+  stopifnot(max(errors) < thres)
   errors
 }
 
-testFitDispersion <- function(wenv) {
+testFitDispersion <- function(wenv, thres=0.05) {
   pd <- wenv$pd
   g <- wenv$params
   dispersion_guess <- runif(1, 1 / 10, 1e3)
@@ -169,7 +164,7 @@ testFitDispersion <- function(wenv) {
     size = dispersion_guess
   )
   errors <- abs(1 - g$size / res)
-  stopifnot(max(errors) < 0.05)
+  stopifnot(max(errors) < thres)
   errors
 }
 
