@@ -8,7 +8,7 @@ PulseData <- function(count_data,
   samples <- sort(colnames(count_data))
   e$count_data <- as.matrix(count_data[, samples])
   t <- addKnownShared(formulas, conditions)
-  e$conditions <- t$conditions[samples]
+  e$conditions <- t$conditions[samples,]
   e$formulas <- t$formulas
   e$spikeins <- spikeins
   e
