@@ -44,49 +44,43 @@ constructFormulas <- function(formulas, conditions) {
   result
 }
 
-ll_gene <- function(pulseData,
-                    param_names,
-                    size,
-                    shared_params,
-                    fraction_factors=NULL) {
-  mean_indexes <- sapply(pulseData$conditions,
-                         match, names(pulseData$formulas))
+ll_gene <- function(pulseData, par) {
+  mean_indexes <- sapply(pulseData$conditions, match, names(pulseData$formulas))
   formulas <- pulseData$formulas
   norm_factors <- pulseData$norm_factors
-  if(!is.null(fraction_factors)){
-    norm_factors <- norm_factors * fraction_factors[as.integer(pulseData$conditions$fraction)]
+  if(!is.null(par$fraction_factors)){
+    norm_factors <- 
+      norm_factors * par$fraction_factors[as.integer(pulseData$conditions$fraction)]
   }
-  if (!is.null(shared_params))
-    formulas <- lapply(formulas, substitute_q, shared_params)
+  if (!is.null(par$shared_params))
+    formulas <- lapply(formulas, substitute_q, par$shared_params)
   means_vector <-  makeVector(formulas)
+  param_names <- names(par$individual_params)
   funquote <- function(params, counts) {
     names(params) <- param_names
     mus <- eval(means_vector, as.list(params))
-    lambdas <- norm_factors * mus[mean_indexes] 
+    lambdas <-  mus[mean_indexes] 
     -sum(dnbinom(
       x    = counts,
-      mu   = lambdas,
+      mu   = lambdas * norm_factors,
       log  = TRUE,
-      size = size
+      size = par$size
     ))
   }
   funquote
 }
 
-ll_shared_params <- function(pulseData,
-                             individual_params,
-                             shared_param_names,
-                             size,
-                             fraction_factors=NULL) {
+ll_shared_params <- function(pulseData, par) {
   norm_factors <- pulseData$norm_factors 
-  if(!is.null(fraction_factors)){
-    norm_factors <- norm_factors * fraction_factors[as.integer(pulseData$conditions$fraction)]
+  if(!is.null(par$fraction_factors)){
+    norm_factors <- 
+      norm_factors * par$fraction_factors[as.integer(pulseData$conditions$fraction)]
   }
   function(shared_params) {
     names(shared_params) <- shared_param_names
     means <- getMeans(shared_params,
                       pulseData$formulas,
-                      individual_params)
+                      par$individual_params)
     mean_indexes <- sapply(pulseData$conditions, match, names(pulseData$formulas))
     lambdas <- means[, mean_indexes]
     - sum(
@@ -94,31 +88,27 @@ ll_shared_params <- function(pulseData,
         x    = pulseData$count_data,
         mu   = lambdas * norm_factors,
         log  = TRUE,
-        size = size
+        size = par$size
       )
     )
   }
 }
 
-ll_norm_factors <- function(
-  pulseData,
-  individual_params,
-  shared_params,
-  size) {
-  means <- getMeans(shared_params,
+ll_norm_factors <- function(pulseData, par) {
+  means <- getMeans(par$shared_params,
     pulseData$formulas,
-    individual_params)
+    par$individual_params)
   mean_indexes <- sapply(pulseData$conditions, match, names(pulseData$formulas))
-  lambdas <- means[, mean_indexes]
-  norm_indexes <- as.numeric(conditions$fraction)
-  function(norm_factors) {
-    norm_factors <- c(1,norm_factors)
+  norm_lambdas <- means[, mean_indexes] * pulseData$norm_factors
+  norm_indexes <- as.integer(conditions$fraction)
+  function(fraction_factors) {
+    fraction_factors <- c(1,fraction_factors)
     - sum(
       dnbinom(
         x    = pulseData$count_data,
-        mu   = lambdas * norm_factors,
+        mu   = norm_lambdas * fraction_factors[norm_indexes],
         log  = TRUE,
-        size = size
+        size = par$size
       )
     )
   }
