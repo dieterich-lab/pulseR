@@ -9,6 +9,7 @@ PulseData <- function(count_data,
   e$count_data <- as.matrix(count_data[, samples])
   t <- addKnownShared(formulas, conditions)
   e$conditions <- t$conditions[samples,]
+  rownames(e$conditions) <- samples
   e$formulas <- t$formulas
   e$spikeins <- spikeins
   e
@@ -31,10 +32,8 @@ findDeseqFactorsSingle <- function(count_data)
 }
 
 # conditions  - factor to split samples for normalisation
-findDeseqFactors <- function(count_data,
-                             conditions,
-                             spikeins) {
-  deseqFactors <- lapply(split(rownames(conditions), conditions),
+findDeseqFactors <- function(count_data, conditions, spikeins) {
+  deseqFactors <- lapply(split(colnames(pd$count_data), conditions),
                          function(samples) {
                            findDeseqFactorsSingle(count_data[spikeins, samples, drop=FALSE])
                          })
@@ -44,15 +43,15 @@ findDeseqFactors <- function(count_data,
 
 normalise <- function(pulseData, fractions) {
   if (missing(fractions)) {
-    conditions <- as.data.frame(pulseData$conditions)[,1,drop=FALSE]
+    splitting_factor <- as.data.frame(pulseData$conditions)[,1,drop=FALSE]
   } else {
-    conditions <- pulseData$conditions[, all.vars(fractions), drop=FALSE]
-    conditions <- apply(conditions, 1, paste, collapse = ".")
-    names(conditions) <- rownames(pulseData$conditions)
+    splitting_factor <- pulseData$conditions[, all.vars(fractions), drop=FALSE]
+    splitting_factor <- apply(conditions, 1, paste, collapse = ".")
   }
-  pulseData$norm_factors <- findDeseqFactors(pulseData$count_data,
-                                             conditions,
-                                             pulseData$spikeins)
+  pulseData$norm_factors <- findDeseqFactors(
+    pulseData$count_data,
+    splitting_factor,
+    pulseData$spikeins)
   pulseData
 }
 
