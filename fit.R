@@ -67,15 +67,15 @@ getMaxRelDifference <- function(x,y) max(abs(1 - unlist(x)/unlist(y)))
 fitModel <- function(pulseData, par, options = list()) {
   require(parallel)
   opts <- defaultParams()
-  param_names <- names(params)
+  param_names <- names(par$individual_params)
   opts$parscales <- mapply(max,
     abs(options$upper_boundary),
     abs(options$lower_boundary))
   rel_err <- 10 * opts$rel_tol
-  if (is.null(shared_params)) {
+  if (is.null(par$shared_params)) {
     shared_rel_err <- 0
   } else {
-    shared_params <- as.list(shared_params)
+    shared_params <- as.list(par$shared_params)
     shared_rel_err <- 10 * opts$shared_rel_tol
   }
   opts[names(options)] <- options
