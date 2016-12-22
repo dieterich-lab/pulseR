@@ -161,30 +161,23 @@ testFitDispersion <- function(wenv, thres=0.05) {
   errors
 }
 
-testFitModel <- function(wenv) {
+testFitModel <- function(wenv, thres=0.05) {
   pd <- wenv$pd
-  g <- wenv$params
-  guess <- guess_params(wenv)
-  shared_guess <-
-    lapply(g$shared_params, function(x)
-      runif(1, .3, 3.))
-  fitResult <- fitModel(
-    pulseData = pd,
-    params        = guess,
-    shared_params = shared_guess,
-    options       = wenv$options
-  )
-  p <- fitResult$individual_params
-  errors <- (1 - p / g$params)
+  par <- wenv$par
+  par$size <- 10
+  par$individual_params <- guess_params(wenv)
+  shared_guess <- lapply(par$shared_params, function(x) runif(1, .3, 3.))
+  par$shared_params <- shared_guess
+  fitResult <- fitModel(pd, par, wenv$options)
+  p <- fitResult$par$individual_params
+  p <- p[rownames(par$individual_params), ]
+  errors <- (1 - p /wenv$par$individual_params)
   res <- list(
     individual_err = errors,
-    shared_err = (
-      1 - unlist(fitResult$shared_params) /
-        unlist(g$shared_params)
-    ),
-    size_err = (1 - fitResult$size / g$size)
+    shared_err = ( 1 - unlist(fitResult$par$shared_params) / unlist(wenv$par$shared_params)),
+    size_err = (1 - fitResult$par$size / wenv$par$size)
   )
-  stopifnot(max(unlist(res)) < 0.05)
+  stopifnot(max(unlist(res)) < thres)
   res
 }
 
