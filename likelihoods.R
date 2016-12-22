@@ -76,6 +76,7 @@ ll_shared_params <- function(pulseData, par) {
     norm_factors <- 
       norm_factors * par$fraction_factors[as.integer(pulseData$conditions$fraction)]
   }
+  shared_param_names <- names(par$shared_params)
   function(shared_params) {
     names(shared_params) <- shared_param_names
     means <- getMeans(shared_params,
@@ -124,16 +125,18 @@ getMeans <- function(shared_params, formulas, individual_params) {
   means
 }
 
-ll_dispersion <- function(pulseData,
-                          individual_params,
-                          shared_params) {
+ll_dispersion <- function(pulseData, par) {
+  norm_factors <- pulseData$norm_factors 
+  if(!is.null(par$fraction_factors)){
+    norm_factors <- 
+      norm_factors * par$fraction_factors[as.integer(pulseData$conditions$fraction)]
+  }
+  means <- getMeans(par$shared_params,
+    pulseData$formulas,
+    par$individual_params)
+  mean_indexes <- sapply(pulseData$conditions, match, names(pulseData$formulas))
+  lambdas <- means[, mean_indexes]
   function(size) {
-    means <- getMeans(shared_params,
-                      pulseData$formulas,
-                      individual_params)
-    mean_indexes <-
-      sapply(pulseData$conditions, match, names(pulseData$formulas))
-    lambdas <- means[, mean_indexes]
     -sum(dnbinom(
         x    = pulseData$count_data,
         mu   = lambdas * pulseData$norm_factors,

@@ -154,16 +154,9 @@ testSharedParams <- function(wenv, thres=0.05) {
 
 testFitDispersion <- function(wenv, thres=0.05) {
   pd <- wenv$pd
-  g <- wenv$params
   dispersion_guess <- runif(1, 1 / 10, 1e3)
-  res <- fitDispersion(
-    shared_params = g$shared_params,
-    pulseData = pd,
-    individual_params = g$params,
-    options = wenv$options,
-    size = dispersion_guess
-  )
-  errors <- abs(1 - g$size / res)
+  res <- fitDispersion(pd, wenv$par,  wenv$options)
+  errors <- abs(1 - wenv$par$size / res)
   stopifnot(max(errors) < thres)
   errors
 }
@@ -196,10 +189,14 @@ testFitModel <- function(wenv) {
 }
 
 
-testAll <- function(n=10, replicates=10){
+testAll <- function(n=50, replicates=50){
   wenv <- cookWorkEnvironment(n, replicates,  getFormulas()) 
   testIndividualGeneParams(wenv) 
+  print("individual OK")
   testSharedParams(wenv) 
+  print("shared OK")
+  testFitDispersion(wenv)
+  print("dispersion OK")
   #testFitModel(wenv)
   return("OK")
 }
