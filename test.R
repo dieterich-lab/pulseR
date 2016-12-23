@@ -37,10 +37,9 @@ conditionsFromFormulas <- function(forms, replicates) {
   conditions
 }
 
-generateTestData <- function(n,
-                             replicates,
-                             forms,
-                             conditions){
+# Create a test data set from random parameters
+# no fraction or time information is used
+generateTestData <- function(n, replicates, forms, conditions){
   genes <- replicate(n, paste0(letters[sample(25, 10)], collapse = ""))
   genes <- paste0("ENS00000", genes)
   par <- list()
