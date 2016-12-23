@@ -1,15 +1,24 @@
 
+# Create a data structure
+# - user_conditions - a df, 1st column corresponds to  initial formulas
+# - formulas evaluated using known parameters
+# - spikein list (default = all genes)
+# - conditions - for internal usage - a vector corresponding to  evaluated formulas
+# - fraction (default = NULL) - a vector for mapping to fraction_factors
+# - count_data - a matrix of counts. colnames<->samples, rownames<->genes
 PulseData <- function(count_data,
                       conditions,
                       formulas,
                       spikeins = rownames(count_data),
                       normalisation = NULL) {
   e <- new.env()
+  e$user_conditions <- conditions
   samples <- sort(colnames(count_data))
   e$count_data <- as.matrix(count_data[, samples])
-  t <- addKnownShared(formulas, conditions)
-  e$conditions <- t$conditions[samples,, drop=FALSE]
-  rownames(e$conditions) <- samples
+  t <- addKnownShared(formulas, e$user_conditions)
+  e$conditions <- t$conditions[samples]
+  e$fraction <- t$fraction[samples]
+  names(e$conditions) <- samples
   e$formulas <- t$formulas
   e$spikeins <- spikeins
   e
