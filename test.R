@@ -14,8 +14,8 @@ generateTestDataFrom <- function(forms, par, conditions) {
       c(as.list(par$individual_params[i,]),
         as.list(par$shared_params)))
     # normalise
-    if(!is.null(conditions$fraction_indexes)){
-      fraction_indexes <- match(as.integer(conditions$fraction))
+    if(!is.null(conditions$fraction)){
+      fraction_indexes <-(as.integer(conditions$fraction))
       means <- means * c(1, par$fraction_factors)[fraction_indexes]
     }
     indexes <- match(conditions$condition, names(forms))
@@ -32,8 +32,8 @@ generateTestDataFrom <- function(forms, par, conditions) {
 
 conditionsFromFormulas <- function(forms, replicates) {
   conditions <-rep(names(forms), replicates)
-  names(conditions) <- replicate(length(forms) * replicates,
-    paste0("sample_", paste0(letters[sample(25, 10)], collapse = "")))
+  names(conditions) <- sort(replicate(length(forms) * replicates,
+    paste0("sample_", paste0(letters[sample(25, 10)], collapse = ""))))
   conditions
 }
 
@@ -41,7 +41,7 @@ conditionsFromFormulas <- function(forms, replicates) {
 # no fraction or time information is used
 generateTestData <- function(n, replicates, forms, conditions){
   genes <- replicate(n, paste0(letters[sample(25, 10)], collapse = ""))
-  genes <- paste0("ENS00000", genes)
+  genes <- sort(paste0("ENS00000", genes))
   par <- list()
   par$individual_params <- data.frame(
     mu_n = runif(n, 1e2, 50000),
@@ -49,8 +49,7 @@ generateTestData <- function(n, replicates, forms, conditions){
     a_n  = runif(n, .05, .8),
     a_h  = runif(n, .05, .8)
   )
-  rownames(par$individual_params) <- genes
-  par$individual_params <- par$individual_params[order(rownames(par$individual_params)),]
+  rownames(par$individual_params) <-genes
   par$shared_params <- list(
     alpha_chase = 1,
     alpha_lab = 2,
@@ -59,7 +58,6 @@ generateTestData <- function(n, replicates, forms, conditions){
   )
   par$size <- 1e2
   d <- generateTestDataFrom(forms, par, conditions)
-  d <- d[order(rownames(d)),]
   list( count_data=d, par=par, conditions = conditions)
 }
 
@@ -111,7 +109,7 @@ cookWorkEnvironment <- function(n, replicates, formulas=getFormulas(), condition
   options$parscales <- mapply(max,
                            abs(options$upper_boundary),
                            abs(options$lower_boundary))
-  pd <- PulseData(g$count_data, g$conditions, formulas)
+  pd <- PulseData(g$count_data, conditions, formulas)
   normalise(pd)
   g$count_data <- NULL
   g$conditions <- NULL
@@ -160,12 +158,12 @@ testFitModel <- function(wenv, thres=0.05) {
   pd <- wenv$pd
   par <- wenv$par
   par$size <- 10
-  par$individual_params <- guess_params(wenv)
+  #par$individual_params <- guess_params(wenv)
   shared_guess <- lapply(par$shared_params, function(x) runif(1, .3, 3.))
   par$shared_params <- shared_guess
   fitResult <- fitModel(pd, par, wenv$options)
   p <- fitResult$par$individual_params
-  p <- p[rownames(par$individual_params), ]
+  p <- p[rownames(wenv$par$individual_params), ]
   errors <- (1 - p /wenv$par$individual_params)
   res <- list(
     individual_err = errors,
@@ -177,14 +175,14 @@ testFitModel <- function(wenv, thres=0.05) {
 }
 
 
-testAll <- function(n=50, replicates=50){
+testAll <- function(n=50, replicates=50, thres=.05){
   wenv <- cookWorkEnvironment(n, replicates,  getFormulas()) 
-  testIndividualGeneParams(wenv) 
+  testIndividualGeneParams(wenv, thres) 
   print("individual OK")
-  testSharedParams(wenv) 
+  testSharedParams(wenv, thres) 
   print("shared OK")
-  testFitDispersion(wenv)
+  testFitDispersion(wenv, thres)
   print("dispersion OK")
-  testFitModel(wenv)
+  testFitModel(wenv, thres)
   return("OK")
 }
