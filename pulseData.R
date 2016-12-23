@@ -2,6 +2,7 @@
 # Create a data structure
 # - user_conditions - a df, 1st column corresponds to  initial formulas
 # - formulas evaluated using known parameters
+# - user_formulas - initial formulas
 # - spikein list (default = all genes)
 # - conditions - for internal usage - a vector corresponding to  evaluated formulas
 # - fraction (default = NULL) - a vector for mapping to fraction_factors
@@ -10,15 +11,19 @@ PulseData <- function(count_data,
                       conditions,
                       formulas,
                       spikeins = rownames(count_data),
-                      normalisation = NULL) {
+                      fractions = NULL) {
   e <- new.env()
-  e$user_conditions <- conditions
   samples <- sort(colnames(count_data))
+  e$user_conditions <- conditions[samples,,drop=FALSE]
   e$count_data <- as.matrix(count_data[, samples])
-  t <- addKnownShared(formulas, e$user_conditions)
-  e$conditions <- t$conditions[samples]
-  e$fraction <- t$fraction[samples]
-  names(e$conditions) <- samples
+  t <- addKnownShared(formulas, e$user_conditions[samples,,drop=FALSE])
+  e$conditions <- t$conditions
+  e$formulas <- t$formulas
+  e$user_formulas <- formulas
+  if(!is.null(fractions)){
+    columns <- pulseData$user_conditions[, all.vars(fractions), drop=FALSE]
+    e$fraction <- apply(columns, 1, paste, collapse = ".")
+  }
   e$formulas <- t$formulas
   e$spikeins <- spikeins
   e
@@ -50,12 +55,14 @@ findDeseqFactors <- function(count_data, conditions, spikeins) {
   unlist(deseqFactors)[colnames(count_data)]
 }
 
-normalise <- function(pulseData, fractions) {
-  if (missing(fractions)) {
-    splitting_factor <- as.data.frame(pulseData$conditions)[,1]
+# Performs DESeq normalisation according to first column of *conditions*
+# specified by the user (default), or according to *fraction formula*,
+# e.g. ~ condition + time
+normalise <- function(pulseData) {
+  if (is.null(pulseData$fraction)) {
+    splitting_factor <- as.data.frame(pulseData$user_conditions)[,1]
   } else {
-    splitting_factor <- pulseData$conditions[, all.vars(fractions), drop=FALSE]
-    splitting_factor <- apply(conditions, 1, paste, collapse = ".")
+    splitting_factor <- pulseData$fraction
   }
   pulseData$norm_factors <- findDeseqFactors(
     pulseData$count_data,
@@ -64,13 +71,15 @@ normalise <- function(pulseData, fractions) {
   pulseData
 }
 
-addKnownShared <- function(formulas, conditions){
-  if (dim(as.matrix(conditions))[2] == 1)
+# evaluate formulas in the environment of known params from the conditions
+# Returns list( [evaluated formulas], [conditions as vector])
+addKnownShared <- function(formulas, user_conditions){
+  if (dim(as.matrix(user_conditions))[2] == 1)
     return(
       list(formulas = formulas,
-        conditions  = conditions))
-  knownParams <- which( colnames(conditions) %in% unlist(lapply(formulas, all.vars)))
-  conditions <- conditions[, c(1,knownParams)]
+        conditions  = user_conditions[,1]))
+  knownParams <- which( colnames(user_conditions) %in% unlist(lapply(formulas, all.vars)))
+  conditions <- user_conditions[, c(1,knownParams)]
   interactions <- interaction(conditions,drop = TRUE)
   names(interactions)   <- rownames(conditions)
   conditions <- unique(conditions)

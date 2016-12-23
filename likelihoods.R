@@ -50,7 +50,7 @@ ll_gene <- function(pulseData, par) {
   norm_factors <- pulseData$norm_factors
   if(!is.null(par$fraction_factors)){
     norm_factors <- 
-      norm_factors * par$fraction_factors[as.integer(pulseData$conditions$fraction)]
+      norm_factors * par$fraction_factors[as.integer(pulseData$fraction)]
   }
   if (!is.null(par$shared_params))
     formulas <- lapply(formulas, substitute_q, par$shared_params)
@@ -73,7 +73,7 @@ ll_shared_params <- function(pulseData, par) {
   norm_factors <- pulseData$norm_factors 
   if(!is.null(par$fraction_factors)){
     norm_factors <- 
-      norm_factors * par$fraction_factors[as.integer(pulseData$conditions$fraction)]
+      norm_factors * par$fraction_factors[as.integer(pulseData$fraction)]
   }
   shared_param_names <- names(par$shared_params)
   function(shared_params) {
@@ -100,7 +100,7 @@ ll_norm_factors <- function(pulseData, par) {
     par$individual_params)
   mean_indexes <- sapply(pulseData$conditions, match, names(pulseData$formulas))
   norm_lambdas <- means[, mean_indexes] * pulseData$norm_factors
-  norm_indexes <- as.integer(conditions$fraction)
+  norm_indexes <- as.integer(pulseData$fraction)
   function(fraction_factors) {
     fraction_factors <- c(1,fraction_factors)
     - sum(
@@ -128,7 +128,7 @@ ll_dispersion <- function(pulseData, par) {
   norm_factors <- pulseData$norm_factors 
   if(!is.null(par$fraction_factors)){
     norm_factors <- 
-      norm_factors * par$fraction_factors[as.integer(pulseData$conditions$fraction)]
+      norm_factors * par$fraction_factors[as.integer(pulseData$fraction)]
   }
   means <- getMeans(par$shared_params,
     pulseData$formulas,
@@ -153,7 +153,7 @@ predict.expression <- function(fit, pulseData) {
   llog <- NULL
   if (!missing(pulseData)) {
     mean_indexes <-
-      sapply(pulseData$conditions[, 1], match, names(pulseData$formulas))
+      sapply(pulseData$conditions, match, names(pulseData$formulas))
     means <- means[, mean_indexes] * pulseData$norm_factors
     colnames(means) <- colnames(pulseData$count_data)
     llog <- dnbinom(
