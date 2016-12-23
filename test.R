@@ -78,13 +78,6 @@ getFormulas <- function() {
   )
 }
 
-getFormulasWithHyperParams <- function() {
-  MeanFormulas(
-    total = mu_n,
-    flow_lab      = alpha_lab * (mu_n * a_n^time),
-    biotin_lab    = beta_lab * mu_n * (1 - a_n^time)
-  )
-}
 
 guess_params <- function(wenv) {
   guess <-(apply(wenv$par$individual_params, 2,median))
