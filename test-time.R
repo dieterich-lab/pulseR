@@ -1,6 +1,14 @@
 ## Tests for data with several time points
 source("test.R")
 
+getFormulasWithHyperParams <- function() {
+  MeanFormulas(
+    total = mu_n,
+    flow_lab      = alpha_lab * (mu_n * a_n^time),
+    biotin_lab    = beta_lab * mu_n * (1 - a_n^time)
+  )
+}
+
 cookWorkEnvironmentWithTime <- function(n,
                                 replicates,
                                 time_n = 3,
@@ -51,24 +59,18 @@ generateTestDataWithTime <- function(n,
     a_n  = runif(n, .05, .8)
   )
   rownames(p) <- genes
-  alphas <- list(
+  par <- list()
+  par$individual_params <- p
+  par$shared_params <- list(
     alpha_lab = 1,
     beta_lab = 2
   )
-  size <- 1e2
-  d <- lapply(seq_along(rownames(p)), function(i) {
-    generateTestDataSingle(forms, p[i,], alphas,
-                           conditions = conditions)
-  })
-  data <- do.call(rbind, d)
-  rownames(data) <- genes
-  colnames(data) <- names(conditions)
+  par$size <- 1e2
+  data <- generateTestDataFrom(forms, par, conditions)
   list(
     count_data = data[order(rownames(data)), ],
-    conditions = conditions,
-    params = p[order(rownames(p)), ],
-    size = size,
-    shared_params = alphas
+    par=par,
+    conditions = conditions
   )
 }
 
