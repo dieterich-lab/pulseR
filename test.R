@@ -95,26 +95,24 @@ guess_params <- function(wenv) {
   guess + 1e-10
 }
 
-cookWorkEnvironment <- function(n,
-                                replicates,
-                                formulas=getFormulas(),
-                                conditions) {
+# Create all what is needed before fitting: data set, PulseData object, options 
+# Returns list([PulseData], [options], [true parameters])
+cookWorkEnvironment <- function(n, replicates, formulas=getFormulas(), conditions) {
   set.seed(259)
   conditions <- list()
-  conditions$condition <- conditionsFromFormulas(forms = formulas,
-                                       replicates = replicates)
+  conditions$condition <- conditionsFromFormulas(formulas, replicates)
   conditions <- as.data.frame(conditions)
-  g <- generateTestData(n = n,
+  g <- generateTestData(n          = n,
                         replicates = replicates,
-                        forms = formulas, 
+                        forms      = formulas,
                         conditions = conditions)
   options <- list(
-    lower_boundary = rep(1e-9, 4),
-    upper_boundary = c(1e5, 1e5, 1, 1) - 1e-1,
+    lower_boundary        = rep(1e-9, 4),
+    upper_boundary        = c(1e5, 1e5, 1, 1) - 1e-1,
     lower_boundary_shared = rep(1e-9, 4),
     upper_boundary_shared = rep(5, 4),
-    lower_boundary_size = 0,
-    upper_boundary_size = 1e3,
+    lower_boundary_size   = 0,
+    upper_boundary_size   = 1e3,
     cores = 4
   )
   options$parscales <- mapply(max,
@@ -194,6 +192,6 @@ testAll <- function(n=50, replicates=50){
   print("shared OK")
   testFitDispersion(wenv)
   print("dispersion OK")
-  #testFitModel(wenv)
+  testFitModel(wenv)
   return("OK")
 }
