@@ -1,0 +1,6 @@
+Package: pulseR
+Version: 0.0.1
+Title: Analysis of pulse-chase RNAseq data
+Description: Tool to simplify MLE modelling of pulse-chase experiments 
+Author: Alexey Uvarovskii <alexey.mipt@gmail.com>
+Maintainer: Alexey Uvarovskii <alexey.mipt@gmail.com>
