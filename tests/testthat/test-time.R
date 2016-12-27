@@ -1,5 +1,5 @@
 ## Tests for data with several time points
-source("testthat/test.R")
+source("tests/testthat/test.R")
 
 getFormulasWithHyperParams <- function() {
   MeanFormulas(
@@ -43,7 +43,7 @@ cookWorkEnvironmentWithTime <- function(n,
     conditions = conditions,
     formulas   = formulas,
     fractions  = ~condition+time)
-  normalise(pd)
+  normalise(pd) 
   g$count_data <- NULL
   g$conditions <- NULL
   list(pd = pd,
