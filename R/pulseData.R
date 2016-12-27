@@ -21,7 +21,7 @@ PulseData <- function(count_data,
   e$formulas <- t$formulas
   e$user_formulas <- formulas
   if(!is.null(fractions)){
-    columns <- pulseData$user_conditions[, all.vars(fractions), drop=FALSE]
+    columns <- e$user_conditions[, all.vars(fractions), drop=FALSE]
     e$fraction <- apply(columns, 1, paste, collapse = ".")
   }
   e$formulas <- t$formulas

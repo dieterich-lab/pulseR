@@ -49,8 +49,7 @@ ll_gene <- function(pulseData, par) {
   formulas <- pulseData$formulas
   norm_factors <- pulseData$norm_factors
   if(!is.null(par$fraction_factors)){
-    norm_factors <- 
-      norm_factors * par$fraction_factors[as.integer(pulseData$fraction)]
+    norm_factors <- norm_factors * par$fraction_factors[as.integer(pulseData$fraction)]
   }
   if (!is.null(par$shared_params))
     formulas <- lapply(formulas, substitute_q, par$shared_params)
