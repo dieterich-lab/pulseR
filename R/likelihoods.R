@@ -1,4 +1,3 @@
-library(parallel)
 
 #from pryr package
 substitute_q <- function (x, env)
