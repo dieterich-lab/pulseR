@@ -5,5 +5,6 @@ Title: Analysis of pulse-chase RNAseq data
 Description: Tool to simplify MLE modelling of pulse-chase experiments
 Author: Alexey Uvarovskii <alexey.mipt@gmail.com>
 Maintainer: Alexey Uvarovskii <alexey.mipt@gmail.com>
-RoxygenNote: 5.0.1
 Imports:
+     stats,
+     parallel
