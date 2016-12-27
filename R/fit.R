@@ -11,8 +11,16 @@ defaultParams <- function() {
   )
 }
  
-## params are a data.frame with ids in rownames
-# order is the same as in parameters
+#' Fit gene-specific parameters
+#'
+#' @param pulseData 
+#' @param par 
+#' @param options 
+#'
+#' @return fitted parameters as a data.frame ordered as initial parameters
+#' @importForm  stats optim dnbinom
+#' @importFrom parallel mclapply
+#' 
 fitIndividualParameters <- function(pulseData, par, options) {
   param_names <- colnames(par$individual_params)
   objective <- ll_gene(pulseData, par)
@@ -61,9 +69,20 @@ fitDispersion <- function(pulseData, par, options) {
 
 getMaxRelDifference <- function(x,y) max(abs(1 - unlist(x)/unlist(y)))
 
-# options is a list with records
-# - individual_rel_err
-# - shared_rel_tol
+#' Fit the model by MLE
+#'
+#' @param pulseData 
+#' @param par 
+#' @param options 
+#'
+#' @return a list `l` with fitted parameters `l$par` and
+#'     formulas `l$formulas` 
+#' @export
+#'
+#' @examples 
+#' \dontrun{
+#' fitResult <- fitModel(pd, par)
+#' }
 fitModel <- function(pulseData, par, options = list()) {
   opts <- defaultParams()
   param_names <- names(par$individual_params)
