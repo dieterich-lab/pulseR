@@ -1,6 +1,3 @@
-source("likelihoods.R")
-source("fit.R")
-source("pulseData.R")
 
 # Create a test data set according to formulas form
 # parameters par${individual_params, shared_params, fraction_factors}
