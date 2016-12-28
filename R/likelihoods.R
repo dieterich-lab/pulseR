@@ -75,6 +75,20 @@ constructFormulas <- function(formulas, conditions) {
   result
 }
 
+#' Create a likelihood function for gene-specific parameters
+#' 
+#' The values of shared parameters, \code{size} from \code{\link{dnbinom}} and
+#' normalisation factors are taken from \code{par}. 
+#'
+#' @param pulseData PulseData object
+#' @param par list; must have fields \code{shared_params}, \code{size},
+#'  \code{individual_params}, \code{fraction_factors}.
+#'
+#' @return a function(params, counts), which returns a  log likelihood
+#' for a given vector of individual parameters, which are ordered as in 
+#' \code{par$individual_params} and fo a given read counts, which 
+#' correspond to the rows in the condition matrix in \code{pulseData} 
+#'
 ll_gene <- function(pulseData, par) {
   mean_indexes <- sapply(pulseData$conditions, match, names(pulseData$formulas))
   formulas <- pulseData$formulas
