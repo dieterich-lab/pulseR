@@ -86,7 +86,7 @@ ll_gene <- function(pulseData, par) {
     formulas <- lapply(formulas, substitute_q, par$shared_params)
   means_vector <-  makeVector(formulas)
   param_names <- names(par$individual_params)
-  funquote <- function(params, counts) {
+  function(params, counts) {
     mus <- eval(means_vector, as.list(params))
     lambdas <-  mus[mean_indexes] 
     -sum(dnbinom(
@@ -96,7 +96,6 @@ ll_gene <- function(pulseData, par) {
       size = par$size
     ))
   }
-  funquote
 }
 
 ll_shared_params <- function(pulseData, par) {
