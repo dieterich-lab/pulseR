@@ -2,3 +2,5 @@
 
 export(fitModel)
 importFrom(parallel,mclapply)
+importFrom(stats,dnbinom)
+importFrom(stats,optim)
