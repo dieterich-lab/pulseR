@@ -201,15 +201,7 @@ log2screen <- function(options, ...) {
 }
 
 
-evaluateLikelihood <- function(shared_params,
-                               pulseData,
-                               individual_params,
-                               size) {
-  shared_objective <- ll_shared_params(
-    pulseData,
-    individual_params = individual_params,
-    shared_param_names =  names(shared_params),
-    size =  size
-  )
+evaluateLikelihood <- function(pulseData, par ) {
+  shared_objective <- ll_shared_params(pulseData, par)
   shared_objective(unlist(shared_params))
 }
