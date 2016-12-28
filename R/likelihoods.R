@@ -24,9 +24,6 @@ contaminate <- function(formulas,
                         target_condition,
                         contaminant_condition,
                         coef_name) {
-  target_condition <- deparse(substitute(target_condition))
-  contaminant_condition <-
-    deparse(substitute(contaminant_condition))
   f1 <- deparse(formulas[[target_condition]])
   f2 <- deparse(formulas[[contaminant_condition]])
   e <- paste("(1-", coef_name, ")*(", f1, ")+", coef_name, "*(", f2, ")")
