@@ -14,7 +14,7 @@ fitIndividualParameters(pulseData, par, options)
 \item{options}{}
 }
 \value{
-fitted parameters as a data.frame
+fitted parameters as a data.frame ordered as initial parameters
 }
 \description{
 Fit gene-specific parameters
