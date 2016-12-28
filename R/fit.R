@@ -18,7 +18,7 @@ defaultParams <- function() {
 #' @param options 
 #'
 #' @return fitted parameters as a data.frame ordered as initial parameters
-#' @importForm  stats optim dnbinom
+#' @importFrom  stats optim dnbinom
 #' @importFrom parallel mclapply
 #' 
 fitIndividualParameters <- function(pulseData, par, options) {
