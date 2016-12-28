@@ -1,5 +1,4 @@
 ## Tests for data with several time points
-source("tests/testthat/test.R")
 
 getFormulasWithHyperParams <- function() {
   MeanFormulas(
