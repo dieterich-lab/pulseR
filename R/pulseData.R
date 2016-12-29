@@ -37,6 +37,7 @@ PulseData <- function(count_data,
   }
   e$formulas <- t$formulas
   e$spikeins <- spikeins
+  e$norm_factors <- NULL
   class(e) <- "PulseData"
   e
 }
