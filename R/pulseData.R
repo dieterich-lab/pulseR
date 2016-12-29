@@ -41,7 +41,7 @@ PulseData <- function(count_data,
   e
 }
 
-normalise <- function(x) UseMethod("normalise", "PulseData")
+normalise <- function(x) UseMethod("normalise")
 
 findDeseqFactorsSingle <- function(count_data)
 {
@@ -72,7 +72,15 @@ findDeseqFactors <- function(count_data, conditions, spikeins) {
 # Performs DESeq normalisation according to first column of *conditions*
 # specified by the user (default), or according to *fraction formula*,
 # e.g. ~ condition + time
-normalise <- function(pulseData) {
+#' Estimate normalisation factors for fraction with the same method as
+#' in the DESeq2 package
+#'
+#' @param pulseData a PulseData object
+#'
+#' @return the same PulseData object with estimated normalisation factors
+#' @export
+#'
+normalise.PulseData <- function(pulseData) {
   if (is.null(pulseData$fraction)) {
     splitting_factor <- as.data.frame(pulseData$user_conditions)[,1]
   } else {
