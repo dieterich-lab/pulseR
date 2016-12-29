@@ -21,7 +21,7 @@
 PulseData <- function(count_data,
                       conditions,
                       formulas,
-                      spikeins = rownames(count_data),
+                      spikeins = NULL,
                       fractions = NULL) {
   e <- new.env()
   samples <- sort(colnames(count_data))
@@ -61,10 +61,14 @@ findDeseqFactorsSingle <- function(count_data)
 
 # conditions  - factor to split samples for normalisation
 findDeseqFactors <- function(count_data, conditions, spikeins) {
-  deseqFactors <- lapply(split(colnames(count_data), conditions),
-                         function(samples) {
-                           findDeseqFactorsSingle(count_data[spikeins, samples, drop=FALSE])
-                         })
+  if (is.null(spikeins)) {
+    spikeins <- rownames(count_data)
+  }
+  deseqFactors <- lapply(
+    split(colnames(count_data), conditions),
+    function(samples) {
+      findDeseqFactorsSingle(count_data[spikeins, samples, drop = FALSE])
+    })
   names(deseqFactors) <- NULL
   unlist(deseqFactors)[colnames(count_data)]
 }
