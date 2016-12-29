@@ -4,7 +4,7 @@
 \alias{PulseData}
 \title{Create an object for pulse-change count data}
 \usage{
-PulseData(count_data, conditions, formulas, spikeins = rownames(count_data),
+PulseData(count_data, conditions, formulas, spikeins = NULL,
   fractions = NULL)
 }
 \arguments{
