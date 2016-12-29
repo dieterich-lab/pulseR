@@ -3,6 +3,7 @@
 export(MeanFormulas)
 export(PulseData)
 export(fitModel)
+export(generateTestDataFrom)
 importFrom(parallel,mclapply)
 importFrom(stats,dnbinom)
 importFrom(stats,optim)
