@@ -1,82 +1,49 @@
 ## Tests for data with several time points
+context("time dependent data")
+source("test-utils.R")
+set.seed(259)
 
-getFormulasWithHyperParams <- function() {
-  MeanFormulas(
-    total = mu_n,
-    flow_lab      = (mu_n * a_n^time),
-    biotin_lab    =  mu_n * (1 - a_n^time)
-  )
-}
+options <- list(
+  lower_boundary = rep(1e-9, 2),
+  upper_boundary = c(1e9, 1e9) - 1e-1,
+  lower_boundary_size = 0,
+  upper_boundary_size = 1e3,
+  cores = 4
+)
+options$parscales <- mapply(max,
+                            abs(options$upper_boundary),
+                            abs(options$lower_boundary))
 
-cookWorkEnvironmentWithTime <- function(n,
-                                replicates,
-                                time_n = 3,
-                                formulas=getFormulasWithHyperParams()) {
-  set.seed(259)
-  conditions <-data.frame(
-    condition = conditionsFromFormulas(forms = formulas, 
-                                       replicates = replicates * time_n))
-  conditions$fraction <- conditions$condition # add scale info
-  conditions$fraction <- relevel(conditions$fraction, "total")
-  conditions$time <- rep(1:time_n, each=length(formulas))
-  conditions$dummy <- "i_will_fail_your_code"
-  t <- addKnownShared(formulas, conditions)
-  g <- generateTestDataWithTime(n  = n,
-                        replicates = replicates,
-                        formulas   = formulas,
-                        conditions = conditions)
-  options <- list(
-    lower_boundary = rep(1e-9, 2),
-    upper_boundary = c(1e5, 1) - 1e-1,
-    lower_boundary_shared = rep(1e-9, 2),
-    upper_boundary_shared = rep(5, 2),
-    lower_boundary_size = 0,
-    upper_boundary_size = 1e3,
-    cores = 4
-  )
-  options$parscales <- mapply(max,
-                           abs(options$upper_boundary),
-                           abs(options$lower_boundary))
-  pd <- PulseData(
-    count_data = g$count_data,
+formulas <- MeanFormulas(A = a, B = a + b * time)
+conditions <- data.frame(condition = c(rep("A", 5), rep("B", 5)),
+                         time = rep(1:5, 2))
+rownames(conditions) <-
+  paste0("sample_", seq_along(conditions_known$condition))
+t <- pulseR:::addKnownShared(formulas, conditions)
+formulas_known <- t$formulas
+conditions_known <- data.frame(condition=t$conditions)
+
+par <- list(size=100)
+
+par$individual_params <- data.frame(a=c(1e6,1e7), b=c(1,3)*1e6)
+rownames(par$individual_params) <-
+  paste0("gene_", 1:length(par$individual_params))
+counts <- generateTestDataFrom(formulas_known,par,conditions_known)
+
+pd <- PulseData(
+    count_data = counts,
     conditions = conditions,
     formulas   = formulas,
     fractions  = ~condition+time)
-  normalise(pd) 
-  g$count_data <- NULL
-  g$conditions <- NULL
-  list(pd = pd,
-       options = options,
-       par = g$par)
-}
+normalise(pd) 
+par2 <- par
+par2$individual_params$a <- 1e3
+par2$individual_params$b <- 1e3
+fit <- fitModel(pd,par2,options)
 
-generateTestDataWithTime <- function(n, replicates, formulas, conditions){
-  genes <- replicate(n, paste0(letters[sample(25, 10)], collapse = ""))
-  genes <- sort(paste0("ENS00000", genes))
-  p <- data.frame(
-    mu_n = runif(n, 1e2, 50000),
-    a_n  = runif(n, .05, .8)
-  )
-  rownames(p) <- genes
-  par <- list()
-  par$individual_params <- p
-  par$fraction_factors <- c(1,1)
-  par$size <- 1e2
-  t <- addKnownShared(formulas, conditions)
-  conditions$condition <- t$conditions
-  formulas <- t$formulas
-  data <- generateTestDataFrom(formulas, par, conditions)
-  list(
-    count_data = data,
-    par=par,
-    conditions = conditions
-  )
-}
-
-testTimeData <- function(n=10, replicates=10, thres=.05){
-  wenv <- cookWorkEnvironmentWithTime (
-    n, replicates, time_n = 3, getFormulasWithHyperParams()) 
-  testIndividualGeneParams(wenv, thres) 
-  testFitModel(wenv, thres)
-  return("OK")
-}
+test_that("fitting works for time-series", {
+  expect_gt(.3,
+                   max(abs((fit$par$individual_params - par$individual_params) /
+                             par$individual_params
+                   )))
+})
