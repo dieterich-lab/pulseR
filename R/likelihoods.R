@@ -6,6 +6,20 @@ substitute_q <- function (x, env)
   eval(call)
 }
 
+#' Create list of formulas for expected read numbers
+#' 
+#' @param ... list of named arguments; names represent condition labels,
+#' the arguments values are unquoted expressions, which define formulas
+#' for estimation of mean read number.
+#'
+#' @return list with keys corresponding to condition names and values as
+#'   unevaluated call objects
+#' @export
+#'
+#' @examples
+#' \dontrun{
+#' formulas <- MeanFormulas(total=mu, labelled=mu*d, unlabelled=mu*(1-d))
+#' }
 MeanFormulas <- function(...) {
   eval(substitute(alist(...)))
 }

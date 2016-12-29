@@ -1,12 +1,23 @@
 
-# Create a data structure
-# - user_conditions - a df, 1st column corresponds to  initial formulas
-# - formulas evaluated using known parameters
-# - user_formulas - initial formulas
-# - spikein list (default = all genes)
-# - conditions - for internal usage - a vector corresponding to  evaluated formulas
-# - fraction (default = NULL) - a vector for mapping to fraction_factors
-# - count_data - a matrix of counts. colnames<->samples, rownames<->genes
+#' Create an object for pulse-change count data
+#'
+#' @param count_data a matrix; column names correspond to sample names
+#' @param conditions a data.frame;
+#'   the first column corresponds to the conditions given in \code{formulas}.
+#'   May also include column "fraction" and columns named as parameters,
+#'   used in the formula definitions, e.g. "time".
+#'   
+#' @param formulas a list, created by \code{\link{MeanFormulas}}
+#' @param spikeins a vector of charecters or indexes, optional;
+#'  defines which genes to use as a reference for normalisation 
+#' @param fractions a formula, e.g. ~ condition + time (if spike-ins are
+#' not provided).
+#' the names used in the \code{fractions} defines different fractions,
+#' which should have distinct coefficients for mean expression fitting.
+#'
+#' @return an object of class "PulseData"
+#' @export
+#'
 PulseData <- function(count_data,
                       conditions,
                       formulas,
@@ -26,8 +37,10 @@ PulseData <- function(count_data,
   }
   e$formulas <- t$formulas
   e$spikeins <- spikeins
-  e
+  class(e) <- "PulseData"
 }
+
+normalise <- function(x) UseMethod("normalise", "PulseData")
 
 findDeseqFactorsSingle <- function(count_data)
 {
@@ -90,4 +103,28 @@ addKnownShared <- function(formulas, user_conditions){
   names(evaledFormulas) <- unique(interactions)
   list(formulas = evaledFormulas,
     conditions  = interactions)
+}
+
+
+generateTestDataFrom <- function(formulas, par, conditions) {
+  counts <- list()
+  for(i in seq_along(par$individual_params[,1])){
+    means <- sapply(formulas, eval, 
+      c(as.list(par$individual_params[i,]),
+        as.list(par$shared_params)))
+    # normalise
+    if(!is.null(conditions$fraction)){
+      fraction_indexes <-(as.integer(conditions$fraction))
+      means <- means * c(1, par$fraction_factors)[fraction_indexes]
+    }
+    indexes <- match(conditions$condition, names(forms))
+    counts[[i]] <- rnbinom(
+      n    = length(conditions$condition),
+      mu   = means[indexes],
+      size = par$size)
+  }
+  counts <- do.call(rbind, counts)
+  rownames(counts) <- rownames(par$individual_params)
+  colnames(counts) <- rownames(conditions)
+  counts
 }
