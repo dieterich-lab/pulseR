@@ -4,29 +4,6 @@
 # conditions${condition, fraction}
 # Returns a matrix with rows ordered as par$individual_params and
 # columns ordered as conditions row
-generateTestDataFrom <- function(forms, par, conditions) {
-  counts <- list()
-  for(i in seq_along(par$individual_params[,1])){
-    means <- sapply(forms, eval, 
-      c(as.list(par$individual_params[i,]),
-        as.list(par$shared_params)))
-    # normalise
-    if(!is.null(conditions$fraction)){
-      fraction_indexes <-(as.integer(conditions$fraction))
-      means <- means * c(1, par$fraction_factors)[fraction_indexes]
-    }
-    indexes <- match(conditions$condition, names(forms))
-    counts[[i]] <- rnbinom(
-      n    = length(conditions$condition),
-      mu   = means[indexes],
-      size = par$size)
-  }
-  counts <- do.call(rbind, counts)
-  rownames(counts) <- rownames(par$individual_params)
-  colnames(counts) <- rownames(conditions)
-  counts
-}
-
 conditionsFromFormulas <- function(forms, replicates) {
   conditions <-rep(names(forms), replicates)
   names(conditions) <- sort(replicate(length(forms) * replicates,
