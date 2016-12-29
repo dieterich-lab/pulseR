@@ -106,6 +106,16 @@ addKnownShared <- function(formulas, user_conditions){
 }
 
 
+#' Create a test count data
+#'
+#' @param formulas a list
+#' @param par a list with individual_params(must have), size (must have) 
+#'     and shared_params (optional).
+#' @param conditions a condition data.frame
+#'
+#' @return matrix of counts with the order of columns as in conditions 
+#' @export
+#'
 generateTestDataFrom <- function(formulas, par, conditions) {
   counts <- list()
   for(i in seq_along(par$individual_params[,1])){
@@ -117,7 +127,7 @@ generateTestDataFrom <- function(formulas, par, conditions) {
       fraction_indexes <-(as.integer(conditions$fraction))
       means <- means * c(1, par$fraction_factors)[fraction_indexes]
     }
-    indexes <- match(conditions$condition, names(forms))
+    indexes <- match(conditions$condition, names(formulas))
     counts[[i]] <- rnbinom(
       n    = length(conditions$condition),
       mu   = means[indexes],
