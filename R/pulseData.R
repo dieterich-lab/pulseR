@@ -41,6 +41,7 @@ PulseData <- function(count_data,
   e
 }
 
+#' @export
 normalise <- function(x) UseMethod("normalise")
 
 findDeseqFactorsSingle <- function(count_data)
