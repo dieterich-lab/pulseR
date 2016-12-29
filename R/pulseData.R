@@ -38,6 +38,7 @@ PulseData <- function(count_data,
   e$formulas <- t$formulas
   e$spikeins <- spikeins
   class(e) <- "PulseData"
+  e
 }
 
 normalise <- function(x) UseMethod("normalise", "PulseData")
