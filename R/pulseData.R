@@ -132,6 +132,9 @@ addKnownShared <- function(formulas, user_conditions){
 #' @export
 #'
 generateTestDataFrom <- function(formulas, par, conditions) {
+  t <- addKnownShared(formulas, conditions)
+  formulas <- t$formulas
+  conditions_known <- data.frame(condition=t$conditions)
   counts <- list()
   for(i in seq_along(par$individual_params[,1])){
     means <- sapply(formulas, eval, 
@@ -142,7 +145,7 @@ generateTestDataFrom <- function(formulas, par, conditions) {
       fraction_indexes <-(as.integer(conditions$fraction))
       means <- means * c(1, par$fraction_factors)[fraction_indexes]
     }
-    indexes <- match(conditions$condition, names(formulas))
+    indexes <- match(conditions_known$condition, names(formulas))
     counts[[i]] <- rnbinom(
       n    = length(conditions$condition),
       mu   = means[indexes],
