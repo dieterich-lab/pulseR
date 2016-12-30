@@ -18,17 +18,13 @@ formulas <- MeanFormulas(A = a, B = a + b * time)
 conditions <- data.frame(condition = c(rep("A", 5), rep("B", 5)),
                          time = rep(1:5, 2))
 rownames(conditions) <-
-  paste0("sample_", seq_along(conditions_known$condition))
-t <- pulseR:::addKnownShared(formulas, conditions)
-formulas_known <- t$formulas
-conditions_known <- data.frame(condition=t$conditions)
+  paste0("sample_", seq_along(conditions$condition))
 
 par <- list(size=100)
-
 par$individual_params <- data.frame(a=c(1e6,1e7), b=c(1,3)*1e6)
 rownames(par$individual_params) <-
   paste0("gene_", 1:length(par$individual_params))
-counts <- generateTestDataFrom(formulas_known,par,conditions_known)
+counts <- generateTestDataFrom(formulas,par,conditions)
 
 pd <- PulseData(
     count_data = counts,
@@ -40,7 +36,6 @@ par2 <- par
 par2$individual_params$a <- 1e3
 par2$individual_params$b <- 1e3
 fit <- fitModel(pd,par2,options)
-
 test_that("fitting works for time-series", {
   expect_gt(.3,
                    max(abs((fit$par$individual_params - par$individual_params) /
