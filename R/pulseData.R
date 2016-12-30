@@ -131,7 +131,7 @@ addKnownShared <- function(formulas, user_conditions){
 #' @return matrix of counts with the order of columns as in conditions 
 #' @export
 #'
-generateTestDataFrom <- function(formulas, par, conditions) {
+generateTestDataFrom <- function(formulas, par, conditions, fractions=NULL) {
   t <- addKnownShared(formulas, conditions)
   formulas <- t$formulas
   conditions_known <- data.frame(condition=t$conditions)
@@ -141,8 +141,8 @@ generateTestDataFrom <- function(formulas, par, conditions) {
       c(as.list(par$individual_params[i,]),
         as.list(par$shared_params)))
     # normalise
-    if(!is.null(conditions$fraction)){
-      fraction_indexes <-(as.integer(conditions$fraction))
+    if(!is.null(fractions)){
+      fraction_indexes <-(as.integer(fractions))
       means <- means * c(1, par$fraction_factors)[fraction_indexes]
     }
     indexes <- match(conditions_known$condition, names(formulas))

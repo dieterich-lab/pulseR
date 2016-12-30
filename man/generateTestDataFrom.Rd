@@ -4,7 +4,7 @@
 \alias{generateTestDataFrom}
 \title{Create a test count data}
 \usage{
-generateTestDataFrom(formulas, par, conditions)
+generateTestDataFrom(formulas, par, conditions, fractions = NULL)
 }
 \arguments{
 \item{formulas}{a list}
