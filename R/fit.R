@@ -1,5 +1,5 @@
 
-defaultParams <- function() {
+.defaultParams <- function() {
   list(
     rel_tol = 1e-2,
     shared_rel_tol = 1e-2,
@@ -84,7 +84,7 @@ getMaxRelDifference <- function(x,y) max(abs(1 - unlist(x)/unlist(y)))
 #' fitResult <- fitModel(pd, par)
 #' }
 fitModel <- function(pulseData, par, options = list()) {
-  opts <- defaultParams()
+  opts <- .defaultParams()
   param_names <- names(par$individual_params)
   opts$parscales <- mapply(max,
     abs(options$upper_boundary),
