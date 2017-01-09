@@ -89,6 +89,15 @@ constructFormulas <- function(formulas, conditions) {
   result
 }
 
+getNormFactors <- function(pulseData, par) {
+  norm_factors <- pulseData$norm_factors
+  if (!is.null(par$fraction_factors)) {
+    norm_factors <-
+      norm_factors * par$fraction_factors[as.integer(pulseData$fraction)]
+  }
+  norm_factors
+}
+
 #' Create a likelihood function for gene-specific parameters
 #' 
 #' The values of shared parameters, \code{size} from \code{\link{dnbinom}} and
@@ -107,14 +116,11 @@ constructFormulas <- function(formulas, conditions) {
 ll_gene <- function(pulseData, par) {
   mean_indexes <- sapply(pulseData$conditions, match, names(pulseData$formulas))
   formulas <- pulseData$formulas
-  norm_factors <- pulseData$norm_factors
-  if(!is.null(par$fraction_factors)){
-    norm_factors <- norm_factors * par$fraction_factors[as.integer(pulseData$fraction)]
-  }
   if (!is.null(par$shared_params))
     formulas <- lapply(formulas, substitute_q, par$shared_params)
   means_vector <-  makeVector(formulas)
   param_names <- names(par$individual_params)
+  norm_factors <- getNormFactors(pulseData, par)
   function(params, counts) {
     mus <- eval(means_vector, as.list(params))
     lambdas <-  mus[mean_indexes] 
@@ -128,12 +134,8 @@ ll_gene <- function(pulseData, par) {
 }
 
 ll_shared_params <- function(pulseData, par) {
-  norm_factors <- pulseData$norm_factors 
-  if(!is.null(par$fraction_factors)){
-    norm_factors <- 
-      norm_factors * par$fraction_factors[as.integer(pulseData$fraction)]
-  }
   shared_param_names <- names(par$shared_params)
+  norm_factors <- getNormFactors(pulseData, par)
   function(shared_params) {
     names(shared_params) <- shared_param_names
     means <- getMeans(shared_params,
@@ -183,11 +185,7 @@ getMeans <- function(shared_params, formulas, individual_params) {
 }
 
 ll_dispersion <- function(pulseData, par) {
-  norm_factors <- pulseData$norm_factors 
-  if(!is.null(par$fraction_factors)){
-    norm_factors <- 
-      norm_factors * par$fraction_factors[as.integer(pulseData$fraction)]
-  }
+  norm_factors <- getNormFactors(pulseData, par)
   means <- getMeans(par$shared_params,
     pulseData$formulas,
     par$individual_params)
