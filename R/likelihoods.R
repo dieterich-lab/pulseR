@@ -50,7 +50,7 @@ makeVector <- function(forms) {
 #'
 #' @return unevaluated call, as from \code{\link{quote}} function
 #' 
-#'
+#' @export
 #' @examples
 #' \dontrun{
 #' forms <- MeanFormulas(A=r_a, B=r_b)
