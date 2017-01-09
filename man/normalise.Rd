@@ -2,14 +2,19 @@
 % Please edit documentation in R/pulseData.R
 \name{normalise}
 \alias{normalise}
-\title{Generic for normalisation of PulseData}
+\title{Estimate normalisation factors for fraction with the same method as
+in the DESeq2 package}
 \usage{
 normalise(pulseData)
 }
 \arguments{
-\item{pulseData}{the object}
+\item{pulseData}{a PulseData object}
+}
+\value{
+the same PulseData object with estimated normalisation factors
 }
 \description{
-Generic for normalisation of PulseData
+Estimate normalisation factors for fraction with the same method as
+in the DESeq2 package
 }
 
