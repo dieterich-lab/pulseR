@@ -33,7 +33,7 @@ PulseData <- function(count_data,
   e$user_formulas <- formulas
   if(!is.null(fractions)){
     columns <- e$user_conditions[, all.vars(fractions), drop=FALSE]
-    e$fraction <- apply(columns, 1, paste, collapse = ".")
+    e$fraction <- factor(apply(columns, 1, paste, collapse = "."))
   }
   e$formulas <- t$formulas
   e$spikeins <- spikeins
