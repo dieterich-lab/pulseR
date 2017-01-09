@@ -7,11 +7,11 @@
 fitModel(pulseData, par, options = list())
 }
 \arguments{
-\item{pulseData}{}
+\item{pulseData}{PulseData object}
 
-\item{par}{}
+\item{par}{all needed parameters as a \code{list}}
 
-\item{options}{}
+\item{options}{\code{list} of options}
 }
 \value{
 a list `l` with fitted parameters `l$par` and

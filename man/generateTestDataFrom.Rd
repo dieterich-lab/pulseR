@@ -11,9 +11,12 @@ generateTestDataFrom(formulas, par, conditions, fractions = NULL)
 
 \item{par}{a list with individual_params(must have), size (must have) 
 and shared_params (optional). If \code{fractions} is defined,
-\code{par$fraction} must be not \code{NULL}}
+\code{par$fraction_factors} must be not \code{NULL}}
 
 \item{conditions}{a condition data.frame}
+
+\item{fractions}{a factor for splitting the samples into subsets with 
+different normalisation coefficients}
 }
 \value{
 matrix of counts with the order of columns as in conditions

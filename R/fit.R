@@ -13,9 +13,9 @@
  
 #' Fit gene-specific parameters
 #'
-#' @param pulseData 
-#' @param par 
-#' @param options 
+#' @param pulseData PulseData object
+#' @param par all needed parameters as a \code{list}
+#' @param options \code{list} of options
 #'
 #' @return fitted parameters as a data.frame ordered as initial parameters
 #' @importFrom  stats optim dnbinom
@@ -59,6 +59,15 @@ fitSharedParameters <- function(pulseData, par, options) {
   as.list(shared_params)
 }
 
+#' Fit the dispersion parameter
+#'
+#' @param pulseData PulseData object
+#' @param par all needed parameters as a \code{list}
+#' @param options \code{list} of options
+#'
+#' @return the MLE of the \code{size} for \code{\link{dnbinom}}
+#' @importFrom  stats optimise
+#'
 fitDispersion <- function(pulseData, par, options) {
   dispersion_objective <- ll_dispersion(pulseData, par)
   size <- optimise(dispersion_objective,
@@ -71,9 +80,9 @@ getMaxRelDifference <- function(x,y) max(abs(1 - unlist(x)/unlist(y)))
 
 #' Fit the model by MLE
 #'
-#' @param pulseData 
-#' @param par 
-#' @param options 
+#' @param pulseData PulseData object
+#' @param par all needed parameters as a \code{list}
+#' @param options \code{list} of options
 #'
 #' @return a list `l` with fitted parameters `l$par` and
 #'     formulas `l$formulas` 
