@@ -42,9 +42,19 @@ PulseData <- function(count_data,
   e
 }
 
+#' Generic for normalisation of PulseData
+#' @param pulseData the object
 #' @export
 normalise <- function(pulseData) UseMethod("normalise")
 
+#' Calculate normalisation factors for columns in a matrix
+#'
+#' @param count_data a matrix; columns correspond to samples.
+#'
+#' @return a vector of doubles with normalisation factors ordered as columns in 
+#'   the \code{count_data}
+#'
+#' @importFrom  stats median
 findDeseqFactorsSingle <- function(count_data)
 {
   loggeomeans <- rowMeans(log(count_data))
@@ -61,7 +71,15 @@ findDeseqFactorsSingle <- function(count_data)
   deseqFactors
 }
 
-# conditions  - factor to split samples for normalisation
+#' Calculate normalisation factors
+#'
+#' @param count_data integer matrix, colnames correspond to samples 
+#'   (rownames in \code{conditions})
+#' @param conditions factors to split samples for normalisation
+#' @param spikeins integer of boolean vector for subseting genes 
+#'   (rows in \code{count_data}), which are to be used as spike-ins
+#' @return vector of double; normalisation factors in the same order as 
+#'   columns in the \code{count_data}
 findDeseqFactors <- function(count_data, conditions, spikeins) {
   if (is.null(spikeins)) {
     spikeins <- rownames(count_data)
@@ -125,10 +143,12 @@ addKnownShared <- function(formulas, user_conditions){
 #' @param formulas a list
 #' @param par a list with individual_params(must have), size (must have) 
 #'     and shared_params (optional). If \code{fractions} is defined,
-#'     \code{par$fraction} must be not \code{NULL}
+#'     \code{par$fraction_factors} must be not \code{NULL}
 #' @param conditions a condition data.frame
-#'
+#' @param fractions a factor for splitting the samples into subsets with 
+#'   different normalisation coefficients
 #' @return matrix of counts with the order of columns as in conditions 
+#' @importFrom stats rnbinom
 #' @export
 #'
 generateTestDataFrom <- function(formulas, par, conditions, fractions=NULL) {
