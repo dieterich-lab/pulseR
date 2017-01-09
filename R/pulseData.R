@@ -132,6 +132,14 @@ addKnownShared <- function(formulas, user_conditions){
 #' @export
 #'
 generateTestDataFrom <- function(formulas, par, conditions, fractions=NULL) {
+  if (!is.null(fractions) && is.null(par$fraction_factors)) {
+    stop(
+      paste(
+        "Fraction factors must be specified in par$fraction_factors according\n",
+        "to factor levels in the fractions argument"
+      )
+    )
+  }
   t <- addKnownShared(formulas, conditions)
   formulas <- t$formulas
   conditions_known <- data.frame(condition=t$conditions)
