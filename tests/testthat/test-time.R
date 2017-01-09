@@ -8,7 +8,7 @@ options <- list(
   upper_boundary = c(1e9, 1e9) - 1e-1,
   lower_boundary_size = 0,
   upper_boundary_size = 1e3,
-  cores = 4
+  cores = 2
 )
 options$parscales <- mapply(max,
                             abs(options$upper_boundary),
