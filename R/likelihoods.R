@@ -93,7 +93,7 @@ getNormFactors <- function(pulseData, par) {
   norm_factors <- pulseData$norm_factors
   if (!is.null(par$fraction_factors)) {
     norm_factors <-
-      norm_factors * par$fraction_factors[as.integer(pulseData$fraction)]
+      norm_factors * c(1, par$fraction_factors)[as.integer(pulseData$fraction)]
   }
   norm_factors
 }
