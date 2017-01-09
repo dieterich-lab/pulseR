@@ -8,7 +8,7 @@
 #'   used in the formula definitions, e.g. "time".
 #'   
 #' @param formulas a list, created by \code{\link{MeanFormulas}}
-#' @param spikeins a vector of charecters or indexes, optional;
+#' @param spikeins a vector of characters or indexes, optional;
 #'  defines which genes to use as a reference for normalisation 
 #' @param fractions a formula, e.g. ~ condition + time (if spike-ins are
 #' not provided).
@@ -103,10 +103,9 @@ normalise.PulseData <- function(pulseData) {
 # Returns list( [evaluated formulas], [conditions as vector])
 addKnownShared <- function(formulas, user_conditions){
   if (dim(as.matrix(user_conditions))[2] == 1)
-    return(
-      list(formulas = formulas,
-        conditions  = user_conditions[,1]))
-  knownParams <- which( colnames(user_conditions) %in% unlist(lapply(formulas, all.vars)))
+    return(list(formulas=formulas, conditions=user_conditions[,1]))
+  knownParams <-
+    which(colnames(user_conditions) %in% unlist(lapply(formulas, all.vars)))
   conditions <- user_conditions[, c(1,knownParams)]
   interactions <- interaction(conditions,drop = TRUE)
   names(interactions)   <- rownames(conditions)
