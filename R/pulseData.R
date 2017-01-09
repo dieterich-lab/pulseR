@@ -43,7 +43,7 @@ PulseData <- function(count_data,
 }
 
 #' @export
-print.PulseData <- function(pd){
+print.PulseData <- function(x,...){
   cat("PulseData object")
 }
 
