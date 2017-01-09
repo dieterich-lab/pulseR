@@ -10,7 +10,8 @@ generateTestDataFrom(formulas, par, conditions, fractions = NULL)
 \item{formulas}{a list}
 
 \item{par}{a list with individual_params(must have), size (must have) 
-and shared_params (optional).}
+and shared_params (optional). If \code{fractions} is defined,
+par$fraction must be not \code{NULL}}
 
 \item{conditions}{a condition data.frame}
 }

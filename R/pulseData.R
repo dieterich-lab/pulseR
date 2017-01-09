@@ -124,7 +124,8 @@ addKnownShared <- function(formulas, user_conditions){
 #'
 #' @param formulas a list
 #' @param par a list with individual_params(must have), size (must have) 
-#'     and shared_params (optional).
+#'     and shared_params (optional). If \code{fractions} is defined,
+#'     \code{par$fraction} must be not \code{NULL}
 #' @param conditions a condition data.frame
 #'
 #' @return matrix of counts with the order of columns as in conditions 
@@ -135,13 +136,13 @@ generateTestDataFrom <- function(formulas, par, conditions, fractions=NULL) {
   formulas <- t$formulas
   conditions_known <- data.frame(condition=t$conditions)
   counts <- list()
-  for(i in seq_along(par$individual_params[,1])){
+  for (i in seq_along(par$individual_params[,1])){
     means <- sapply(formulas, eval, 
       c(as.list(par$individual_params[i,]),
         as.list(par$shared_params)))
     # normalise
-    if(!is.null(fractions)){
-      fraction_indexes <-(as.integer(fractions))
+    if (!is.null(fractions)) {
+      fraction_indexes <- as.integer(fractions)
       means <- means * c(1, par$fraction_factors)[fraction_indexes]
     }
     indexes <- match(conditions_known$condition, names(formulas))
