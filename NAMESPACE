@@ -3,6 +3,7 @@
 S3method(print,PulseData)
 export(MeanFormulas)
 export(PulseData)
+export(contaminate)
 export(fitModel)
 export(generateTestDataFrom)
 export(normalise)
