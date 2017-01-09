@@ -42,10 +42,9 @@ PulseData <- function(count_data,
   e
 }
 
-#' Generic for normalisation of PulseData
-#' @param pulseData the object
-#' @export
-normalise <- function(pulseData) UseMethod("normalise")
+print.PulseData <- function(pd){
+  cat("PulseData object")
+}
 
 #' Calculate normalisation factors for columns in a matrix
 #'
@@ -104,7 +103,7 @@ findDeseqFactors <- function(count_data, conditions, spikeins) {
 #' @return the same PulseData object with estimated normalisation factors
 #' @export
 #'
-normalise.PulseData <- function(pulseData) {
+normalise <- function(pulseData) {
   if (is.null(pulseData$fraction)) {
     splitting_factor <- as.data.frame(pulseData$user_conditions)[,1]
   } else {
