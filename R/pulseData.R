@@ -169,14 +169,15 @@ generateTestDataFrom <- function(formulas, par, conditions, fractions=NULL) {
       c(as.list(par$individual_params[i,]),
         as.list(par$shared_params)))
     # normalise
+    norm_factors <- 1
     if (!is.null(fractions)) {
       fraction_indexes <- as.integer(fractions)
-      means <- means * c(1, par$fraction_factors)[fraction_indexes]
+      norm_factors <- c(1, par$fraction_factors)[fraction_indexes]
     }
     indexes <- match(conditions_known$condition, names(formulas))
     counts[[i]] <- rnbinom(
       n    = length(conditions$condition),
-      mu   = means[indexes],
+      mu   = means[indexes] * norm_factors,
       size = par$size)
   }
   counts <- do.call(rbind, counts)
