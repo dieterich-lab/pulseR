@@ -17,7 +17,7 @@ used in the formula definitions, e.g. "time".}
 
 \item{formulas}{a list, created by \code{\link{MeanFormulas}}}
 
-\item{spikeins}{a vector of charecters or indexes, optional;
+\item{spikeins}{a vector of characters or indexes, optional;
 defines which genes to use as a reference for normalisation}
 
 \item{fractions}{a formula, e.g. ~ condition + time (if spike-ins are
