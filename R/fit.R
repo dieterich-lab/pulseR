@@ -84,7 +84,15 @@ fitDispersion <- function(pulseData, par, options) {
 #'
 #' @importFrom  stats optimise
 fitFractions <- function(pulseData, par, options){
-  
+  objective <- ll_norm_factors(pulseData, par)
+  fraction_factors <- optim(
+    unlist(par$fraction_factors),
+    objective,
+    method = "L-BFGS-B",
+    lower = options$lower_boundary_fraction,
+    upper = options$upper_boundary_fraction
+  )$par
+  fraction_factors
 }
 
 getMaxRelDifference <- function(x,y) max(abs(1 - unlist(x)/unlist(y)))
