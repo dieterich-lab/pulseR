@@ -142,11 +142,11 @@ ll_shared_params <- function(pulseData, par) {
                       pulseData$formulas,
                       par$individual_params)
     mean_indexes <- sapply(pulseData$conditions, match, names(pulseData$formulas))
-    lambdas <- means[, mean_indexes]
+    lambdas <- t(t(means[, mean_indexes]) * norm_factors)
     - sum(
       dnbinom(
         x    = pulseData$count_data,
-        mu   = lambdas * norm_factors,
+        mu   = lambdas,
         log  = TRUE,
         size = par$size
       )
