@@ -142,6 +142,14 @@ fitModel <- function(pulseData, par, options = list()) {
       log2screen(opts, toString(par$shared_params), "\n")
     }
     par$size <- fitDispersion(pulseData, par, opts)
+    if(!is.null(par$fraction_factors)){
+      log2screen(opts, "Fitting fraction coefficients\n")
+      res <- fitFractions(pulseData, par, opts)
+      fractions_rel_err <- getMaxRelDifference(res, par$fraction_factors)
+      par$fraction_factors <- res
+      log2screen(opts, "fraction factors \n")
+      log2screen(opts, toString(par$fraction_factors), "\n")
+    }
   }
   list(par=par, formulas = pulseData$formulas)
 }
