@@ -1,6 +1,6 @@
 
 #from pryr package
-substitute_q <- function (x, env)
+substitute_q <- function(x, env)
 {
   call <- substitute(substitute(x, env), list(x = x))
   eval(call)
@@ -122,8 +122,8 @@ ll_gene <- function(pulseData, par) {
   norm_factors <- getNormFactors(pulseData, par)
   function(params, counts) {
     mus <- eval(means_vector, as.list(params))
-    lambdas <-  mus[mean_indexes] 
-    -sum(dnbinom(
+    lambdas <-  mus[mean_indexes]
+    - sum(dnbinom(
       x    = counts,
       mu   = lambdas * norm_factors,
       log  = TRUE,
@@ -152,37 +152,36 @@ ll_shared_params <- function(pulseData, par) {
     means <- getMeans(shared_params,
                       pulseData$formulas,
                       par$individual_params)
-    mean_indexes <- sapply(pulseData$conditions, match, names(pulseData$formulas))
+    mean_indexes <-
+      sapply(pulseData$conditions, match, names(pulseData$formulas))
     lambdas <- t(t(means[, mean_indexes]) * norm_factors)
-    - sum(
-      dnbinom(
-        x    = pulseData$count_data,
-        mu   = lambdas,
-        log  = TRUE,
-        size = par$size
-      )
-    )
+    - sum(dnbinom(
+      x    = pulseData$count_data,
+      mu   = lambdas,
+      log  = TRUE,
+      size = par$size
+    ))
   }
 }
 
 ll_norm_factors <- function(pulseData, par) {
   means <- getMeans(par$shared_params,
-    pulseData$formulas,
-    par$individual_params)
-  mean_indexes <- sapply(pulseData$conditions, match, names(pulseData$formulas))
-  lambdas <- means[, mean_indexes] 
+                    pulseData$formulas,
+                    par$individual_params)
+  mean_indexes <-
+    sapply(pulseData$conditions, match, names(pulseData$formulas))
+  lambdas <- means[, mean_indexes]
   norm_indexes <- as.integer(pulseData$fraction)
   function(fraction_factors) {
-    fraction_factors <- c(1,fraction_factors)[norm_indexes] * pulseData$norm_factors
+    fraction_factors <-
+      c(1, fraction_factors)[norm_indexes] * pulseData$norm_factors
     norm_lambdas <- t(t(lambdas) * fraction_factors)
-    - sum(
-      dnbinom(
-        x    = pulseData$count_data,
-        mu   = norm_lambdas,
-        log  = TRUE,
-        size = par$size
-      )
-    )
+    - sum(dnbinom(
+      x    = pulseData$count_data,
+      mu   = norm_lambdas,
+      log  = TRUE,
+      size = par$size
+    ))
   }
 }
 
