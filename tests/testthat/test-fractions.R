@@ -3,15 +3,15 @@ context("fraction normalisation for time dependent data")
 source("test-utils.R")
 set.seed(259)
 
-nGenes <- 3
+nGenes <- 30
 nReplicates <- 5
 nTime <- 2
 
 options <- list(
   lower_boundary = c(1,1e-3),
   upper_boundary = c(1e9, 1),
-  lower_boundary_size = 0,
-  upper_boundary_size = 1e3,
+  lower_boundary_size = 1,
+  upper_boundary_size = 1e9,
   lower_boundary_shared = 0,
   upper_boundary_shared = 100, 
   cores = 2
@@ -34,8 +34,8 @@ fractions <- factor(conditions_known$condition)
 par$individual_params <- data.frame(a=1:nGenes * 1e7, b=rep(.8, nGenes))
 rownames(par$individual_params) <- paste0("gene_", 1:nGenes)
 
-#par$fraction_factors <- 1 * (1:(length(levels(fractions))-1))
-par$fraction_factors <- rep(10,length(levels(fractions))-1)
+par$fraction_factors <- 1 * (1:(length(levels(fractions))-1))
+#par$fraction_factors <- rep(10,length(levels(fractions))-1)
 #par$fraction_factors <- rep(1:5,2)[-1]
 counts <- generateTestDataFrom(formulas_known,par,conditions_known, fractions)
 
@@ -56,8 +56,17 @@ test_that("individual parameters fitting works", {
 test_that("shared params fitting works", {
   options$lower_boundary_shared <- .10
   options$upper_boundary_shared <- 100
-  fit <- pulseR:::fitSharedParameters(pd, par, options)
+  par2 <- par
+  par2$shared_params <- list(alpha=10)
+  fit <- pulseR:::fitSharedParameters(pd, par2, options)
   expect_lt(max(abs(1-unlist(fit)/unlist(par$shared_params))),.2)
+})
+
+test_that("overexpression fitting works", {
+  par2 <- par
+  par2$size <- 1e4
+  fit <- pulseR:::fitDispersion(pd, par2, options)
+  expect_lt(max(abs(1-unlist(fit)/unlist(par$size))),.2)
 })
 #fit <- fitModel(pd,par2,options)
 
