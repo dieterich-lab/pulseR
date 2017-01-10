@@ -21,20 +21,21 @@ options$parscales <- mapply(max,
                             abs(options$lower_boundary))
 
 formulas <- MeanFormulas(A = a, B =  a * b^time * alpha)
-conditions <- data.frame(condition = rep(c("A","B"), each=nTime),
+conditions <- data.frame(condition = rep(c("A", "B"), each = nTime),
                          time = rep(1:nTime, 2 * nReplicates))
 rownames(conditions) <- paste0("sample_", seq_along(conditions$condition))
 t <- pulseR:::addKnownShared(formulas, conditions)
 formulas_known <- t$formulas
-conditions_known <- data.frame(condition=t$conditions)
+conditions_known <- data.frame(condition = t$conditions)
 
-par <- list(size=1e7)
-par$shared_params <- list(alpha=1)
+par <- list(size = 1e7)
+par$shared_params <- list(alpha = 1)
 fractions <- factor(conditions_known$condition)
-par$individual_params <- data.frame(a=1:nGenes * 1e7, b=rep(.8, nGenes))
+par$individual_params <-
+  data.frame(a = 1:nGenes * 1e7, b = rep(.8, nGenes))
 rownames(par$individual_params) <- paste0("gene_", 1:nGenes)
 
-par$fraction_factors <- 1 * (1:(length(levels(fractions))-1))
+par$fraction_factors <- 1 * (1:(length(levels(fractions)) - 1))
 #par$fraction_factors <- rep(10,length(levels(fractions))-1)
 #par$fraction_factors <- rep(1:5,2)[-1]
 counts <- generateTestDataFrom(formulas_known,par,conditions_known, fractions)
@@ -57,25 +58,27 @@ test_that("shared params fitting works", {
   options$lower_boundary_shared <- .10
   options$upper_boundary_shared <- 100
   par2 <- par
-  par2$shared_params <- list(alpha=10)
+  par2$shared_params <- list(alpha = 10)
   fit <- pulseR:::fitSharedParameters(pd, par2, options)
-  expect_lt(max(abs(1-unlist(fit)/unlist(par$shared_params))),.2)
+  expect_lt(max(abs(1 - unlist(fit) / unlist(par$shared_params))), .2)
 })
 
 test_that("overexpression fitting works", {
   par2 <- par
   par2$size <- 1e4
   fit <- pulseR:::fitDispersion(pd, par2, options)
-  expect_lt(max(abs(1-unlist(fit)/unlist(par$size))),.2)
+  expect_lt(max(abs(1 - unlist(fit) / unlist(par$size))), .2)
 })
+
 test_that("fraction factors fitting works", {
   par2 <- par
   par2$fraction_factors <- rep(10, length(par$fraction_factors))
   options$lower_boundary_fraction <- rep(.1, length(par$fraction_factors))
   options$upper_boundary_fraction <- rep(10, length(par$fraction_factors))
   fit <- pulseR:::fitFractions(pd, par2, options)
-  expect_lt(max(abs(1-unlist(fit)/unlist(par$fraction_factors))),.2)
+  expect_lt(max(abs(1 - unlist(fit) / unlist(par$fraction_factors))), .2)
 })
+
 #fit <- fitModel(pd,par2,options)
 
 #test_that("fitting works for time-series", {
