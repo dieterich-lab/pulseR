@@ -76,6 +76,17 @@ fitDispersion <- function(pulseData, par, options) {
   size
 }
 
+#' Fit fraction normalisation coefficients
+#'
+#' @inheritParams fitDispersion
+#' @return vector of normalisation factors; \code{c(1,norm_factors)}
+#'   corresponds to the fractions in \code{pulseData$fractions}
+#'
+#' @importFrom  stats optimise
+fitFractions <- function(pulseData, par, options){
+  
+}
+
 getMaxRelDifference <- function(x,y) max(abs(1 - unlist(x)/unlist(y)))
 
 #' Fit the model by MLE
