@@ -3,9 +3,9 @@ context("fraction normalisation for time dependent data")
 source("test-utils.R")
 set.seed(259)
 
-nGenes <- 30
-nReplicates <- 5
-nTime <- 11
+nGenes <- 20
+nReplicates <- 3
+nTime <- 7
 
 options <- list(
   lower_boundary = c(1,1e-3),
@@ -20,9 +20,9 @@ options$parscales <- mapply(max,
                             abs(options$upper_boundary),
                             abs(options$lower_boundary))
 
-formulas <- MeanFormulas(A = a * alpha, B =  a * b^time)
-conditions <- data.frame(condition = rep(c("A", "B"), each = nTime),
-                         time = rep(1:nTime, 2 * nReplicates))
+formulas <- MeanFormulas(A = a, B =  a * b^time, C= alpha * a)
+conditions <- data.frame(condition = rep(c("A", "B", "C"), each = nTime),
+                         time = rep(1:nTime, length(formulas) * nReplicates))
 rownames(conditions) <- paste0("sample_", seq_along(conditions$condition))
 t <- pulseR:::addKnownShared(formulas, conditions)
 formulas_known <- t$formulas
@@ -32,11 +32,11 @@ par <- list(size = 1e7)
 par$shared_params <- list(alpha = 1)
 fractions <- factor(conditions_known$condition)
 par$individual_params <-
-  data.frame(a = 1:nGenes * 1e7, b = rep(.8, nGenes))
+  data.frame(a = (1:nGenes) * 1e7, b = rep(.8, nGenes))
 rownames(par$individual_params) <- paste0("gene_", 1:nGenes)
 
-#par$fraction_factors <- 1 * (1:(length(levels(fractions)) - 1))
-par$fraction_factors <- rep(1,length(levels(fractions))-1)
+par$fraction_factors <- 1 * (1:(length(levels(fractions)) - 1))
+#par$fraction_factors <- rep(1,length(levels(fractions))-1)
 #par$fraction_factors <- rep(1:5,2)[-1]
 counts <- generateTestDataFrom(formulas_known,par,conditions_known, fractions)
 
@@ -47,7 +47,7 @@ pd <- PulseData(
     fractions  = ~condition+time)
 normalise(pd) 
 par2 <- par
-par2$individual_params$a <- 2e7
+par2$individual_params$a <- 5e7
 par2$individual_params$b <- .2
 test_that("individual parameters fitting works", {
   fit <- pulseR:::fitIndividualParameters(pd, par2, options)
@@ -74,7 +74,7 @@ test_that("fraction factors fitting works", {
   par2 <- par
   par2$fraction_factors <- rep(10, length(par$fraction_factors))
   options$lower_boundary_fraction <- rep(.1, length(par$fraction_factors))
-  options$upper_boundary_fraction <- rep(10, length(par$fraction_factors))
+  options$upper_boundary_fraction <- rep(100, length(par$fraction_factors))
   fit <- pulseR:::fitFractions(pd, par2, options)
   expect_lt(max(abs(1 - unlist(fit) / unlist(par$fraction_factors))), .2)
 })

@@ -32,9 +32,9 @@ fitIndividualParameters <- function(pulseData, par, options) {
       optim(
         olds,
         objective,
-        method = "L-BFGS-B",
-        lower = options$lower_boundary,
-        upper = options$upper_boundary,
+        #method = "L-BFGS-B",
+        #lower = options$lower_boundary,
+        #upper = options$upper_boundary,
         control = list(parscale = options$parscales),
         counts = pulseData$count_data[i,]
       )$par
