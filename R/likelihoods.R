@@ -109,8 +109,7 @@ getNormFactors <- function(pulseData, par) {
 #'
 #' @return a function(params, counts), which returns a  log likelihood
 #' for a given vector of individual parameters, which are ordered as in 
-#' \code{par$individual_params} and fo a given read counts, which 
-#' correspond to the rows in the condition matrix in \code{pulseData} 
+#' \code{par$individual_params}. 
 #' @importFrom stats dnbinom
 #'
 ll_gene <- function(pulseData, par) {
@@ -133,6 +132,18 @@ ll_gene <- function(pulseData, par) {
   }
 }
 
+#' Create a likelihood function for shared parameters
+#' 
+#' The values of gene-specific parameters, \code{size} from
+#'  \code{\link{dnbinom}} and
+#' normalisation factors are taken from \code{par}. 
+#' @inheritParams ll_gene
+#'
+#' @return a function(params, counts), which returns a  log likelihood
+#' for a given vector of shared parameters, which are ordered as in 
+#' \code{par$shared_params}.
+#' @importFrom stats dnbinom
+#'
 ll_shared_params <- function(pulseData, par) {
   shared_param_names <- names(par$shared_params)
   norm_factors <- getNormFactors(pulseData, par)
