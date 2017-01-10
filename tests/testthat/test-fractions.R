@@ -8,17 +8,19 @@ nReplicates <- 5
 nTime <- 2
 
 options <- list(
-  lower_boundary = rep(1e-3, 2),
-  upper_boundary = c(1e9, 1e9) - 1e-1,
+  lower_boundary = c(1,1e-3),
+  upper_boundary = c(1e9, 1),
   lower_boundary_size = 0,
   upper_boundary_size = 1e3,
+  lower_boundary_shared = 0,
+  upper_boundary_shared = 100, 
   cores = 2
 )
 options$parscales <- mapply(max,
                             abs(options$upper_boundary),
                             abs(options$lower_boundary))
 
-formulas <- MeanFormulas(A = a, B =  b * time)
+formulas <- MeanFormulas(A = a, B =  a * b^time * alpha)
 conditions <- data.frame(condition = rep(c("A","B"), each=nTime),
                          time = rep(1:nTime, 2 * nReplicates))
 rownames(conditions) <- paste0("sample_", seq_along(conditions$condition))
@@ -27,12 +29,13 @@ formulas_known <- t$formulas
 conditions_known <- data.frame(condition=t$conditions)
 
 par <- list(size=1e7)
+par$shared_params <- list(alpha=1)
 fractions <- factor(conditions_known$condition)
-par$individual_params <- data.frame(a=1:nGenes * 1e7, b=rep(5e7, nGenes))
+par$individual_params <- data.frame(a=1:nGenes * 1e7, b=rep(.8, nGenes))
 rownames(par$individual_params) <- paste0("gene_", 1:nGenes)
 
-par$fraction_factors <- 1 * (1:(length(levels(fractions))-1))
-#par$fraction_factors <- rep(2,length(levels(fractions))-1)
+#par$fraction_factors <- 1 * (1:(length(levels(fractions))-1))
+par$fraction_factors <- rep(10,length(levels(fractions))-1)
 #par$fraction_factors <- rep(1:5,2)[-1]
 counts <- generateTestDataFrom(formulas_known,par,conditions_known, fractions)
 
@@ -46,8 +49,15 @@ par2 <- par
 par2$individual_params$a <- 1e3
 par2$individual_params$b <- 1e3
 test_that("individual parameters fitting works", {
-  fit <- pulseR:::fitIndividualParameters(pd, par, options)
+  fit <- pulseR:::fitIndividualParameters(pd, par2, options)
   expect_lt(max(abs(1 - fit / par$individual_params)), .2)
+})
+
+test_that("shared params fitting works", {
+  options$lower_boundary_shared <- .10
+  options$upper_boundary_shared <- 100
+  fit <- pulseR:::fitSharedParameters(pd, par, options)
+  expect_lt(max(abs(1-unlist(fit)/unlist(par$shared_params))),.2)
 })
 #fit <- fitModel(pd,par2,options)
 
