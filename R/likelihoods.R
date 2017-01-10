@@ -170,14 +170,15 @@ ll_norm_factors <- function(pulseData, par) {
     pulseData$formulas,
     par$individual_params)
   mean_indexes <- sapply(pulseData$conditions, match, names(pulseData$formulas))
-  norm_lambdas <- means[, mean_indexes] * pulseData$norm_factors
+  lambdas <- means[, mean_indexes] 
   norm_indexes <- as.integer(pulseData$fraction)
   function(fraction_factors) {
-    fraction_factors <- c(1,fraction_factors)
+    fraction_factors <- c(1,fraction_factors)[norm_indexes] * pulseData$norm_factors
+    norm_lambdas <- t(t(lambdas) * fraction_factors)
     - sum(
       dnbinom(
         x    = pulseData$count_data,
-        mu   = norm_lambdas * fraction_factors[norm_indexes],
+        mu   = norm_lambdas,
         log  = TRUE,
         size = par$size
       )
