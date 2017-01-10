@@ -68,6 +68,14 @@ test_that("overexpression fitting works", {
   fit <- pulseR:::fitDispersion(pd, par2, options)
   expect_lt(max(abs(1-unlist(fit)/unlist(par$size))),.2)
 })
+test_that("fraction factors fitting works", {
+  par2 <- par
+  par2$fraction_factors <- rep(10, length(par$fraction_factors))
+  options$lower_boundary_fraction <- rep(.1, length(par$fraction_factors))
+  options$upper_boundary_fraction <- rep(10, length(par$fraction_factors))
+  fit <- pulseR:::fitFractions(pd, par2, options)
+  expect_lt(max(abs(1-unlist(fit)/unlist(par$fraction_factors))),.2)
+})
 #fit <- fitModel(pd,par2,options)
 
 #test_that("fitting works for time-series", {
