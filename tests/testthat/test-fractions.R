@@ -8,7 +8,7 @@ nReplicates <- 5
 nTime <- 2
 
 options <- list(
-  lower_boundary = rep(1e-9, 2),
+  lower_boundary = rep(1e-3, 2),
   upper_boundary = c(1e9, 1e9) - 1e-1,
   lower_boundary_size = 0,
   upper_boundary_size = 1e3,
