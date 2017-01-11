@@ -65,7 +65,7 @@ test_that("shared params fitting works", {
   expect_lt(max(abs(1 - unlist(fit) / unlist(par$shared_params))), .2)
 })
 
-test_that("overexpression fitting works", {
+test_that("overdispersion fitting works", {
   par2 <- par
   par2$size <- 1e4
   fit <- pulseR:::fitDispersion(pd, par2, options)
