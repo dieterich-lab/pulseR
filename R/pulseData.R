@@ -24,6 +24,7 @@ PulseData <- function(count_data,
                       spikeins = NULL,
                       fractions = NULL) {
   e <- new.env()
+  class(e) <- "PulseData"
   samples <- sort(colnames(count_data))
   e$user_conditions <- conditions[samples,, drop = FALSE]
   e$count_data <- as.matrix(count_data[, samples])
@@ -48,7 +49,7 @@ PulseData <- function(count_data,
   }
   e$formulas <- t$formulas
   e$norm_factors <- NULL
-  class(e) <- "PulseData"
+  normalise(e)
   e
 }
 
@@ -113,11 +114,13 @@ findDeseqFactorsForFractions <- function(count_data, conditions) {
 #'
 normalise <- function(pulseData) {
   if (!is.null(pulseData$spikeins)) {
-   pulseData$norm_factors <- findDeseqFactorsSingle(pulseData$count_data)
+    pulseData$norm_factors <- findDeseqFactorsSingle(pulseData$count_data)
+    genes <- setdiff(rownames(pulseData$count_data),
+                     rownames(pulseData$spikeins))
+    pulseData$count_data <- pulseData$count_data[genes, ]
   } else {
-  pulseData$norm_factors <- findDeseqFactorsForFractions(
-    pulseData$count_data,
-    pulseData$fraction)
+    pulseData$norm_factors <- 
+      findDeseqFactorsForFractions(pulseData$count_data, pulseData$fraction)
   }
   pulseData
 }
