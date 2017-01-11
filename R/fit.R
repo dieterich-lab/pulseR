@@ -3,6 +3,7 @@
   list(
     rel_tol = 1e-2,
     shared_rel_tol = 1e-2,
+    fraction_rel_err = 1e-2,
     verbose = "silent",
     update_inital_parameters = FALSE,
     cores = 1,
@@ -35,7 +36,7 @@ fitIndividualParameters <- function(pulseData, par, options) {
         #method = "L-BFGS-B",
         #lower = options$lower_boundary,
         #upper = options$upper_boundary,
-        control = list(parscale = options$parscales),
+        control = list(parscale = olds),
         counts = pulseData$count_data[i,]
       )$par
     }
@@ -124,9 +125,15 @@ fitModel <- function(pulseData, par, options = list()) {
     shared_params <- as.list(par$shared_params)
     shared_rel_err <- 10 * opts$shared_rel_tol
   }
+  if (is.null(par$fraction_factors)){
+    fraction_rel_err <- 0 
+  } else {
+    fraction_rel_err <- 10*opts$fraction_rel_err
+  }
   opts[names(options)] <- options
   while (rel_err > opts$rel_tol ||
-         shared_rel_err > opts$shared_rel_tol) {
+         shared_rel_err > opts$shared_rel_tol ||
+         fraction_rel_err > opts$fraction_rel_err) {
     # Fit shared params
     if (!is.null(par$shared_params)) {
       log2screen(opts, "Fitting shared params\n")
@@ -144,7 +151,7 @@ fitModel <- function(pulseData, par, options = list()) {
     if (!is.null(par$fraction_factors)) {
       log2screen(opts, "Fitting fraction coefficients\n")
       res <- fitFractions(pulseData, par, opts)
-      fractions_rel_err <- getMaxRelDifference(res, par$fraction_factors)
+      fraction_rel_err <- getMaxRelDifference(res, par$fraction_factors)
       par$fraction_factors <- res
       log2screen(opts, "fraction factors \n")
       log2screen(opts, toString(par$fraction_factors), "\n")
