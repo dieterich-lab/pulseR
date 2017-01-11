@@ -122,6 +122,7 @@ ll_gene <- function(pulseData, par) {
   norm_factors <- getNormFactors(pulseData, par)
   function(params, counts) {
     mus <- eval(means_vector, as.list(params))
+    if(any(mus<=0)) return(Inf)
     lambdas <-  mus[mean_indexes]
     - sum(dnbinom(
       x    = counts,
@@ -176,6 +177,7 @@ ll_norm_factors <- function(pulseData, par) {
     fraction_factors <-
       c(1, fraction_factors)[norm_indexes] * pulseData$norm_factors
     norm_lambdas <- t(t(lambdas) * fraction_factors)
+    if(any(norm_lambdas<=0)) return(Inf)
     - sum(dnbinom(
       x    = pulseData$count_data,
       mu   = norm_lambdas,
