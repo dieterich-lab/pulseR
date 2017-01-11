@@ -26,7 +26,7 @@ t <- pulseR:::addKnownShared(formulas, conditions)
 formulas_known <- t$formulas
 conditions_known <- data.frame(condition = t$conditions)
 
-par <- list(size = 1e7)
+par <- list(size = 1e2)
 par$shared_params <- list(alpha = 1)
 fractions <- factor(conditions_known$condition)
 par$individual_params <-
@@ -74,7 +74,7 @@ test_that("overdispersion fitting works", {
 
 test_that("fraction factors fitting works", {
   par2 <- par
-  par2$fraction_factors <- rep(10, length(par$fraction_factors))
+  par2$fraction_factors <- rep(1, length(par$fraction_factors))
   fit <- pulseR:::fitFractions(pd, par2, options)
   expect_lt(max(abs(1 - unlist(fit) / unlist(par$fraction_factors))), .2)
 })
