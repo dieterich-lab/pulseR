@@ -242,6 +242,6 @@ log2screen <- function(options, ...) {
 
 
 evaluateLikelihood <- function(pulseData, par ) {
-  shared_objective <- ll_shared_params(pulseData, par)
-  shared_objective(unlist(par$shared_params))
+  objective <- ll_dispersion(pulseData, par)
+  objective(par$size)
 }
