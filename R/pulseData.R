@@ -114,9 +114,9 @@ findDeseqFactorsForFractions <- function(count_data, conditions) {
 #'
 normalise <- function(pulseData) {
   if (!is.null(pulseData$spikeins)) {
-    pulseData$norm_factors <- findDeseqFactorsSingle(pulseData$count_data)
-    genes <- setdiff(rownames(pulseData$count_data),
-                     rownames(pulseData$spikeins))
+    pulseData$norm_factors <-
+      findDeseqFactorsSingle(pulseData$count_data[pulseData$spikeins, ])
+    genes <- setdiff(rownames(pulseData$count_data),pulseData$spikeins)
     pulseData$count_data <- pulseData$count_data[genes, ]
   } else {
     pulseData$norm_factors <- 
