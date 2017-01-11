@@ -87,8 +87,6 @@ findDeseqFactorsSingle <- function(count_data)
 #' @param count_data integer matrix, colnames correspond to samples 
 #'   (rownames in \code{conditions})
 #' @param conditions factors to split samples for normalisation
-#' @param spikeins integer of boolean vector for subseting genes 
-#'   (rows in \code{count_data}), which are to be used as spike-ins
 #' @return vector of double; normalisation factors in the same order as 
 #'   columns in the \code{count_data}
 findDeseqFactorsForFractions <- function(count_data, conditions) {
