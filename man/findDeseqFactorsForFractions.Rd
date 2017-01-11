@@ -11,9 +11,6 @@ findDeseqFactorsForFractions(count_data, conditions)
 (rownames in \code{conditions})}
 
 \item{conditions}{factors to split samples for normalisation}
-
-\item{spikeins}{integer of boolean vector for subseting genes 
-(rows in \code{count_data}), which are to be used as spike-ins}
 }
 \value{
 vector of double; normalisation factors in the same order as 
