@@ -33,11 +33,12 @@ PulseData <- function(count_data,
   e$user_formulas <- formulas
   if (!is.null(spikeins) && !is.null(fractions))
     stop(paste("Fractions can not be specified if spike-ins are given.\n"))
-  # create fraction if spike-ins are not provided
+  # create e$fraction if spike-ins are not provided
   if (!is.null(spikeins)) {
     e$spikeins <- spikeins
     e$fraction <- NULL
   } else {
+    # if no fractions formula provided, use the whole daat.frame from conditions
     if (!is.null(fractions)) {
       columns <- e$user_conditions[, all.vars(fractions), drop = FALSE]
       e$fraction <- factor(apply(columns, 1, paste, collapse = "."))
@@ -89,19 +90,14 @@ findDeseqFactorsSingle <- function(count_data)
 #'   (rows in \code{count_data}), which are to be used as spike-ins
 #' @return vector of double; normalisation factors in the same order as 
 #'   columns in the \code{count_data}
-findDeseqFactors <- function(count_data, spikeins, conditions) {
-  if (is.null(spikeins)) {
-    spikeins <- rownames(count_data)
+findDeseqFactorsForFractions <- function(count_data, conditions) {
     deseqFactors <- lapply(
       split(colnames(count_data), conditions),
       function(samples) {
-        findDeseqFactorsSingle(count_data[spikeins, samples, drop = FALSE])
+        findDeseqFactorsSingle(count_data[, samples, drop = FALSE])
       })
     names(deseqFactors) <- NULL
     unlist(deseqFactors)[colnames(count_data)]
-  } else {
-    findDeseqFactorsSingle(count_data[spikeins,colnames(count_data), drop = FALSE])
-  }
 }
 
 # Performs DESeq normalisation according to first column of *conditions*
@@ -116,10 +112,13 @@ findDeseqFactors <- function(count_data, spikeins, conditions) {
 #' @export
 #'
 normalise <- function(pulseData) {
-  pulseData$norm_factors <- findDeseqFactors(
+  if (!is.null(pulseData$spikeins)) {
+   pulseData$norm_factors <- findDeseqFactorsSingle(pulseData$count_data)
+  } else {
+  pulseData$norm_factors <- findDeseqFactorsForFractions(
     pulseData$count_data,
-    pulseData$spikeins,
     pulseData$fraction)
+  }
   pulseData
 }
 
