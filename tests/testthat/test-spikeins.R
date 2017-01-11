@@ -3,7 +3,7 @@ context("fitting with fraction factors for time dependent data")
 source("test-utils.R")
 set.seed(259)
 
-nGenes <- 40
+nGenes <- 400
 nReplicates <- 3
 nTime <- 4
 
@@ -25,7 +25,7 @@ t <- pulseR:::addKnownShared(formulas, conditions)
 formulas_known <- t$formulas
 conditions_known <- data.frame(condition = t$conditions)
 
-par <- list(size = 1e7)
+par <- list(size = 1e2)
 par$shared_params <- list(alpha = 1)
 par$individual_params <- data.frame(a = (1:nGenes) * 1e5, b = runif(nGenes,.1,.8))
 rownames(par$individual_params) <- paste0("gene_", 1:nGenes)
@@ -59,16 +59,9 @@ test_that("shared params fitting works", {
   expect_lt(max(abs(1 - unlist(fit) / unlist(par$shared_params))), .2)
 })
 
-test_that("overexpression fitting works", {
+test_that("overdispresion fitting works", {
   par2 <- par
   par2$size <- 1e4
   fit <- pulseR:::fitDispersion(pd, par2, options)
   expect_lt(max(abs(1 - unlist(fit) / unlist(par$size))), .2)
-})
-
-test_that("fraction factors fitting works", {
-  par2 <- par
-  par2$fraction_factors <- rep(10, length(par$fraction_factors))
-  fit <- pulseR:::fitFractions(pd, par2, options)
-  expect_lt(max(abs(1 - unlist(fit) / unlist(par$fraction_factors))), .2)
 })
