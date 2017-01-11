@@ -127,11 +127,6 @@ fitModel <- function(pulseData, par, options = list()) {
   opts[names(options)] <- options
   while (rel_err > opts$rel_tol ||
          shared_rel_err > opts$shared_rel_tol) {
-    # Fit params for every genes individually
-    log2screen(opts, "Fitting gene-specific params\n")
-    params <- fitIndividualParameters(pulseData, par, opts)
-    rel_err <- getMaxRelDifference(params, par$individual_params)
-    par$individual_params <- params
     # Fit shared params
     if (!is.null(par$shared_params)) {
       log2screen(opts, "Fitting shared params\n")
@@ -141,7 +136,11 @@ fitModel <- function(pulseData, par, options = list()) {
       log2screen(opts, "Shared params\n")
       log2screen(opts, toString(par$shared_params), "\n")
     }
-    par$size <- fitDispersion(pulseData, par, opts)
+    # Fit params for every genes individually
+    log2screen(opts, "Fitting gene-specific params\n")
+    params <- fitIndividualParameters(pulseData, par, opts)
+    rel_err <- getMaxRelDifference(params, par$individual_params)
+    par$individual_params <- params
     if(!is.null(par$fraction_factors)){
       log2screen(opts, "Fitting fraction coefficients\n")
       res <- fitFractions(pulseData, par, opts)
@@ -150,6 +149,9 @@ fitModel <- function(pulseData, par, options = list()) {
       log2screen(opts, "fraction factors \n")
       log2screen(opts, toString(par$fraction_factors), "\n")
     }
+    par$size <- fitDispersion(pulseData, par, opts)
   }
+  par$fraction_factors <- c(1, par$fraction_factors)
+  names(par$fraction_factors)  <- levels(pulseData$fraction)
   list(par=par, formulas = pulseData$formulas)
 }
