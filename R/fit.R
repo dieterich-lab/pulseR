@@ -141,7 +141,7 @@ fitModel <- function(pulseData, par, options = list()) {
     params <- fitIndividualParameters(pulseData, par, opts)
     rel_err <- getMaxRelDifference(params, par$individual_params)
     par$individual_params <- params
-    if(!is.null(par$fraction_factors)){
+    if (!is.null(par$fraction_factors)) {
       log2screen(opts, "Fitting fraction coefficients\n")
       res <- fitFractions(pulseData, par, opts)
       fractions_rel_err <- getMaxRelDifference(res, par$fraction_factors)
@@ -153,5 +153,5 @@ fitModel <- function(pulseData, par, options = list()) {
   }
   par$fraction_factors <- c(1, par$fraction_factors)
   names(par$fraction_factors)  <- levels(pulseData$fraction)
-  list(par=par, formulas = pulseData$formulas)
+  list(par = par, formulas = pulseData$formulas)
 }
