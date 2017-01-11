@@ -25,18 +25,27 @@ PulseData <- function(count_data,
                       fractions = NULL) {
   e <- new.env()
   samples <- sort(colnames(count_data))
-  e$user_conditions <- conditions[samples,,drop=FALSE]
+  e$user_conditions <- conditions[samples,, drop = FALSE]
   e$count_data <- as.matrix(count_data[, samples])
-  t <- addKnownShared(formulas, e$user_conditions[samples,,drop=FALSE])
+  t <- addKnownShared(formulas, e$user_conditions[samples, , drop = FALSE])
   e$conditions <- t$conditions
   e$formulas <- t$formulas
   e$user_formulas <- formulas
-  if(!is.null(fractions)){
-    columns <- e$user_conditions[, all.vars(fractions), drop=FALSE]
-    e$fraction <- factor(apply(columns, 1, paste, collapse = "."))
+  if (!is.null(spikeins) && !is.null(fractions))
+    stop(paste("Fractions can not be specified if spike-ins are given.\n"))
+  # create fraction if spike-ins are not provided
+  if (!is.null(spikeins)) {
+    e$spikeins <- spikeins
+    e$fraction <- NULL
+  } else {
+    if (!is.null(fractions)) {
+      columns <- e$user_conditions[, all.vars(fractions), drop = FALSE]
+      e$fraction <- factor(apply(columns, 1, paste, collapse = "."))
+    } else {
+      e$fraction <- factor(apply(e$user_conditions, 1, paste, collapse = "."))
+    }
   }
   e$formulas <- t$formulas
-  e$spikeins <- spikeins
   e$norm_factors <- NULL
   class(e) <- "PulseData"
   e
@@ -60,7 +69,7 @@ findDeseqFactorsSingle <- function(count_data)
   loggeomeans <- rowMeans(log(count_data))
   deseqFactors <-  apply(count_data, 2, function(x) {
     finitePositive <- is.finite(loggeomeans) & x > 0
-    if(any(finitePositive))
+    if (any(finitePositive))
       res <- exp(median((log(x) - loggeomeans)[finitePositive], na.rm = TRUE))
     else {
       stop("Can't normalise accross a condition. 
@@ -80,17 +89,19 @@ findDeseqFactorsSingle <- function(count_data)
 #'   (rows in \code{count_data}), which are to be used as spike-ins
 #' @return vector of double; normalisation factors in the same order as 
 #'   columns in the \code{count_data}
-findDeseqFactors <- function(count_data, conditions, spikeins) {
+findDeseqFactors <- function(count_data, spikeins, conditions) {
   if (is.null(spikeins)) {
     spikeins <- rownames(count_data)
+    deseqFactors <- lapply(
+      split(colnames(count_data), conditions),
+      function(samples) {
+        findDeseqFactorsSingle(count_data[spikeins, samples, drop = FALSE])
+      })
+    names(deseqFactors) <- NULL
+    unlist(deseqFactors)[colnames(count_data)]
+  } else {
+    findDeseqFactorsSingle(count_data[spikeins,colnames(count_data), drop = FALSE])
   }
-  deseqFactors <- lapply(
-    split(colnames(count_data), conditions),
-    function(samples) {
-      findDeseqFactorsSingle(count_data[spikeins, samples, drop = FALSE])
-    })
-  names(deseqFactors) <- NULL
-  unlist(deseqFactors)[colnames(count_data)]
 }
 
 # Performs DESeq normalisation according to first column of *conditions*
@@ -105,15 +116,10 @@ findDeseqFactors <- function(count_data, conditions, spikeins) {
 #' @export
 #'
 normalise <- function(pulseData) {
-  if (is.null(pulseData$fraction)) {
-    splitting_factor <- as.data.frame(pulseData$user_conditions)[,1]
-  } else {
-    splitting_factor <- pulseData$fraction
-  }
   pulseData$norm_factors <- findDeseqFactors(
     pulseData$count_data,
-    splitting_factor,
-    pulseData$spikeins)
+    pulseData$spikeins,
+    pulseData$fraction)
   pulseData
 }
 
