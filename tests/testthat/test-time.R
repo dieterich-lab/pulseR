@@ -8,6 +8,8 @@ options <- list(
   upper_boundary = c(1e9, 1e9) - 1e-1,
   lower_boundary_size = 0,
   upper_boundary_size = 1e3,
+  lower_boundary_fraction = .1,
+  upper_boundary_fraction = 10,
   cores = 2
 )
 options$parscales <- mapply(max,
@@ -35,6 +37,7 @@ normalise(pd)
 par2 <- par
 par2$individual_params$a <- 1e3
 par2$individual_params$b <- 1e3
+par2$fraction_factors <- rep(1, length(pd$fraction)-1)
 fit <- fitModel(pd,par2,options)
 test_that("fitting works for time-series", {
   expect_gt(.3,
