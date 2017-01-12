@@ -130,7 +130,7 @@ addKnownShared <- function(formulas, user_conditions){
     return(list(formulas=formulas, conditions=user_conditions[,1]))
   knownParams <-
     which(colnames(user_conditions) %in% unlist(lapply(formulas, all.vars)))
-  conditions <- user_conditions[, c(1,knownParams)]
+  conditions <- user_conditions[, c(1,knownParams), drop=FALSE]
   interactions <- interaction(conditions,drop = TRUE, lex.order=TRUE)
   names(interactions)   <- rownames(conditions)
   conditions <- unique(conditions)
