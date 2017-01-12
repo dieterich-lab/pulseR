@@ -226,7 +226,7 @@ ll_dispersion <- function(pulseData, par) {
 #'   llog is a matrix with logarithms of likelihood for the given raw counts.
 #' @export
 #'
-predict.expression <- function(par, pulseData) {
+predictExpression <- function(par, pulseData) {
   norm_factors <- getNormFactors(pulseData, par)
   means <- getMeans(par$shared_params,
                     pulseData$formulas,
