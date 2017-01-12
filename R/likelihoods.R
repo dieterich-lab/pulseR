@@ -215,24 +215,35 @@ ll_dispersion <- function(pulseData, par) {
   }
 }
 
-predict.expression <- function(fit, pulseData) {
-  means <- getMeans(fit$shared_params,
-                    fit$formulas,
-                    fit$individual_params)
+#' Calculate expected read numbers for the raw data 
+#'
+#' @param par estimated parameters from \link{fitModel}
+#' @param pulseData a \link{PulseData} object.
+#'
+#' @return a list(preditions=,llog=), where
+#'   predictions is a matrix of the same dimension 
+#'   as the raw counts in pulseData$count_data;
+#'   llog is a matrix with logarithms of likelihood for the given raw counts.
+#' @export
+#'
+predict.expression <- function(par, pulseData) {
+  norm_factors <- getNormFactors(pulseData, par)
+  means <- getMeans(par$shared_params,
+                    pulseData$formulas,
+                    par$individual_params)
   llog <- NULL
   if (!missing(pulseData)) {
     mean_indexes <-
       sapply(pulseData$conditions, match, names(pulseData$formulas))
-    means <- means[, mean_indexes] * pulseData$norm_factors
-    colnames(means) <- colnames(pulseData$count_data)
+    lambdas <- t(t(means[, mean_indexes]) * norm_factors)
     llog <- dnbinom(
       x = pulseData$count_data,
-      mu = means,
+      mu = lambdas,
       log = TRUE,
-      size = fit$size
+      size = par$size
     )
   }
-  list(predictions = means, llog = llog)
+  list(predictions = lambdas, llog = llog)
 }
 
 log2screen <- function(options, ...) {
