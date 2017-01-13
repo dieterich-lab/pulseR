@@ -227,6 +227,7 @@ ll_dispersion <- function(pulseData, par) {
 #' @export
 #'
 predictExpression <- function(par, pulseData) {
+  par$fraction_factors <- par$fraction_factors[-1]
   norm_factors <- getNormFactors(pulseData, par)
   means <- getMeans(par$shared_params,
                     pulseData$formulas,
