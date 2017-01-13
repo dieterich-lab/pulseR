@@ -74,6 +74,7 @@ findDeseqFactorsSingle <- function(count_data)
     if (any(finitePositive))
       res <- exp(median((log(x) - loggeomeans)[finitePositive], na.rm = TRUE))
     else {
+      print(count_data[1:6,])
       stop("Can't normalise accross a condition. 
               Too many zero expressed genes. ")
     }
