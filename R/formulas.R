@@ -7,4 +7,5 @@ degrade_ <- function(x, d, t){
 }
 
 degrade <- function(x, d, t){
+	substitute( x * exp(-d*t))
 }
