@@ -14,6 +14,7 @@ grow_ <- function(x, mu, d, t){
 	substitute(mu - (mu - x) * exp(-d*t), 
 		list(x=as.name(x),
 				 d=as.name(d),
+				 m=as.name(mu),
 				 t=as.name(t)))
 }
 
