@@ -19,5 +19,8 @@ grow_ <- function(x, mu, d, t){
 }
 
 grow <- function(x, mu, d, t){
-	substitute(mu - (mu - x) * exp(-d*t))
+	mu <- substitute(mu)
+	d <- substitute(d)
+	t <- substitute(t)
+	bquote(.(mu) - (.(mu) - .(x)) * exp(-.(d)*.(t)))
 }
