@@ -23,4 +23,3 @@ in the \code{conditions} data.frame
 Evaluate formulas according to parameters, given in 
 the condition \code{data.frame}
 }
-

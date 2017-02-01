@@ -19,4 +19,3 @@ the MLE of the \code{size} for \code{\link{dnbinom}}
 \description{
 Fit the dispersion parameter
 }
-

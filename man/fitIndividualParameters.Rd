@@ -19,4 +19,3 @@ fitted parameters as a data.frame ordered as initial parameters
 \description{
 Fit gene-specific parameters
 }
-
