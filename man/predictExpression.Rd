@@ -20,4 +20,3 @@ a list(preditions=,llog=), where
 \description{
 Calculate expected read numbers for the raw data
 }
-

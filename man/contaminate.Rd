@@ -32,4 +32,3 @@ forms <- MeanFormulas(A=r_a, B=r_b)
 forms[["A"]] <- contaminate(forms, "A", "B", "p")
 }
 }
-

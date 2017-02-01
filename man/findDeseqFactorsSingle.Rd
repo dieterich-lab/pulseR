@@ -16,4 +16,3 @@ a vector of doubles with normalisation factors ordered as columns in
 \description{
 Calculate normalisation factors for columns in a matrix
 }
-

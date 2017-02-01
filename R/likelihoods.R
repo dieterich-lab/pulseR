@@ -121,6 +121,7 @@ ll_gene <- function(pulseData, par) {
   param_names <- names(par$individual_params)
   norm_factors <- getNormFactors(pulseData, par)
   function(params, counts) {
+    names(params) <- param_names
     mus <- eval(means_vector, as.list(params))
     if(any(mus<=0)) return(Inf)
     lambdas <-  mus[mean_indexes]
