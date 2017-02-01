@@ -123,7 +123,7 @@ grow <- function(x, mu, d, t) {
 #' All the arguments must be characters or language objects 
 #' (expression, call or name).
 #'
-#' @inheritDotParams grow mu d t
+#' @inheritParams grow 
 #' @return an expression to calculate the RNA level.
 #' @export
 #'

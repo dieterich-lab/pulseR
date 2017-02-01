@@ -8,12 +8,11 @@ if the initial amount is 0.}
 growFrom0(mu, d, t)
 }
 \arguments{
-\item{...}{Arguments passed on to \code{grow}
-\describe{
-  \item{mu}{new steady-state level.}
-  \item{d}{a degradation rate.}
-  \item{t}{a longitude of the modelled period.}
-}}
+\item{mu}{new steady-state level.}
+
+\item{d}{a degradation rate.}
+
+\item{t}{a longitude of the modelled period.}
 }
 \value{
 an expression to calculate the RNA level.
