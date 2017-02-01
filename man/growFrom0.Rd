@@ -15,7 +15,15 @@ growFrom0(mu, d, t)
   \item{t}{a longitude of the modelled period.}
 }}
 }
+\value{
+an expression to calculate the RNA level.
+}
 \description{
 All the arguments must be characters or language objects 
 (expression, call or name).
+}
+\examples{
+growFrom0(b,c,d)
+# b - b * exp(-c * d)
+
 }
