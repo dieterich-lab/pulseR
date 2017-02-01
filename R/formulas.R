@@ -117,7 +117,21 @@ grow <- function(x, mu, d, t) {
   do.call(grow_, args) 
 }
 
-grow0 <- function(mu, d, t) {
+#' Creates a formula which describe evolution of RNA concentration
+#' if the initial amount is 0.
+#'
+#' All the arguments must be characters or language objects 
+#' (expression, call or name).
+#'
+#' @inheritDotParams grow mu d t
+#' @return an expression to calculate the RNA level.
+#' @export
+#'
+#' @examples
+#' growFrom0(b,c,d)
+#' # b - b * exp(-c * d)
+#' 
+growFrom0 <- function(mu, d, t) {
   args <- as.list(match.call()[-1])
   args <- lapply(args, eval, env=parent.frame())
   args <- lapply(args, toLanguage)
@@ -128,7 +142,6 @@ grow0 <- function(mu, d, t) {
 #' 
 #' This implement the non-standard evaluation version of the 
 #' \code{\link{grow}} function.
-#'
 #' @inheritParams grow
 #' @return an expression for the calculation of the RNA level.
 #' @export
