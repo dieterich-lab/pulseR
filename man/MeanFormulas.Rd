@@ -23,4 +23,3 @@ Create list of formulas for expected read numbers
 formulas <- MeanFormulas(total=mu, labelled=mu*d, unlabelled=mu*(1-d))
 }
 }
-

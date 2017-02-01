@@ -23,8 +23,8 @@ This implement the non-standard evaluation version of the
 \code{\link{grow}} function.
 }
 \examples{
-grow_(a,b,c,d)
+x <- amount("a")
+grow_(x,b,c,d)
 # b - (b - a) * exp(-c * d)
 
 }
-

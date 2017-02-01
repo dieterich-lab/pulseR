@@ -22,12 +22,11 @@ All the arguments must be characters or language objects
 (expression, call or name).
 }
 \examples{
-x <- quote(mu_0)
-mu <- quote(mu_new)
+x <- amount("mu_0")
+mu <- amount_(mu_new)
 d <- "degradation_rate"
 t <- "t_labelling"
 degrade(x, d, t)
 # mu_0 * exp(-degradation_rate * t_labelling)
 
 }
-

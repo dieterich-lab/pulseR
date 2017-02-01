@@ -22,4 +22,3 @@ The values of gene-specific parameters, \code{size} from
  \code{\link{dnbinom}} and
 normalisation factors are taken from \code{par}.
 }
-

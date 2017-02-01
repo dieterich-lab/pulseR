@@ -6,12 +6,34 @@ toLanguage <- function(x) {
     x
 }
 
-initial <- function(x){
+#' Create a formula object for the initial RNA level.
+#'
+#' @param x a character or a language object (an expression, a call
+#'        or a name)
+#'
+#' @return an expression for the initial RNA level
+#' @export
+#'
+#' @examples
+#' x <- amount("mu")
+#' degrade_(x, d_rate, time)
+#' # mu_0 * exp(-d_rate * time)
+amount <- function(x){
  x <- toLanguage(x)
  x
 }
 
-initial_ <- function(x){
+#'  Create a formula object for the initial RNA level.
+#'
+#'  A non-standard evaluation version of the \code{\link{amount}} 
+#'  function.
+#'  
+#' @param x an expression level
+#'
+#' @return an expression for the initial RNA level
+#' @export
+#'
+amount_ <- function(x){
  substitute(x) 
 }
 
@@ -29,8 +51,8 @@ initial_ <- function(x){
 #' @export
 #'
 #' @examples
-#' x <- quote(mu_0)
-#' mu <- quote(mu_new)
+#' x <- amount("mu_0")
+#' mu <- amount_(mu_new)
 #' d <- "degradation_rate"
 #' t <- "t_labelling"
 #' degrade(x, d, t)
@@ -38,8 +60,9 @@ initial_ <- function(x){
 #' 
 degrade <- function(x, d, t){
   args <- as.list(match.call()[-1])
-  args <- lapply(args, eval, env=parent.frame())
+  args <- lapply(args, eval, env = parent.frame())
   args <- lapply(args, toLanguage)
+  args$x <- quote(x)
   do.call(degrade_, args) 
 }
 
@@ -49,11 +72,13 @@ degrade <- function(x, d, t){
 #'
 #' @inheritParams degrade
 #'
-#' @inheritSection return 
+#' @return an expression for the calculation of the RNA level after
+#' degradation during time \verb{t}.
 #' @export
 #'
 #' @examples
-#' degrade_(a,b,c)
+#' x <- amount("a")
+#' degrade_(x,b,c)
 #' # a * exp(-b * c)
 #' 
 degrade_ <- function(x, d, t) {
@@ -78,8 +103,8 @@ degrade_ <- function(x, d, t) {
 #' @export
 #'
 #' @examples
-#' x <- quote(mu_0)
-#' mu <- quote(mu_new)
+#' x <- amount_(mu_0)
+#' mu <- amount("mu_new")
 #' d <- "degradation_rate"
 #' t <- "t_labelling"
 #' grow(x, mu, d, t)
@@ -88,6 +113,7 @@ grow <- function(x, mu, d, t) {
   args <- as.list(match.call()[-1])
   args <- lapply(args, eval, env=parent.frame())
   args <- lapply(args, toLanguage)
+  args$x <- quote(x)
   do.call(grow_, args) 
 }
 
@@ -102,7 +128,8 @@ grow <- function(x, mu, d, t) {
 #' @export
 #'
 #' @examples
-#' grow_(a,b,c,d)
+#' x <- amount("a")
+#' grow_(x,b,c,d)
 #' # b - (b - a) * exp(-c * d)
 #' 
 grow_ <- function(x, mu, d, t){
@@ -112,7 +139,7 @@ grow_ <- function(x, mu, d, t){
 }
 
 
-`%*%` <- function(lhs, rhs){
+`%$%` <- function(lhs, rhs){
   parent <- parent.frame()
   env <- new.env(parent = parent)  
 }

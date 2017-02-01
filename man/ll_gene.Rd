@@ -21,4 +21,3 @@ for a given vector of individual parameters, which are ordered as in
 The values of shared parameters, \code{size} from \code{\link{dnbinom}} and
 normalisation factors are taken from \code{par}.
 }
-

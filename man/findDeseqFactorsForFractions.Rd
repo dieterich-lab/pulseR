@@ -19,4 +19,3 @@ vector of double; normalisation factors in the same order as
 \description{
 Calculate normalisation factors
 }
-

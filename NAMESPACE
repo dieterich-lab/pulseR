@@ -3,6 +3,8 @@
 S3method(print,PulseData)
 export(MeanFormulas)
 export(PulseData)
+export(amount)
+export(amount_)
 export(contaminate)
 export(degrade)
 export(degrade_)

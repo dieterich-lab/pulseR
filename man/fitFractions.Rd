@@ -20,4 +20,3 @@ vector of normalisation factors; \code{c(1,norm_factors)}
 \description{
 Fit fraction normalisation coefficients
 }
-

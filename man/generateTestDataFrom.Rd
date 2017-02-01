@@ -24,4 +24,3 @@ matrix of counts with the order of columns as in conditions
 \description{
 Create a test count data
 }
-

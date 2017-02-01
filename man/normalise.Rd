@@ -17,4 +17,3 @@ the same PulseData object with estimated normalisation factors
 Estimate normalisation factors for fraction with the same method as
 in the DESeq2 package
 }
-
