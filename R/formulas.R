@@ -58,6 +58,7 @@ degrade <- function(x, d, t){
 #' 
 degrade_ <- function(x, d, t) {
   args <- as.list(match.call()[-1])
+  args$x <- x
   bquote(.(x) * exp(-.(d) * .(t)), args)
 }
 
@@ -106,6 +107,7 @@ grow <- function(x, mu, d, t) {
 #' 
 grow_ <- function(x, mu, d, t){
   args <- as.list(match.call()[-1])
+  args$x <- x
   bquote(.(mu) - (.(mu) - .(x)) * exp(-.(d) * .(t)), args)
 }
 
