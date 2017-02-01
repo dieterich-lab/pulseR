@@ -1,9 +1,9 @@
 
 .defaultParams <- function() {
   list(
-    rel_tol = 1e-2,
+    rel_tol = 1e-3,
     shared_rel_tol = 1e-2,
-    fraction_rel_err = 1e-2,
+    fraction_rel_err = 1e-3,
     verbose = "silent",
     update_inital_parameters = FALSE,
     cores = 1,
@@ -33,9 +33,9 @@ fitIndividualParameters <- function(pulseData, par, options) {
       optim(
         olds,
         objective,
-        #method = "L-BFGS-B",
-        #lower = options$lower_boundary,
-        #upper = options$upper_boundary,
+        method = "L-BFGS-B",
+        lower = options$lower_boundary,
+        upper = options$upper_boundary,
         control = list(parscale = olds),
         counts = pulseData$count_data[i,]
       )$par
@@ -158,6 +158,8 @@ fitModel <- function(pulseData, par, options = list()) {
     }
     par$size <- fitDispersion(pulseData, par, opts)
   }
+  ## fit gene specific final parameters
+  par$individual_params <- fitIndividualParameters(pulseData, par, opts)
   par$fraction_factors <- c(1, par$fraction_factors)
   names(par$fraction_factors)  <- levels(pulseData$fraction)
   list(par = par, formulas = pulseData$formulas)
