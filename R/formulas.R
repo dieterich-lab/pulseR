@@ -117,6 +117,12 @@ grow <- function(x, mu, d, t) {
   do.call(grow_, args) 
 }
 
+grow0 <- function(mu, d, t) {
+  args <- as.list(match.call()[-1])
+  args <- lapply(args, eval, env=parent.frame())
+  args <- lapply(args, toLanguage)
+  do.call(grow_, args) 
+}
 
 #' Creates a formula which describe evolution of RNA concentration
 #' 
@@ -134,8 +140,12 @@ grow <- function(x, mu, d, t) {
 #' 
 grow_ <- function(x, mu, d, t){
   args <- as.list(match.call()[-1])
-  args$x <- x
-  bquote(.(mu) - (.(mu) - .(x)) * exp(-.(d) * .(t)), args)
+  if(!missing(x)){
+		args$x <- x
+		bquote(.(mu) - (.(mu) - .(x)) * exp(-.(d) * .(t)), args)
+  } else {
+		bquote(.(mu) - .(mu) * exp(-.(d) * .(t)), args)
+  }
 }
 
 
