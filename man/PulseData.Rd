@@ -31,4 +31,3 @@ an object of class "PulseData"
 \description{
 Create an object for pulse-change count data
 }
-

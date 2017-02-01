@@ -13,12 +13,16 @@ degrade_(x, d, t)
 
 \item{t}{a longitude of the modelled period.}
 }
+\value{
+an expression for the calculation of the RNA level after
+degradation during time \verb{t}.
+}
 \description{
 Implements a non-standard evaluation version.
 }
 \examples{
-degrade_(a,b,c)
+x <- amount("a")
+degrade_(x,b,c)
 # a * exp(-b * c)
 
 }
-

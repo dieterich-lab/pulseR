@@ -25,4 +25,3 @@ Fit the model by MLE
 fitResult <- fitModel(pd, par)
 }
 }
-

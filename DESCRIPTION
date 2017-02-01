@@ -7,4 +7,4 @@ Author: Alexey Uvarovskii <alexey.mipt@gmail.com>
 Maintainer: Alexey Uvarovskii <alexey.mipt@gmail.com>
 Imports: stats, parallel
 Suggests: testthat
-RoxygenNote: 5.0.1
+RoxygenNote: 6.0.0

@@ -24,11 +24,10 @@ All the arguments must be characters or language objects
 (expression, call or name).
 }
 \examples{
-x <- quote(mu_0)
-mu <- quote(mu_new)
+x <- amount_(mu_0)
+mu <- amount("mu_new")
 d <- "degradation_rate"
 t <- "t_labelling"
 grow(x, mu, d, t)
 # mu_new - (mu_new - mu_0) * exp(-degradation_rate * t_labelling)
 }
-
