@@ -6,6 +6,15 @@ toLanguage <- function(x) {
     x
 }
 
+initial <- function(x){
+ x <- toLanguage(x)
+ x
+}
+
+initial_ <- function(x){
+ substitute(x) 
+}
+
 #' Create a formula for RNA degradation
 #' 
 #' All the arguments must be characters or language objects 
