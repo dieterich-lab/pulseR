@@ -29,7 +29,7 @@ fitIndividualParameters <- function(pulseData, par, options) {
   new_params <- mclapply(
     X = seq_len(dim(par$individual_params)[1]),
     FUN = function(i) {
-      olds <- par$individual_params[i,]
+      olds <- par$individual_params[i,,drop=FALSE]
       optim(
         olds,
         objective,
@@ -38,7 +38,7 @@ fitIndividualParameters <- function(pulseData, par, options) {
         upper = options$upper_boundary,
         control = list(parscale = olds),
         counts = pulseData$count_data[i,],
-        known=par$known[i,]
+        known=par$known[i,, drop=FALSE]
       )$par
     }
     ,mc.cores = options$cores
