@@ -115,7 +115,6 @@ ll_norm_factors <- function(pulseData, par) {
   }
 }
 
-
 ll_dispersion <- function(pulseData, par) {
   norm_factors <- getNormFactors(pulseData, par)
   means <- getMeans(formulas = pulseData$formulas, par = par)
