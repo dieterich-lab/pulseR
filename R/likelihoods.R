@@ -7,13 +7,7 @@ substitute_q <- function(x, env)
 }
 
 makeVector <- function(forms) {
-  string <- paste("c(",
-                  paste(mapply(
-                    paste, names(forms), as.character(forms), sep = "="
-                  ),
-                  collapse = ","),
-                  ")")
-  parse(text = string)[[1]]
+  as.call(c(c,forms))
 }
 
 getNormFactors <- function(pulseData, par) {
