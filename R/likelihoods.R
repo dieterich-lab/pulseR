@@ -72,9 +72,11 @@ ll_shared_params <- function(pulseData, par) {
   norm_factors <- getNormFactors(pulseData, par)
   function(shared_params) {
     names(shared_params) <- shared_param_names
-    means <- getMeans(shared_params,
-                      pulseData$formulas,
-                      par$individual_params)
+    means <- getMeans(
+      formulas = pulseData$formulas,
+      shared_params = shared_params,
+      individual_params = par$individual_params
+    )
     mean_indexes <-
       sapply(pulseData$conditions, match, names(pulseData$formulas))
     lambdas <- t(t(means[, mean_indexes]) * norm_factors)
@@ -88,9 +90,9 @@ ll_shared_params <- function(pulseData, par) {
 }
 
 ll_norm_factors <- function(pulseData, par) {
-  means <- getMeans(par$shared_params,
-                    pulseData$formulas,
-                    par$individual_params)
+  means <- getMeans(formulas = pulseData$formulas,
+                    shared_params = par$shared_params,
+                    individual_params = par$individual_params)
   mean_indexes <-
     sapply(pulseData$conditions, match, names(pulseData$formulas))
   lambdas <- means[, mean_indexes]
@@ -109,7 +111,7 @@ ll_norm_factors <- function(pulseData, par) {
   }
 }
 
-getMeans <- function(shared_params, formulas, individual_params) {
+getMeans <- function(formulas, shared_params, individual_params) {
   params <- c(individual_params, shared_params)
   means <- lapply(formulas, function(x) {
     eval(x, envir = params)
@@ -120,9 +122,11 @@ getMeans <- function(shared_params, formulas, individual_params) {
 
 ll_dispersion <- function(pulseData, par) {
   norm_factors <- getNormFactors(pulseData, par)
-  means <- getMeans(par$shared_params,
-    pulseData$formulas,
-    par$individual_params)
+  means <- getMeans(
+    formulas = pulseData$formulas,
+    shared_params = par$shared_params,
+    individual_params = par$individual_params
+  )
   mean_indexes <- sapply(pulseData$conditions, match, names(pulseData$formulas))
   lambdas <- t(t(means[, mean_indexes]) * norm_factors)
   function(size) {
@@ -150,9 +154,11 @@ ll_dispersion <- function(pulseData, par) {
 predictExpression <- function(par, pulseData) {
   par$fraction_factors <- par$fraction_factors[-1]
   norm_factors <- getNormFactors(pulseData, par)
-  means <- getMeans(par$shared_params,
-                    pulseData$formulas,
-                    par$individual_params)
+  means <- getMeans(
+    formulas =  pulseData$formulas,
+    shared_params = par$shared_params,
+    individual_params =  par$individual_params
+  )
   llog <- NULL
   if (!missing(pulseData)) {
     mean_indexes <-
