@@ -22,7 +22,7 @@ All the arguments must be characters or language objects
 (expression, call or name).
 }
 \examples{
-growFrom0(b,c,d)
+growFrom0("b","c","d")
 # b - b * exp(-c * d)
 
 }
