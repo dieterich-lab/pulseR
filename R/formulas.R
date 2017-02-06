@@ -200,7 +200,7 @@ grow <- function(x, mu, d, t) {
 #' @export
 #'
 #' @examples
-#' growFrom0(b,c,d)
+#' growFrom0("b","c","d")
 #' # b - b * exp(-c * d)
 #' 
 growFrom0 <- function(mu, d, t) {
