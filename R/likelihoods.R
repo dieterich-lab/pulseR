@@ -41,9 +41,9 @@ ll_gene <- function(pulseData, par) {
   means_vector <-  makeVector(formulas)
   param_names <- names(par$individual_params)
   norm_factors <- getNormFactors(pulseData, par)
-  function(params, counts) {
+  function(params, counts, known=NULL) {
     names(params) <- param_names
-    mus <- eval(means_vector, as.list(params))
+    mus <- eval(means_vector, as.list(c(params, known)))
     if(any(mus<=0)) return(Inf)
     lambdas <-  mus[mean_indexes]
     - sum(dnbinom(
