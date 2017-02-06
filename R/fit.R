@@ -37,7 +37,8 @@ fitIndividualParameters <- function(pulseData, par, options) {
         lower = options$lower_boundary,
         upper = options$upper_boundary,
         control = list(parscale = olds),
-        counts = pulseData$count_data[i,]
+        counts = pulseData$count_data[i,],
+        known=par$known[i,]
       )$par
     }
     ,mc.cores = options$cores
