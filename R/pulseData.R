@@ -178,7 +178,7 @@ generateTestDataFrom <- function(formulas,
     means <- sapply(formulas, eval, 
       c(as.list(par$individual_params[i,]),
         as.list(par$shared_params),
-        as.list(par$known[i,])))
+        as.list(par$known[i,, drop=FALSE])))
     # normalise
     norm_factors <- 1
     if (!is.null(fractions)) {
