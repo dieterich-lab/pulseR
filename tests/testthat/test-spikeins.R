@@ -17,7 +17,7 @@ options <- list(
   cores = 2
 )
 options$parscales <- c(1e5,1)
-formulas <- MeanFormulas(A = a, B =  a * b^time, C= 1e7 * alpha^time)
+formulas <- MeanFormulas(A = a * p, B =  a * b^time, C= 1e7 * alpha^time)
 conditions <- data.frame(condition = rep(names(formulas), each = nTime),
                          time = rep(1:nTime, length(formulas) * nReplicates))
 rownames(conditions) <- paste0("sample_", seq_along(conditions$condition))
@@ -26,6 +26,7 @@ formulas_known <- t$formulas
 conditions_known <- data.frame(condition = t$conditions)
 
 par <- list(size = 1e2)
+par$known <-data.frame(p=1:nGenes + 1)
 par$shared_params <- list(alpha = 1)
 par$individual_params <- data.frame(a = (1:nGenes) * 1e5, b = runif(nGenes,.1,.8))
 rownames(par$individual_params) <- paste0("gene_", 1:nGenes)
