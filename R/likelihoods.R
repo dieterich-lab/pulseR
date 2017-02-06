@@ -110,10 +110,9 @@ ll_norm_factors <- function(pulseData, par) {
 }
 
 getMeans <- function(shared_params, formulas, individual_params) {
-  shared_params <- as.list(shared_params)
+  params <- c(individual_params, shared_params)
   means <- lapply(formulas, function(x) {
-    eval(substitute_q(x, shared_params),
-         envir = as.list(individual_params))
+    eval(x, envir = params)
   })
   means <- do.call(cbind, means) 
   means
