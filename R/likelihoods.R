@@ -19,6 +19,15 @@ getNormFactors <- function(pulseData, par) {
   norm_factors
 }
 
+getMeans <- function(formulas, par) {
+  params <- c(par$individual_params, par$shared_params, par$known)
+  means <- lapply(formulas, function(x) {
+    eval(x, envir = params)
+  })
+  means <- do.call(cbind, means) 
+  means
+}
+
 #' Create a likelihood function for gene-specific parameters
 #' 
 #' The values of shared parameters, \code{size} from \code{\link{dnbinom}} and
@@ -41,9 +50,9 @@ ll_gene <- function(pulseData, par) {
   means_vector <-  makeVector(formulas)
   param_names <- names(par$individual_params)
   norm_factors <- getNormFactors(pulseData, par)
-  function(params, counts) {
+  function(params, counts, known=NULL) {
     names(params) <- param_names
-    mus <- eval(means_vector, as.list(params))
+    mus <- eval(means_vector, as.list(c(params, known)))
     if(any(mus<=0)) return(Inf)
     lambdas <-  mus[mean_indexes]
     - sum(dnbinom(
@@ -72,9 +81,8 @@ ll_shared_params <- function(pulseData, par) {
   norm_factors <- getNormFactors(pulseData, par)
   function(shared_params) {
     names(shared_params) <- shared_param_names
-    means <- getMeans(shared_params,
-                      pulseData$formulas,
-                      par$individual_params)
+    par$shared_params <- shared_params
+    means <- getMeans(formulas = pulseData$formulas, par = par)
     mean_indexes <-
       sapply(pulseData$conditions, match, names(pulseData$formulas))
     lambdas <- t(t(means[, mean_indexes]) * norm_factors)
@@ -88,9 +96,7 @@ ll_shared_params <- function(pulseData, par) {
 }
 
 ll_norm_factors <- function(pulseData, par) {
-  means <- getMeans(par$shared_params,
-                    pulseData$formulas,
-                    par$individual_params)
+  means <- getMeans(formulas = pulseData$formulas, par = par)
   mean_indexes <-
     sapply(pulseData$conditions, match, names(pulseData$formulas))
   lambdas <- means[, mean_indexes]
@@ -109,20 +115,9 @@ ll_norm_factors <- function(pulseData, par) {
   }
 }
 
-getMeans <- function(shared_params, formulas, individual_params) {
-  params <- c(individual_params, shared_params)
-  means <- lapply(formulas, function(x) {
-    eval(x, envir = params)
-  })
-  means <- do.call(cbind, means) 
-  means
-}
-
 ll_dispersion <- function(pulseData, par) {
   norm_factors <- getNormFactors(pulseData, par)
-  means <- getMeans(par$shared_params,
-    pulseData$formulas,
-    par$individual_params)
+  means <- getMeans(formulas = pulseData$formulas, par = par)
   mean_indexes <- sapply(pulseData$conditions, match, names(pulseData$formulas))
   lambdas <- t(t(means[, mean_indexes]) * norm_factors)
   function(size) {
@@ -150,9 +145,7 @@ ll_dispersion <- function(pulseData, par) {
 predictExpression <- function(pulseData, par) {
   par$fraction_factors <- par$fraction_factors[-1]
   norm_factors <- getNormFactors(pulseData, par)
-  means <- getMeans(par$shared_params,
-                    pulseData$formulas,
-                    par$individual_params)
+  means <- getMeans(formulas =  pulseData$formulas, par = par)
   llog <- NULL
   if (!missing(pulseData)) {
     mean_indexes <-

@@ -158,7 +158,10 @@ addKnownShared <- function(formulas, user_conditions){
 #' @importFrom stats rnbinom
 #' @export
 #'
-generateTestDataFrom <- function(formulas, par, conditions, fractions=NULL) {
+generateTestDataFrom <- function(formulas,
+                                 par,
+                                 conditions,
+                                 fractions = NULL){
   if (!is.null(fractions) && is.null(par$fraction_factors)) {
     stop(
       paste(
@@ -174,7 +177,8 @@ generateTestDataFrom <- function(formulas, par, conditions, fractions=NULL) {
   for (i in seq_along(par$individual_params[,1])){
     means <- sapply(formulas, eval, 
       c(as.list(par$individual_params[i,]),
-        as.list(par$shared_params)))
+        as.list(par$shared_params),
+        as.list(par$known[i,, drop=FALSE])))
     # normalise
     norm_factors <- 1
     if (!is.null(fractions)) {
