@@ -4,12 +4,12 @@
 \alias{predictExpression}
 \title{Calculate expected read numbers for the raw data}
 \usage{
-predictExpression(par, pulseData)
+predictExpression(pulseData, par)
 }
 \arguments{
-\item{par}{estimated parameters from \link{fitModel}}
-
 \item{pulseData}{a \link{PulseData} object.}
+
+\item{par}{estimated parameters from \link{fitModel}}
 }
 \value{
 a list(preditions=,llog=), where
