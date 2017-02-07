@@ -9,7 +9,7 @@ fitModel(pulseData, par, options = list())
 \arguments{
 \item{pulseData}{PulseData object}
 
-\item{par}{all needed parameters as a \code{list}}
+\item{par}{initial guess for parameters as a \code{list}.}
 
 \item{options}{\code{list} of options}
 }
@@ -19,6 +19,18 @@ a list `l` with fitted parameters `l$par` and
 }
 \description{
 Fit the model by MLE
+}
+\details{
+In the initial guess \code{par},
+   the following list items need to be provided:
+   \itemize{
+   \item{params: }{list of gene-specific parameters}
+   \item{shared: }{list of shared parameters}
+   \item{fraction_factors (if relevant): }{a vector of fraction factors
+   in the order of \code{levels(pulseDatad$fractions)}} 
+   \item{size (optional): }{an initial guess for the size parameter of the
+   negative binomial distribution, see \code{\link{dnbinom}}}
+   }
 }
 \examples{
 \dontrun{
