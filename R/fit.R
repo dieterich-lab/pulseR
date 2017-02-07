@@ -88,13 +88,13 @@ fitDispersion <- function(pulseData, par, options) {
 fitFractions <- function(pulseData, par, options){
   objective <- ll_norm_factors(pulseData, par)
   fraction_factors <- optim(
-    unlist(par$fraction_factors),
+    unlist(par$fraction_factors)[-1],
     objective,
     method = "L-BFGS-B",
-    lower = options$lower_boundary_fraction,
-    upper = options$upper_boundary_fraction
+    lower  = options$lower_boundary_fraction[-1],
+    upper  = options$upper_boundary_fraction[-1]
   )$par
-  fraction_factors
+  c(1,fraction_factors)
 }
 
 getMaxRelDifference <- function(x,y) max(abs(1 - unlist(x)/unlist(y)))
@@ -120,17 +120,11 @@ fitModel <- function(pulseData, par, options = list()) {
     abs(options$upper_boundary),
     abs(options$lower_boundary))
   rel_err <- 10 * opts$rel_tol
-  if (is.null(par$shared_params)) {
-    shared_rel_err <- 0
-  } else {
-    shared_params <- as.list(par$shared_params)
-    shared_rel_err <- 10 * opts$shared_rel_tol
-  }
-  if (is.null(par$fraction_factors)){
-    fraction_rel_err <- 0 
-  } else {
-    fraction_rel_err <- 10*opts$fraction_rel_err
-  }
+  shared_params <- as.list(par$shared_params)
+  shared_rel_err <- ifelse(is.null(par$shared_params),
+                            0, 10 * opts$shared_rel_tol)
+  fraction_rel_err <- ifelse(is.null(par$fraction_factors),
+                             0,  10 * opts$fraction_rel_err)
   opts[names(options)] <- options
   while (rel_err > opts$rel_tol ||
          shared_rel_err > opts$shared_rel_tol ||
@@ -161,7 +155,6 @@ fitModel <- function(pulseData, par, options = list()) {
   }
   ## fit gene specific final parameters
   par$individual_params <- fitIndividualParameters(pulseData, par, opts)
-  par$fraction_factors <- c(1, par$fraction_factors)
   names(par$fraction_factors)  <- levels(pulseData$fraction)
   list(par = par, formulas = pulseData$formulas)
 }
