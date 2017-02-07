@@ -131,39 +131,44 @@ fitModel <- function(pulseData, par, options = list()) {
   opts$parscales <- mapply(max,
     abs(options$upper_boundary),
     abs(options$lower_boundary))
+  opts[names(options)] <- options
+  log2screen(opts, cat("\n"))
   rel_err <- 10 * opts$rel_tol
   shared_params <- as.list(par$shared_params)
   shared_rel_err <- ifelse(is.null(par$shared_params),
                             0, 10 * opts$shared_rel_tol)
   fraction_rel_err <- ifelse(is.null(par$fraction_factors),
                              0,  10 * opts$fraction_rel_err)
-  opts[names(options)] <- options
   while (rel_err > opts$rel_tol ||
          shared_rel_err > opts$shared_rel_tol ||
          fraction_rel_err > opts$fraction_rel_err) {
     # Fit shared params
     if (!is.null(par$shared_params)) {
-      log2screen(opts, "Fitting shared params\n")
       shared_params <- fitSharedParameters(pulseData, par, opts)
       shared_rel_err <- getMaxRelDifference(shared_params, par$shared_params)
       par$shared_params <- shared_params
-      log2screen(opts, "Shared params\n")
-      log2screen(opts, toString(par$shared_params), "\n")
     }
     # Fit params for every genes individually
-    log2screen(opts, "Fitting gene-specific params\n")
     params <- fitIndividualParameters(pulseData, par, opts)
     rel_err <- getMaxRelDifference(params, par$individual_params)
     par$individual_params <- params
     if (!is.null(par$fraction_factors)) {
-      log2screen(opts, "Fitting fraction coefficients\n")
       res <- fitFractions(pulseData, par, opts)
       fraction_rel_err <- getMaxRelDifference(res, par$fraction_factors)
       par$fraction_factors <- res
-      log2screen(opts, "fraction factors \n")
-      log2screen(opts, toString(par$fraction_factors), "\n")
     }
     par$size <- fitDispersion(pulseData, par, opts)
+    str <- format(c(rel_err, shared_rel_err, fraction_rel_err),
+                  digits = 2,
+                  width = 6)
+    log2screen(opts, cat(
+      paste0(
+        "Max Rel.err. in [params: ", str[1],
+        "]  [shared: ", str[2], 
+        "]  [fractions: ", str[3],
+        "]    \r"
+      )
+    ))
   }
   ## fit gene specific final parameters
   par$individual_params <- fitIndividualParameters(pulseData, par, opts)
