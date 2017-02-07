@@ -29,7 +29,7 @@ par$individual_params <-
   data.frame(a = (1:nGenes) * 1e5, b = runif( nGenes,.1,.8))
 rownames(par$individual_params) <- paste0("gene_", 1:nGenes)
 
-par$fraction_factors <- 1 * (1:(length(levels(fractions)) - 1))
+par$fraction_factors <- 1 * (1:(length(levels(fractions)) ))
 #par$fraction_factors <- rep(1,length(levels(fractions))-1)
 #par$fraction_factors <- runif(length(levels(fractions)) - 1, 1, 5)
 options$lower_boundary_fraction <- rep(.1, length(par$fraction_factors))
@@ -45,7 +45,7 @@ pd <- PulseData(
 normalise(pd) 
 
 test_that("all together fitting works", {
-  skip("...")
+  #skip("...")
   par2 <- par
   guess <-  apply(counts[, conditions$condition == "A"], 1, mean)
   par2$individual_params$a <- guess
@@ -59,6 +59,6 @@ test_that("all together fitting works", {
                              par$individual_params
                    )))
   expect_lt(max(abs(
-    1 - unlist(fit$par$fraction_factors[-1]) / unlist(par$fraction_factors)
+    1 - unlist(fit$par$fraction_factors) / unlist(par$fraction_factors)
   )), .3)
 })

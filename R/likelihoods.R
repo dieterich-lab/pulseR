@@ -13,8 +13,8 @@ makeVector <- function(forms) {
 getNormFactors <- function(pulseData, par) {
   norm_factors <- pulseData$norm_factors
   if (!is.null(par$fraction_factors)) {
-    norm_factors <-
-      norm_factors * c(1, par$fraction_factors)[as.integer(pulseData$fraction)]
+    norm_factors <- norm_factors *
+      par$fraction_factors[as.integer(pulseData$fraction)]
   }
   norm_factors
 }
@@ -143,7 +143,6 @@ ll_dispersion <- function(pulseData, par) {
 #' @export
 #'
 predictExpression <- function(pulseData, par) {
-  par$fraction_factors <- par$fraction_factors[-1]
   norm_factors <- getNormFactors(pulseData, par)
   means <- getMeans(formulas =  pulseData$formulas, par = par)
   llog <- NULL

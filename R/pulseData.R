@@ -184,7 +184,8 @@ generateTestDataFrom <- function(formulas,
     norm_factors <- 1
     if (!is.null(fractions)) {
       fraction_indexes <- as.integer(fractions)
-      norm_factors <- c(1, par$fraction_factors)[fraction_indexes]
+      par$fraction_factors[1] <- 1
+      norm_factors <- par$fraction_factors[fraction_indexes]
     }
     indexes <- match(conditions_known$condition, names(formulas))
     counts[[i]] <- rnbinom(

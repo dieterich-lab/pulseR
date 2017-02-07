@@ -33,9 +33,11 @@ par$individual_params <-
   data.frame(a = (1:nGenes) * 1e5, b = runif(nGenes,.1,.8))
 rownames(par$individual_params) <- paste0("gene_", 1:nGenes)
 
-par$fraction_factors <- 1 * (1:(length(levels(fractions)) - 1))
+#par$fraction_factors <- 1 * (1:(length(levels(fractions)) - 1))
 #par$fraction_factors <- rep(1,length(levels(fractions))-1)
-par$fraction_factors <- runif(length(levels(fractions)) - 1, 1, 5)
+par$fraction_factors <- runif(length(levels(fractions)), 1, 5)
+
+par$fraction_factors[1] <- 1
 
 options$lower_boundary_fraction <- rep(.1, length(par$fraction_factors))
 options$upper_boundary_fraction <- rep(100, length(par$fraction_factors))
