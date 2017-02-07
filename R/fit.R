@@ -102,11 +102,23 @@ getMaxRelDifference <- function(x,y) max(abs(1 - unlist(x)/unlist(y)))
 #' Fit the model by MLE
 #'
 #' @param pulseData PulseData object
-#' @param par all needed parameters as a \code{list}
+#' @param par initial guess for parameters as a \code{list}.  
 #' @param options \code{list} of options
 #'
 #' @return a list `l` with fitted parameters `l$par` and
 #'     formulas `l$formulas` 
+#'     
+#' @details 
+#'    In the initial guess \code{par},
+#'    the following list items need to be provided:
+#'    \itemize{
+#'    \item{params: }{list of gene-specific parameters}
+#'    \item{shared: }{list of shared parameters}
+#'    \item{fraction_factors (if relevant): }{a vector of fraction factors
+#'    in the order of \code{levels(pulseDatad$fractions)}} 
+#'    \item{size (optional): }{an initial guess for the size parameter of the
+#'    negative binomial distribution, see \code{\link{dnbinom}}}
+#'    }
 #' @export
 #'
 #' @examples 
