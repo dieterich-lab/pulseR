@@ -12,8 +12,9 @@ PulseData(count_data, conditions, formulas, spikeins = NULL,
 
 \item{conditions}{a data.frame;
 the first column corresponds to the conditions given in \code{formulas}.
-May also include column "fraction" and columns named as parameters,
-used in the formula definitions, e.g. "time".}
+May columns named as parameters,
+used in the formula definitions, e.g. "time" 
+if formula = ~condition + time.}
 
 \item{formulas}{a list, created by \code{\link{MeanFormulas}}}
 
