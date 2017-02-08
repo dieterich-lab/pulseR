@@ -4,7 +4,7 @@
 \alias{fitModel}
 \title{Fit the model by MLE}
 \usage{
-fitModel(pulseData, par, options = list())
+fitModel(pulseData, par, options = .defaultParams)
 }
 \arguments{
 \item{pulseData}{PulseData object}

@@ -1,17 +1,86 @@
 
-.defaultParams <- function() {
-  list(
-    rel_tol = 1e-3,
-    shared_rel_tol = 1e-2,
-    fraction_rel_err = 1e-3,
-    verbose = "silent",
-    update_inital_parameters = FALSE,
-    cores = 1,
-    lower_boundary_size = 10,
-    upper_boundary_size = 1e10
-  )
+# default params
+# - tolerance
+# - boundaries
+# - 
+.defaultParams <-  list(
+  tolerance = list(
+    params = 1e-3,
+    shared = 1e-2,
+    fraction = 1e-3
+  ),
+  verbose = "silent",
+  cores = 1,
+  lb = list(size = 10),
+  ub = list(size = 1e10)
+)
+
+#' Set optimization boundaries for the model parameters.
+#'
+#' @param params boundaries for gene-specific parameters
+#' @param shared boundaries for shared parameters
+#' @param fraction_factors boundaries for fraction factors if relevant
+#' @param size boundaries for the size parameter of the negative binomial
+#' ditribution 
+#' @param options an options object to use as a basis for a new parameter set
+#'
+#' @return   an options object with the new parameter values
+#' @details If no options object is provided, the default value is used.
+#' @export
+#'
+setBoundaries <- function(params = NULL,
+                          shared = NULL,
+                          fraction_factors = NULL,
+                          size = NULL,
+                          options = NULL) {
+  if (missing(options))
+    options <- .defaultParams
+  args <- as.list(match.call())[-1]
+  args <- lapply(args, eval)
+  options$lb[names(args)] <- lapply(args, `[[`, 1)
+  options$ub[names(args)] <- lapply(args, `[[`, 2)
+  options
+}
+
+#' Set the stopping criteria in a form of the relative 
+#' changes during fitting iterations.
+#'
+#' @param params double
+#' @param shared double
+#' @param fraction_factors double
+#' @param size double
+#' @param options an options object to use as a basis for a new parameter set
+#'
+#' @return   an options object with the new parameter values
+#' @details If no options object is provided, the default value is used.
+#' @export
+#'
+setTolerance <- function(params = NULL,
+                         shared = NULL,
+                         fraction_factors = NULL,
+                         size = NULL,
+                         options = NULL) {
+  if (missing(options))
+    options <- .defaultParams
+  args <- as.list(match.call())[-1]
+  args <- lapply(args, eval)
+  options$tolerance[names(args)] <- args
+  options
 }
  
+fittingOptions <- function(
+    verbose = "silent",
+    cores = 1,
+    options
+    ){
+  if (missing(options))
+    options <- .defaultParams
+  args <- as.list(match.call())[-1]
+  args <- lapply(args, eval)
+  options[names(args)] <- args
+  options
+}
+
 #' Fit gene-specific parameters
 #'
 #' @param pulseData PulseData object
@@ -34,8 +103,8 @@ fitIndividualParameters <- function(pulseData, par, options) {
         olds,
         objective,
         method = "L-BFGS-B",
-        lower = options$lower_boundary,
-        upper = options$upper_boundary,
+        lower = options$lb$params,
+        upper = options$ub$params,
         control = list(parscale = olds),
         counts = pulseData$count_data[i,],
         known=par$known[i,, drop=FALSE]
@@ -54,8 +123,8 @@ fitSharedParameters <- function(pulseData, par, options) {
     unlist(par$shared_params),
     shared_objective,
     method = "L-BFGS-B",
-    lower = options$lower_boundary_shared,
-    upper = options$upper_boundary_shared
+    lower = options$lb$shared,
+    upper = options$ub$shared
   )$par
   names(shared_params) <- names(par$shared_params)
   as.list(shared_params)
@@ -72,9 +141,9 @@ fitSharedParameters <- function(pulseData, par, options) {
 #'
 fitDispersion <- function(pulseData, par, options) {
   dispersion_objective <- ll_dispersion(pulseData, par)
+  interval <- c(options$lb$size, options$ub$size)
   size <- optimise(dispersion_objective,
-                   interval = unlist(options[c("lower_boundary_size",
-                                               "upper_boundary_size")]))$minimum
+                   interval = interval)$minimum
   size
 }
 
@@ -91,8 +160,8 @@ fitFractions <- function(pulseData, par, options){
     unlist(par$fraction_factors)[-1],
     objective,
     method = "L-BFGS-B",
-    lower  = options$lower_boundary_fraction[-1],
-    upper  = options$upper_boundary_fraction[-1]
+    lower  = options$lb$fraction_factors,
+    upper  = options$ub$fraction_factors
   )$par
   c(1,fraction_factors)
 }
@@ -125,43 +194,35 @@ getMaxRelDifference <- function(x,y) max(abs(1 - unlist(x)/unlist(y)))
 #' \dontrun{
 #' fitResult <- fitModel(pd, par)
 #' }
-fitModel <- function(pulseData, par, options = list()) {
-  opts <- .defaultParams()
+fitModel <- function(pulseData, par, options = .defaultParams) {
   param_names <- names(par$individual_params)
-  opts$parscales <- mapply(max,
-    abs(options$upper_boundary),
-    abs(options$lower_boundary))
-  opts[names(options)] <- options
-  log2screen(opts, cat("\n"))
-  rel_err <- 10 * opts$rel_tol
-  shared_params <- as.list(par$shared_params)
-  shared_rel_err <- ifelse(is.null(par$shared_params),
-                            0, 10 * opts$shared_rel_tol)
-  fraction_rel_err <- ifelse(is.null(par$fraction_factors),
-                             0,  10 * opts$fraction_rel_err)
-  while (rel_err > opts$rel_tol ||
-         shared_rel_err > opts$shared_rel_tol ||
-         fraction_rel_err > opts$fraction_rel_err) {
+  log2screen(options, cat("\n"))
+  rel_err <- Inf
+  shared_rel_err <- ifelse(is.null(par$shared_params), 0, Inf)
+  fraction_rel_err <- ifelse(is.null(par$fraction_factors), 0, Inf)
+  while (rel_err > options$tolerance$params||
+         shared_rel_err > options$tolerance$shared||
+         fraction_rel_err > options$tolerance$fraction) {
     # Fit shared params
     if (!is.null(par$shared_params)) {
-      shared_params <- fitSharedParameters(pulseData, par, opts)
+      shared_params <- fitSharedParameters(pulseData, par, options)
       shared_rel_err <- getMaxRelDifference(shared_params, par$shared_params)
       par$shared_params <- shared_params
     }
     # Fit params for every genes individually
-    params <- fitIndividualParameters(pulseData, par, opts)
+    params <- fitIndividualParameters(pulseData, par, options)
     rel_err <- getMaxRelDifference(params, par$individual_params)
     par$individual_params <- params
     if (!is.null(par$fraction_factors)) {
-      res <- fitFractions(pulseData, par, opts)
+      res <- fitFractions(pulseData, par, options)
       fraction_rel_err <- getMaxRelDifference(res, par$fraction_factors)
       par$fraction_factors <- res
     }
-    par$size <- fitDispersion(pulseData, par, opts)
+    par$size <- fitDispersion(pulseData, par, options)
     str <- format(c(rel_err, shared_rel_err, fraction_rel_err),
                   digits = 2,
                   width = 6)
-    log2screen(opts, cat(
+    log2screen(options, cat(
       paste0(
         "Max Rel.err. in [params: ", str[1],
         "]  [shared: ", str[2], 
@@ -171,7 +232,7 @@ fitModel <- function(pulseData, par, options = list()) {
     ))
   }
   ## fit gene specific final parameters
-  par$individual_params <- fitIndividualParameters(pulseData, par, opts)
+  par$individual_params <- fitIndividualParameters(pulseData, par, options)
   names(par$fraction_factors)  <- levels(pulseData$fraction)
   list(par = par, formulas = pulseData$formulas)
 }

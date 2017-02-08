@@ -6,14 +6,13 @@ nGenes <- 40
 nReplicates <- 3
 nTime <- 4
 
-options <- list(
-  lower_boundary = c(1,1e-3),
-  upper_boundary = c(1e10, 1-1e-3),
-  lower_boundary_size = 1,
-  upper_boundary_size = 1e9,
-  cores = 2
+options <- setBoundaries(
+  params = list(lb = c(1, 1e-3),
+                up = c(1e10, 1-1e-3)),
+  fraction_factors = list(lb = .1, ub = 10)
 )
-options$parscales <- c(1e5,1)
+
+options$cores <- 1
 
 formulas <- MeanFormulas(A = a, B =  a * b^time, C= a * (1-b^time))
 conditions <- data.frame(condition = rep(names(formulas), each = nTime),
@@ -32,8 +31,6 @@ rownames(par$individual_params) <- paste0("gene_", 1:nGenes)
 par$fraction_factors <- 1 * (1:(length(levels(fractions)) ))
 #par$fraction_factors <- rep(1,length(levels(fractions))-1)
 #par$fraction_factors <- runif(length(levels(fractions)) - 1, 1, 5)
-options$lower_boundary_fraction <- rep(.1, length(par$fraction_factors))
-options$upper_boundary_fraction <- rep(100, length(par$fraction_factors))
 
 counts <- generateTestDataFrom(formulas_known,par,conditions_known, fractions)
 
@@ -42,7 +39,6 @@ pd <- PulseData(
     conditions = conditions,
     formulas   = formulas,
     fractions  = ~condition+time)
-normalise(pd) 
 
 test_that("all together fitting works", {
   #skip("...")
