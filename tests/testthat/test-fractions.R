@@ -7,16 +7,14 @@ nGenes <- 40
 nReplicates <- 3
 nTime <- 4
 
-options <- list(
-  lower_boundary = c(1,1e-3),
-  upper_boundary = c(1e10, 1),
-  lower_boundary_size = 1,
-  upper_boundary_size = 1e9,
-  lower_boundary_shared = .10,
-  upper_boundary_shared = 100, 
-  cores = 2
+options <- setBoundaries(
+  params = list(lb = c(1, 1e-3),
+                up = c(1e10, 1)),
+  shared = list(lb = .10, ub = 100),
+  fraction_factors = list(lb = .1, ub = 10)
 )
-options$parscales <- c(1e5,1)
+
+options$cores <- 1
 
 formulas <- MeanFormulas(A = a, B =  a * b^time, C= 1e7 * alpha^time)
 conditions <- data.frame(condition = rep(names(formulas), each = nTime),
@@ -27,18 +25,16 @@ formulas_known <- t$formulas
 conditions_known <- data.frame(condition = t$conditions)
 
 par <- list(size = 1e2)
-par$shared_params <- list(alpha = 1)
+par$shared <- list(alpha = 1)
 fractions <- factor(conditions_known$condition)
-par$individual_params <-
-  data.frame(a = (1:nGenes) * 1e5, b = runif(nGenes,.1,.8))
-rownames(par$individual_params) <- paste0("gene_", 1:nGenes)
+par$params<- data.frame(a = (1:nGenes) * 1e5, b = runif(nGenes,.1,.8))
+rownames(par$params) <- paste0("gene_", 1:nGenes)
 
-par$fraction_factors <- 1 * (1:(length(levels(fractions)) - 1))
+#par$fraction_factors <- 1 * (1:(length(levels(fractions)) - 1))
 #par$fraction_factors <- rep(1,length(levels(fractions))-1)
-par$fraction_factors <- runif(length(levels(fractions)) - 1, 1, 5)
+par$fraction_factors <- runif(length(levels(fractions)), 1, 5)
 
-options$lower_boundary_fraction <- rep(.1, length(par$fraction_factors))
-options$upper_boundary_fraction <- rep(100, length(par$fraction_factors))
+par$fraction_factors[1] <- 1
 
 counts <- generateTestDataFrom(formulas_known,par,conditions_known, fractions)
 
@@ -49,20 +45,20 @@ pd <- PulseData(
     fractions  = ~condition+time)
 normalise(pd) 
 
-test_that("individual parameters fitting works", {
+test_that("gene-specific parameters fitting works", {
   par2 <- par
   guess <-  apply(counts[, conditions$condition == "A"], 1, mean)
-  par2$individual_params$a <- guess
-  par2$individual_params$b <- .3
-  fit <- pulseR:::fitIndividualParameters(pd, par2, options)
-  expect_lt(max(abs(1 - fit / par$individual_params)), .2)
+  par2$params$a <- guess
+  par2$params$b <- .3
+  fit <- pulseR:::fitGeneParameters(pd, par2, options)
+  expect_lt(max(abs(1 - fit / par$params)), .2)
 })
 
 test_that("shared params fitting works", {
   par2 <- par
-  par2$shared_params <- list(alpha = 10)
+  par2$shared <- list(alpha = 10)
   fit <- pulseR:::fitSharedParameters(pd, par2, options)
-  expect_lt(max(abs(1 - unlist(fit) / unlist(par$shared_params))), .2)
+  expect_lt(max(abs(1 - unlist(fit) / unlist(par$shared))), .2)
 })
 
 test_that("overdispersion fitting works", {

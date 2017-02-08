@@ -4,8 +4,9 @@
 #' @param count_data a matrix; column names correspond to sample names
 #' @param conditions a data.frame;
 #'   the first column corresponds to the conditions given in \code{formulas}.
-#'   May also include column "fraction" and columns named as parameters,
-#'   used in the formula definitions, e.g. "time".
+#'   May columns named as parameters,
+#'   used in the formula definitions, e.g. "time" 
+#'   if formula = ~condition + time.
 #'   
 #' @param formulas a list, created by \code{\link{MeanFormulas}}
 #' @param spikeins a vector of characters or indexes, optional;
@@ -113,13 +114,13 @@ findDeseqFactorsForFractions <- function(count_data, conditions) {
 #'
 normalise <- function(pulseData) {
   if (!is.null(pulseData$spikeins)) {
-    pulseData$norm_factors <-
-      findDeseqFactorsSingle(pulseData$count_data[pulseData$spikeins, ])
+    pulseData$norm_factors <- findDeseqFactorsSingle(
+      pulseData$count_data[pulseData$spikeins, , drop = FALSE])
     genes <- setdiff(rownames(pulseData$count_data),pulseData$spikeins)
-    pulseData$count_data <- pulseData$count_data[genes, ]
+    pulseData$count_data <- pulseData$count_data[genes,, drop=FALSE]
   } else {
-    pulseData$norm_factors <- 
-      findDeseqFactorsForFractions(pulseData$count_data, pulseData$fraction)
+    pulseData$norm_factors <- findDeseqFactorsForFractions(
+      pulseData$count_data, pulseData$fraction)
   }
   pulseData
 }
@@ -174,16 +175,17 @@ generateTestDataFrom <- function(formulas,
   formulas <- t$formulas
   conditions_known <- data.frame(condition=t$conditions)
   counts <- list()
-  for (i in seq_along(par$individual_params[,1])){
+  for (i in seq_along(par$params[,1])){
     means <- sapply(formulas, eval, 
-      c(as.list(par$individual_params[i,]),
-        as.list(par$shared_params),
+      c(as.list(par$params[i,]),
+        as.list(par$shared),
         as.list(par$known[i,, drop=FALSE])))
     # normalise
     norm_factors <- 1
     if (!is.null(fractions)) {
       fraction_indexes <- as.integer(fractions)
-      norm_factors <- c(1, par$fraction_factors)[fraction_indexes]
+      par$fraction_factors[1] <- 1
+      norm_factors <- par$fraction_factors[fraction_indexes]
     }
     indexes <- match(conditions_known$condition, names(formulas))
     counts[[i]] <- rnbinom(
@@ -192,7 +194,7 @@ generateTestDataFrom <- function(formulas,
       size = par$size)
   }
   counts <- do.call(rbind, counts)
-  rownames(counts) <- rownames(par$individual_params)
+  rownames(counts) <- rownames(par$params)
   colnames(counts) <- rownames(conditions)
   counts
 }

@@ -10,12 +10,12 @@ ll_gene(pulseData, par)
 \item{pulseData}{PulseData object}
 
 \item{par}{list; must have fields \code{shared_params}, \code{size},
-\code{individual_params}, \code{fraction_factors}.}
+\code{params}, \code{fraction_factors}.}
 }
 \value{
 a function(params, counts), which returns a  log likelihood
 for a given vector of individual parameters, which are ordered as in 
-\code{par$individual_params}.
+\code{par$params}.
 }
 \description{
 The values of shared parameters, \code{size} from \code{\link{dnbinom}} and
