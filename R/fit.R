@@ -67,6 +67,26 @@ setTolerance <- function(params = NULL,
   options$tolerance[names(args)] <- args
   options
 }
+
+#' Initialize first guess for the parameters 
+#'
+#' @param params a data.frame
+#' @param shared a named list
+#' @param fraction_factors a vector
+#' @param size a double
+#'
+#' @return
+#' a list to provide to the function \link{\code{fitModel}}.
+#' @export
+#'
+initParams <- function(params,
+                       shared = NULL,
+                       fraction_factors = NULL,
+                       size = NULL) {
+  args <- as.list(match.call())[-1]
+  args <- lapply(args, eval)
+  args
+}
  
 fittingOptions <- function(
     verbose = "silent",
@@ -91,14 +111,14 @@ fittingOptions <- function(
 #' @importFrom  stats optim dnbinom
 #' @importFrom parallel mclapply
 #' 
-fitIndividualParameters <- function(pulseData, par, options) {
-  param_names <- colnames(par$individual_params)
+fitGeneParameters <- function(pulseData, par, options) {
+  param_names <- colnames(par$params)
   objective <- ll_gene(pulseData, par)
   new_params <- list()
   new_params <- mclapply(
-    X = seq_len(dim(par$individual_params)[1]),
+    X = seq_len(dim(par$params)[1]),
     FUN = function(i) {
-      olds <- par$individual_params[i,,drop=FALSE]
+      olds <- par$params[i,,drop=FALSE]
       optim(
         olds,
         objective,
@@ -113,20 +133,20 @@ fitIndividualParameters <- function(pulseData, par, options) {
     ,mc.cores = options$cores
   )
   new_params <- do.call(rbind, new_params)
-  rownames(new_params) <- rownames(par$individual_params)
+  rownames(new_params) <- rownames(par$params)
   as.data.frame(new_params)
 }
 
 fitSharedParameters <- function(pulseData, par, options) {
   shared_objective <- ll_shared_params(pulseData, par)
   shared_params <- optim(
-    unlist(par$shared_params),
+    unlist(par$shared),
     shared_objective,
     method = "L-BFGS-B",
     lower = options$lb$shared,
     upper = options$ub$shared
   )$par
-  names(shared_params) <- names(par$shared_params)
+  names(shared_params) <- names(par$shared)
   as.list(shared_params)
 }
 
@@ -195,10 +215,10 @@ getMaxRelDifference <- function(x,y) max(abs(1 - unlist(x)/unlist(y)))
 #' fitResult <- fitModel(pd, par)
 #' }
 fitModel <- function(pulseData, par, options = .defaultParams) {
-  param_names <- names(par$individual_params)
+  param_names <- names(par$params)
   log2screen(options, cat("\n"))
   rel_err <- Inf
-  shared_rel_err <- ifelse(is.null(par$shared_params), 0, Inf)
+  shared_rel_err <- ifelse(is.null(par$shared), 0, Inf)
   fraction_rel_err <- ifelse(is.null(par$fraction_factors), 0, Inf)
   while (rel_err > options$tolerance$params||
          shared_rel_err > options$tolerance$shared||
@@ -206,13 +226,13 @@ fitModel <- function(pulseData, par, options = .defaultParams) {
     # Fit shared params
     if (!is.null(par$shared_params)) {
       shared_params <- fitSharedParameters(pulseData, par, options)
-      shared_rel_err <- getMaxRelDifference(shared_params, par$shared_params)
-      par$shared_params <- shared_params
+      shared_rel_err <- getMaxRelDifference(shared_params, par$shared)
+      par$shared <- shared_params
     }
     # Fit params for every genes individually
-    params <- fitIndividualParameters(pulseData, par, options)
-    rel_err <- getMaxRelDifference(params, par$individual_params)
-    par$individual_params <- params
+    params <- fitGeneParameters(pulseData, par, options)
+    rel_err <- getMaxRelDifference(params, par$params)
+    par$params<- params
     if (!is.null(par$fraction_factors)) {
       res <- fitFractions(pulseData, par, options)
       fraction_rel_err <- getMaxRelDifference(res, par$fraction_factors)
@@ -232,7 +252,7 @@ fitModel <- function(pulseData, par, options = .defaultParams) {
     ))
   }
   ## fit gene specific final parameters
-  par$individual_params <- fitIndividualParameters(pulseData, par, options)
+  par$individual_params <- fitGeneParameters(pulseData, par, options)
   names(par$fraction_factors)  <- levels(pulseData$fraction)
   list(par = par, formulas = pulseData$formulas)
 }

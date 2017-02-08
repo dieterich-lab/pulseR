@@ -10,12 +10,12 @@ ll_shared_params(pulseData, par)
 \item{pulseData}{PulseData object}
 
 \item{par}{list; must have fields \code{shared_params}, \code{size},
-\code{individual_params}, \code{fraction_factors}.}
+\code{params}, \code{fraction_factors}.}
 }
 \value{
 a function(params, counts), which returns a  log likelihood
 for a given vector of shared parameters, which are ordered as in 
-\code{par$shared_params}.
+\code{par$shared}.
 }
 \description{
 The values of gene-specific parameters, \code{size} from

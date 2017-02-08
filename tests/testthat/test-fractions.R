@@ -25,11 +25,10 @@ formulas_known <- t$formulas
 conditions_known <- data.frame(condition = t$conditions)
 
 par <- list(size = 1e2)
-par$shared_params <- list(alpha = 1)
+par$shared <- list(alpha = 1)
 fractions <- factor(conditions_known$condition)
-par$individual_params <-
-  data.frame(a = (1:nGenes) * 1e5, b = runif(nGenes,.1,.8))
-rownames(par$individual_params) <- paste0("gene_", 1:nGenes)
+par$params<- data.frame(a = (1:nGenes) * 1e5, b = runif(nGenes,.1,.8))
+rownames(par$params) <- paste0("gene_", 1:nGenes)
 
 #par$fraction_factors <- 1 * (1:(length(levels(fractions)) - 1))
 #par$fraction_factors <- rep(1,length(levels(fractions))-1)
@@ -46,20 +45,20 @@ pd <- PulseData(
     fractions  = ~condition+time)
 normalise(pd) 
 
-test_that("individual parameters fitting works", {
+test_that("gene-specific parameters fitting works", {
   par2 <- par
   guess <-  apply(counts[, conditions$condition == "A"], 1, mean)
-  par2$individual_params$a <- guess
-  par2$individual_params$b <- .3
-  fit <- pulseR:::fitIndividualParameters(pd, par2, options)
-  expect_lt(max(abs(1 - fit / par$individual_params)), .2)
+  par2$params$a <- guess
+  par2$params$b <- .3
+  fit <- pulseR:::fitGeneParameters(pd, par2, options)
+  expect_lt(max(abs(1 - fit / par$params)), .2)
 })
 
 test_that("shared params fitting works", {
   par2 <- par
-  par2$shared_params <- list(alpha = 10)
+  par2$shared <- list(alpha = 10)
   fit <- pulseR:::fitSharedParameters(pd, par2, options)
-  expect_lt(max(abs(1 - unlist(fit) / unlist(par$shared_params))), .2)
+  expect_lt(max(abs(1 - unlist(fit) / unlist(par$shared))), .2)
 })
 
 test_that("overdispersion fitting works", {
