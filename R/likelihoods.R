@@ -20,7 +20,7 @@ getNormFactors <- function(pulseData, par) {
 }
 
 getMeans <- function(formulas, par) {
-  params <- c(par$individual_params, par$shared_params, par$known)
+  params <- c(par$params, par$shared, par$known)
   means <- lapply(formulas, function(x) {
     eval(x, envir = params)
   })
@@ -35,20 +35,20 @@ getMeans <- function(formulas, par) {
 #'
 #' @param pulseData PulseData object
 #' @param par list; must have fields \code{shared_params}, \code{size},
-#'  \code{individual_params}, \code{fraction_factors}.
+#'  \code{params}, \code{fraction_factors}.
 #'
 #' @return a function(params, counts), which returns a  log likelihood
 #' for a given vector of individual parameters, which are ordered as in 
-#' \code{par$individual_params}. 
+#' \code{par$params}. 
 #' @importFrom stats dnbinom
 #'
 ll_gene <- function(pulseData, par) {
   mean_indexes <- sapply(pulseData$conditions, match, names(pulseData$formulas))
   formulas <- pulseData$formulas
-  if (!is.null(par$shared_params))
-    formulas <- lapply(formulas, substitute_q, par$shared_params)
+  if (!is.null(par$shared))
+    formulas <- lapply(formulas, substitute_q, par$shared)
   means_vector <-  makeVector(formulas)
-  param_names <- names(par$individual_params)
+  param_names <- names(par$params)
   norm_factors <- getNormFactors(pulseData, par)
   function(params, counts, known=NULL) {
     names(params) <- param_names
@@ -73,15 +73,15 @@ ll_gene <- function(pulseData, par) {
 #'
 #' @return a function(params, counts), which returns a  log likelihood
 #' for a given vector of shared parameters, which are ordered as in 
-#' \code{par$shared_params}.
+#' \code{par$shared}.
 #' @importFrom stats dnbinom
 #'
 ll_shared_params <- function(pulseData, par) {
-  shared_param_names <- names(par$shared_params)
+  shared_param_names <- names(par$shared)
   norm_factors <- getNormFactors(pulseData, par)
   function(shared_params) {
     names(shared_params) <- shared_param_names
-    par$shared_params <- shared_params
+    par$shared <- shared_params
     means <- getMeans(formulas = pulseData$formulas, par = par)
     mean_indexes <-
       sapply(pulseData$conditions, match, names(pulseData$formulas))

@@ -175,10 +175,10 @@ generateTestDataFrom <- function(formulas,
   formulas <- t$formulas
   conditions_known <- data.frame(condition=t$conditions)
   counts <- list()
-  for (i in seq_along(par$individual_params[,1])){
+  for (i in seq_along(par$params[,1])){
     means <- sapply(formulas, eval, 
-      c(as.list(par$individual_params[i,]),
-        as.list(par$shared_params),
+      c(as.list(par$params[i,]),
+        as.list(par$shared),
         as.list(par$known[i,, drop=FALSE])))
     # normalise
     norm_factors <- 1
@@ -194,7 +194,7 @@ generateTestDataFrom <- function(formulas,
       size = par$size)
   }
   counts <- do.call(rbind, counts)
-  rownames(counts) <- rownames(par$individual_params)
+  rownames(counts) <- rownames(par$params)
   colnames(counts) <- rownames(conditions)
   counts
 }
