@@ -4,7 +4,8 @@
 \alias{initParams}
 \title{Initialize first guess for the parameters}
 \usage{
-initParams(params, shared = NULL, fraction_factors = NULL, size = NULL)
+initParams(options, params, shared = NULL, fraction_factors = NULL,
+  size = NULL)
 }
 \arguments{
 \item{params}{a data.frame}
