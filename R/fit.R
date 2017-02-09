@@ -92,20 +92,47 @@ setTolerance <- function(params = NULL,
 #' @param params a data.frame
 #' @param shared a named list
 #' @param fraction_factors a vector
-#' @param size a double
 #'
 #' @return
 #' a list to provide to the function \link{\code{fitModel}}.
 #' @export
 #'
-initParams <- function(params,
+initParams <- function(options,
+                       params,
                        shared = NULL,
-                       fraction_factors = NULL,
-                       size = NULL) {
+                       fraction_factors = NULL) {
   validateOptions(options)
   args <- as.list(match.call())[-1]
+  args$options <- NULL
   args <- lapply(args, eval)
+  stopIfNotInRanges(args, options)
+  notSpecified <- setdiff(names(args), names(options$lb))
   args
+}
+
+
+#' Validate list of parameters according to allowed value ranges.
+#'
+#' @param args a list of parametets
+#' @param options an options object
+#'
+#' @return NULL
+#'
+stopIfNotInRanges <- function(args, options) {
+  inRange <- vapply(names(args),
+                    function(p) {
+                      (args[[p]] > options$lb[[p]]) &&
+                      (args[[p]] < options$ub[[p]])
+                    }, logical(1))
+  if (!all(inRange)) {
+    msg <-  sapply(
+      names(args)[!inRange],
+      function(p) {
+        paste0("Error: Argument '", p, "' is not within the specified range\n")
+      })
+    stop(msg)
+  }
+  NULL
 }
  
 fittingOptions <- function(
