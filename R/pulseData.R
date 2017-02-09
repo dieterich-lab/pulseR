@@ -54,6 +54,25 @@ PulseData <- function(count_data,
   e
 }
 
+
+#' Get fraction labels for the samples 
+#'
+#' @param pulseData a \code{\link{PulseData}} object
+#'
+#' @return a vector of factors corresponding to the fraction 
+#'    labels for samples, if fractions were specified in the \code{pulseData}
+#'    argument. Otherwise, return \code{NULL}. 
+#'    Sample labels are provided in the vector names.
+#' @export
+#' @seealso \link{names}, \link{PulseData}
+#'
+getFractions <- function(pulseData){
+  result <- pulseData$fraction
+  if (!is.null(result))
+    names(result) <- colnames(pulseData$count_data)
+  result
+}
+
 #' @export
 print.PulseData <- function(x,...){
   cat("PulseData object")
