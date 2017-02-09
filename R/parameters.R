@@ -165,8 +165,12 @@ initParams <- function(pulseData,
   notSpecified <- setdiff(names(options$lb),names(args))
   sampleParams <- function(options, p) {
     n <- length(options$lb[[p]])
-    result <- runif(n, options$lb[[p]], options$ub[[p]])
-    names(result) <- names(options$ln[[p]])
+    if (is.null(names(options$lb[[p]])))
+      stop("Please specify parameter names in boundaries")
+    lb <- options$lb[[p]]
+    ub <- orderBoundaries(names(lb), options$ub[[p]])
+    result <- runif(n, lb, ub)
+    names(result) <- names(lb)
     result
   }
   guess <- lapply(
@@ -197,10 +201,16 @@ initParams <- function(pulseData,
 #' @return NULL
 #'
 stopIfNotInRanges <- function(args, options) {
+  is.inRange <- function(x, lb, ub) {
+    all(vapply(names(x),
+               function(par_name) {
+                 all(x[[par_name]] > lb[[par_name]]) &&
+                   all(x[[par_name]] < ub[[par_name]])
+               }, logical(1)))
+  }
   inRange <- vapply(names(args),
                     function(p) {
-                      (all(args[[p]] > options$lb[[p]])) &&
-                       all(args[[p]] < options$ub[[p]])
+                      is.inRange(args[[p]], lb[[p]], ub[[p]])
                     }, logical(1))
   if (!all(inRange)) {
     msg <-  sapply(
