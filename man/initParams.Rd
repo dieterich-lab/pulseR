@@ -4,9 +4,12 @@
 \alias{initParams}
 \title{Initialize first guess for the parameters}
 \usage{
-initParams(options, params, shared = NULL, fraction_factors = NULL)
+initParams(pulseData, options, params = NULL, shared = NULL,
+  fraction_factors = NULL)
 }
 \arguments{
+\item{pulseData}{a \code{\link{PulseData}} object}
+
 \item{options}{an options object}
 
 \item{params}{a data.frame}

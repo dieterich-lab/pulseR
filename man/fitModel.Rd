@@ -29,7 +29,7 @@ In the initial guess \code{par},
    \item{fraction_factors (if relevant): }{a vector of fraction factors
    in the order of \code{levels(pulseDatad$fractions)}} 
    \item{size (optional): }{an initial guess for the size parameter of the
-   negative binomial distribution, see \code{\link{dnbinom}}}
+   negative binomial distribution, see \code{dnbinom}}
    }
 }
 \examples{

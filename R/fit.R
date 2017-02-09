@@ -15,7 +15,16 @@
   ub = list(size = 1e10)
 )
 
+addDefault <- function(options) {
+  nonSpecified <- setdiff(names(.defaultParams), names(options))
+  options[nonSpecified] <- .defaultParams[nonSpecified]
+  options
+}
+
+
 validateOptions <- function(o){
+  if (!is.list(o))
+    stop("Options must be a list")
   if (is.null(o$cores) || o$cores < 1)
     stop("Please specify correct number of cores")
   if (!all(vapply(o$tolerance, function(x) x > 0, logical(1))))
@@ -30,6 +39,7 @@ validateOptions <- function(o){
   if (!(all(hasEqualLength)))
     stop(paste("Length of upper and lower boundaries are not equal for ",
          names(o$lb)[!hasEqualLength]))
+  # order of boundaries
 }
 
 #' Set optimization boundaries for the model parameters.
@@ -49,14 +59,16 @@ setBoundaries <- function(params = NULL,
                           shared = NULL,
                           fraction_factors = NULL,
                           size = NULL,
-                          options = NULL) {
-  if (missing(options))
-    options <- .defaultParams
-  validateOptions(options)
+                          options = .defaultParams) {
+  if (!is.list(options))
+    stop("Options must be a list")
+  options <- addDefault(options)
   args <- as.list(match.call())[-1]
   args <- lapply(args, eval)
+  args$options <- NULL
   options$lb[names(args)] <- lapply(args, `[[`, 1)
   options$ub[names(args)] <- lapply(args, `[[`, 2)
+  validateOptions(options)
   options
 }
 
@@ -77,12 +89,22 @@ setTolerance <- function(params = NULL,
                          shared = NULL,
                          fraction_factors = NULL,
                          size = NULL,
-                         options = NULL) {
-  if (missing(options))
-    options <- .defaultParams
+                         options = .defaultParams) {
+  if (!is.list(options))
+    stop("Options must be a list")
   args <- as.list(match.call())[-1]
   args <- lapply(args, eval)
+  args$options <- NULL
   options$tolerance[names(args)] <- args
+  isValid <- vapply(names(options$tolerance),
+         function(p) {
+           is.vector(options$tolerance[[p]])   &&
+           length(options$tolerance[[p]]) == 1 &&
+           is.numeric(options$tolerance[[p]])
+         }, logical(1))
+  if (!all(isValid))
+    stop("Tolerance must be a single number")
+  options <- addDefault(options)
   validateOptions(options)
   options
 }
@@ -104,36 +126,67 @@ fittingOptions <- function(
     ){
   if (missing(options))
     options <- .defaultParams
+  if (!missing(verbose))
+    match.arg(verbose)
   args <- as.list(match.call())[-1]
+  args$options <- NULL
   args <- lapply(args, eval)
   options[names(args)] <- args
+  options <- addDefault(options)
   validateOptions(options)
   options
 }
 
+
 #' Initialize first guess for the parameters 
 #'
+#' @param pulseData a \code{\link{PulseData}} object 
 #' @param options an options object
 #' @param params a data.frame
 #' @param shared a named list
 #' @param fraction_factors a vector
+#' 
+#' @importFrom stats runif
 #'
-#' @return
-#' a list to provide to the function \code{\link{fitModel}}.
+#' @return  a list to provide to the function \code{\link{fitModel}}.
 #' @export
 #'
-initParams <- function(options,
-                       params,
+initParams <- function(pulseData,
+                       options,
+                       params = NULL,
                        shared = NULL,
                        fraction_factors = NULL) {
   validateOptions(options)
   args <- as.list(match.call())[-1]
   args$options <- NULL
-  args <- lapply(args, eval)
+  args$pulseData <- NULL
+  args <- lapply(args, eval, envir = parent.frame()) 
   stopIfNotInRanges(args, options)
-  notSpecified <- setdiff(names(args), names(options$lb))
+  notSpecified <- setdiff(names(options$lb),names(args))
+  sampleParams <- function(options, p) {
+    n <- length(options$lb[[p]])
+    result <- runif(n, options$lb[[p]], options$ub[[p]])
+    names(result) <- names(options$ln[[p]])
+    result
+  }
+  guess <- lapply(
+    notSpecified,
+    function(p) {
+      if (p != "params") {
+        sampleParams(options, p)
+      } else {
+        geneNum <- dim(pulseData$count_data)[1]
+        result <- replicate(geneNum,
+                            sampleParams(options, "params"),
+                            simplify = FALSE)
+        do.call(rbind, result)
+      }
+    })
+  names(guess) <- notSpecified
+  args[names(guess)] <- guess
   args
 }
+
 
 
 #' Validate list of parameters according to allowed value ranges.
@@ -146,8 +199,8 @@ initParams <- function(options,
 stopIfNotInRanges <- function(args, options) {
   inRange <- vapply(names(args),
                     function(p) {
-                      (args[[p]] > options$lb[[p]]) &&
-                      (args[[p]] < options$ub[[p]])
+                      (all(args[[p]] > options$lb[[p]])) &&
+                       all(args[[p]] < options$ub[[p]])
                     }, logical(1))
   if (!all(inRange)) {
     msg <-  sapply(
@@ -160,6 +213,12 @@ stopIfNotInRanges <- function(args, options) {
   NULL
 }
  
+orderBoundaries <- function(parameter_names, b){
+  if (!is.null(names(b))) {
+    b <- b[parameter_names]
+  }
+  unlist(b)
+}
 
 #' Fit gene-specific parameters
 #'
@@ -172,22 +231,28 @@ stopIfNotInRanges <- function(args, options) {
 #' @importFrom parallel mclapply
 #' 
 fitGeneParameters <- function(pulseData, par, options) {
+  validateOptions(options)
   param_names <- colnames(par$params)
+  lb <- orderBoundaries(param_names,options$lb$params)
+  ub <- orderBoundaries(param_names,options$ub$params)
+  if (anyNA(names(lb)) || anyNA(names(ub)))
+    stop("Some boundaries are not set")
+  
   objective <- ll_gene(pulseData, par)
   new_params <- list()
   new_params <- mclapply(
     X = seq_len(dim(par$params)[1]),
     FUN = function(i) {
-      olds <- par$params[i,,drop=FALSE]
+      olds <- par$params[i,, drop = FALSE]
       optim(
         olds,
         objective,
         method = "L-BFGS-B",
-        lower = options$lb$params,
-        upper = options$ub$params,
+        lower = lb,
+        upper = ub,
         control = list(parscale = olds),
         counts = pulseData$count_data[i,],
-        known=par$known[i,, drop=FALSE]
+        known = par$known[i,, drop = FALSE]
       )$par
     }
     ,mc.cores = options$cores
@@ -199,14 +264,17 @@ fitGeneParameters <- function(pulseData, par, options) {
 
 fitSharedParameters <- function(pulseData, par, options) {
   shared_objective <- ll_shared_params(pulseData, par)
+  shared_names <- names(par$shared)
+  lb <- orderBoundaries(shared_names,options$lb$shared)
+  ub <- orderBoundaries(shared_names,options$ub$shared)
   shared_params <- optim(
     unlist(par$shared),
     shared_objective,
     method = "L-BFGS-B",
-    lower = options$lb$shared,
-    upper = options$ub$shared
+    lower = lb,
+    upper = ub
   )$par
-  names(shared_params) <- names(par$shared)
+  names(shared_params) <- shared_names
   as.list(shared_params)
 }
 
@@ -236,6 +304,9 @@ fitDispersion <- function(pulseData, par, options) {
 #' @importFrom  stats optimise
 fitFractions <- function(pulseData, par, options){
   objective <- ll_norm_factors(pulseData, par)
+  fraction_names <- names(par$fraction_factors)
+  lb <- orderBoundaries(fraction_names,options$lb$fraction_factors)
+  ub <- orderBoundaries(fraction_names,options$ub$fraction_factors)
   fraction_factors <- optim(
     unlist(par$fraction_factors)[-1],
     objective,
@@ -266,7 +337,7 @@ getMaxRelDifference <- function(x,y) max(abs(1 - unlist(x)/unlist(y)))
 #'    \item{fraction_factors (if relevant): }{a vector of fraction factors
 #'    in the order of \code{levels(pulseDatad$fractions)}} 
 #'    \item{size (optional): }{an initial guess for the size parameter of the
-#'    negative binomial distribution, see \code{\link{dnbinom}}}
+#'    negative binomial distribution, see \code{dnbinom}}
 #'    }
 #' @export
 #'

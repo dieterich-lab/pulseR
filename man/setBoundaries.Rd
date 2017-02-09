@@ -5,7 +5,7 @@
 \title{Set optimization boundaries for the model parameters.}
 \usage{
 setBoundaries(params = NULL, shared = NULL, fraction_factors = NULL,
-  size = NULL, options = NULL)
+  size = NULL, options = .defaultParams)
 }
 \arguments{
 \item{params}{boundaries for gene-specific parameters}

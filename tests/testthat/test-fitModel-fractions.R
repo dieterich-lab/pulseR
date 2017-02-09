@@ -41,7 +41,7 @@ pd <- PulseData(
     fractions  = ~condition+time)
 
 test_that("all together fitting works", {
-  #skip("...")
+  skip("...")
   par2 <- par
   guess <-  apply(counts[, conditions$condition == "A"], 1, mean)
   par2$params$a <- guess
