@@ -80,10 +80,34 @@ setTolerance <- function(params = NULL,
                          options = NULL) {
   if (missing(options))
     options <- .defaultParams
-  validateOptions(options)
   args <- as.list(match.call())[-1]
   args <- lapply(args, eval)
   options$tolerance[names(args)] <- args
+  validateOptions(options)
+  options
+}
+
+#' Specify fitting options
+#'
+#' @param verbose if "verbose" relative changes of parameters 
+#' between two fitting iterations are printed
+#' @param cores \code{integer}, natural number
+#' @param options an option object
+#'
+#' @return an option object with modified specified parameters.
+#' @export
+#'
+fittingOptions <- function(
+    verbose = c("silent", "verbose"),
+    cores = 1,
+    options
+    ){
+  if (missing(options))
+    options <- .defaultParams
+  args <- as.list(match.call())[-1]
+  args <- lapply(args, eval)
+  options[names(args)] <- args
+  validateOptions(options)
   options
 }
 
@@ -135,18 +159,6 @@ stopIfNotInRanges <- function(args, options) {
   NULL
 }
  
-fittingOptions <- function(
-    verbose = "silent",
-    cores = 1,
-    options
-    ){
-  if (missing(options))
-    options <- .defaultParams
-  args <- as.list(match.call())[-1]
-  args <- lapply(args, eval)
-  options[names(args)] <- args
-  options
-}
 
 #' Fit gene-specific parameters
 #'
