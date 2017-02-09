@@ -52,6 +52,7 @@ setBoundaries <- function(params = NULL,
                           options = NULL) {
   if (missing(options))
     options <- .defaultParams
+  validateOptions(options)
   args <- as.list(match.call())[-1]
   args <- lapply(args, eval)
   options$lb[names(args)] <- lapply(args, `[[`, 1)
@@ -79,6 +80,7 @@ setTolerance <- function(params = NULL,
                          options = NULL) {
   if (missing(options))
     options <- .defaultParams
+  validateOptions(options)
   args <- as.list(match.call())[-1]
   args <- lapply(args, eval)
   options$tolerance[names(args)] <- args
@@ -100,6 +102,7 @@ initParams <- function(params,
                        shared = NULL,
                        fraction_factors = NULL,
                        size = NULL) {
+  validateOptions(options)
   args <- as.list(match.call())[-1]
   args <- lapply(args, eval)
   args
