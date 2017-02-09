@@ -4,20 +4,19 @@
 \alias{initParams}
 \title{Initialize first guess for the parameters}
 \usage{
-initParams(options, params, shared = NULL, fraction_factors = NULL,
-  size = NULL)
+initParams(options, params, shared = NULL, fraction_factors = NULL)
 }
 \arguments{
+\item{options}{an options object}
+
 \item{params}{a data.frame}
 
 \item{shared}{a named list}
 
 \item{fraction_factors}{a vector}
-
-\item{size}{a double}
 }
 \value{
-a list to provide to the function \link{\code{fitModel}}.
+a list to provide to the function \code{\link{fitModel}}.
 }
 \description{
 Initialize first guess for the parameters
