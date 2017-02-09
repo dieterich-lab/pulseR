@@ -113,12 +113,13 @@ fittingOptions <- function(
 
 #' Initialize first guess for the parameters 
 #'
+#' @param options an options object
 #' @param params a data.frame
 #' @param shared a named list
 #' @param fraction_factors a vector
 #'
 #' @return
-#' a list to provide to the function \link{\code{fitModel}}.
+#' a list to provide to the function \code{\link{fitModel}}.
 #' @export
 #'
 initParams <- function(options,
