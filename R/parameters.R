@@ -49,6 +49,19 @@ validateOptions <- function(o){
   # order of boundaries
 }
 
+checkThresholds <- function(options){
+  if (is.null(options$tolerance))
+    stop("No tolerance is specified")
+  isValid <- vapply(names(options$tolerance),
+         function(p) {
+           is.vector(options$tolerance[[p]])   &&
+           length(options$tolerance[[p]]) == 1 &&
+           is.numeric(options$tolerance[[p]])
+         }, logical(1))
+  if (!all(isValid))
+    stop("Tolerance must be a single number")
+}
+
 #' Set optimization boundaries for the model parameters.
 #'
 #' @param params boundaries for gene-specific parameters
