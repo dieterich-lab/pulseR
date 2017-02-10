@@ -287,3 +287,4 @@ orderBoundaries <- function(plist, options){
  options$lb <- .orderBoundaries(plist, options$lb) 
  options$ub <- .orderBoundaries(puist, options$ub) 
  options
+}
