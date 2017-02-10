@@ -41,7 +41,7 @@ validateOptions <- function(o){
 # aligns lb and ub only if they are named
 # skip "size" parameter
 alignBoundaries <- function(options){
-  stopifnot(sort(names(options$lb) == sort(names(options$ub))))
+  stopifnot(all(sort(names(options$lb)) == sort(names(options$ub))))
   param_names <- names(options$lb)
   param_names <- param_names[param_names != "size"]
   for (p in param_names) {
