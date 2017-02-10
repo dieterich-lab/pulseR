@@ -160,15 +160,21 @@ fittingOptions <- function(
 }
 
 
-sampleParams <- function(options, params_name) {
-  n <- length(options$lb[[params_name]])
-  if (is.null(names(options$lb[[params_name]])))
-    stop("Please specify parameter names in boundaries")
-  lb <- options$lb[[params_name]]
-  ub <- orderBoundaries(names(lb), options$ub[[params_name]])
-  result <- runif(n, lb, ub)
-  names(result) <- names(lb)
-  result
+sampleParams <- function(options, params_type) {
+  n <- length(options$lb[[params_type]])
+  if (params_type == "size") {
+    runif(1, options$lb$size, options$ub$size)
+  } else {
+    if (is.null(names(options$lb[[params_type]])))
+      stop(paste("Please specify parameter names in boundaries for: ",
+        params_type
+      ))
+    lb <- options$lb[[params_type]]
+    ub <- orderBoundaries(names(lb), options$ub[[params_type]])
+    result <- runif(n, lb, ub)
+    names(result) <- names(lb)
+    result
+  }
 }
 
 #' Initialize first guess for the parameters 
