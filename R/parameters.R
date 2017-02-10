@@ -192,6 +192,27 @@ initParams <- function(pulseData,
   args
 }
 
+# check if names if parameters are named and
+# order boundaries appropriately
+validate <- function(p, b) {
+  if (is.null(names(p)))
+    stop("parameters are not named")
+  if (is.null(names(b))) {
+    message("Boundaries for the parameters are not named")
+    message("The order is derived from the parameter values:")
+    message(paste(names(p), collapse = "; "))
+    names(b) <- names(p)
+  }
+  b[names(p)]
+}
+
+validateNames <- function(args, options){
+  for (p in names(args)) {
+    options$lb[[p]] <- validate(args[[p]], options$lb[[p]])
+    options$ub[[p]] <- vauidate(args[[p]], options$ub[[p]])
+  }
+  options
+}
 
 
 #' Validate list of parameters according to allowed value ranges.
