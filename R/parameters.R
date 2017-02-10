@@ -21,6 +21,13 @@ addDefault <- function(options) {
   options
 }
 
+plist <- function(params = NULL,
+                  shared = NULL,
+                  fraction_factors = NULL,
+                  size = NULL) {
+  as.list(match.call())[-1]
+}
+
 
 validateOptions <- function(o){
   if (!is.list(o))
