@@ -206,12 +206,12 @@ stopIfNotInRanges <- function(args, options) {
     all(vapply(names(x),
                function(par_name) {
                  all(x[[par_name]] > lb[[par_name]]) &&
-                   all(x[[par_name]] < ub[[par_name]])
+                 all(x[[par_name]] < ub[[par_name]])
                }, logical(1)))
   }
   inRange <- vapply(names(args),
                     function(p) {
-                      is.inRange(args[[p]], lb[[p]], ub[[p]])
+                      is.inRange(args[[p]], options$lb[[p]], options$ub[[p]])
                     }, logical(1))
   if (!all(inRange)) {
     msg <-  sapply(
