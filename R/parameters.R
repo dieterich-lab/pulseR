@@ -36,17 +36,22 @@ validateOptions <- function(o){
     stop("Please specify correct number of cores")
   if (!all(vapply(o$tolerance, function(x) x > 0, logical(1))))
     stop("Tolerance must be a positive number")
-  missingBoundaries <- setdiff(names(o$lb), names(o$ub))
+  checkBoundaries(o)
+  # order of boundaries
+}
+
+checkBoundaries <- function(options){
+  missingBoundaries <- setdiff(names(options$lb), names(options$ub))
   if (length(missingBoundaries) > 0)
     stop(paste("Please specify missing boundaries for \n", missingBoundaries))
-  hasEqualLength <- vapply(names(o$lb), 
+  hasEqualLength <- vapply(names(options$lb), 
          function(p){
-           length(o$lb[[p]]) == length(o$ub[[p]])
+           length(options$lb[[p]]) == length(options$ub[[p]])
          }, logical(1))
   if (!(all(hasEqualLength)))
     stop(paste("Length of upper and lower boundaries are not equal for ",
-         names(o$lb)[!hasEqualLength]))
-  # order of boundaries
+         names(options$lb)[!hasEqualLength]))
+  
 }
 
 checkThresholds <- function(options){
