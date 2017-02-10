@@ -252,7 +252,7 @@ validate <- function(p, b) {
 validateNames <- function(args, options){
   for (p in names(args)) {
     options$lb[[p]] <- validate(args[[p]], options$lb[[p]])
-    options$ub[[p]] <- vauidate(args[[p]], options$ub[[p]])
+    options$ub[[p]] <- validate(args[[p]], options$ub[[p]])
   }
   options
 }
