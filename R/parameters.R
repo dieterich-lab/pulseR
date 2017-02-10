@@ -138,6 +138,17 @@ fittingOptions <- function(
 }
 
 
+sampleParams <- function(options, params_name) {
+  n <- length(options$lb[[params_name]])
+  if (is.null(names(options$lb[[params_name]])))
+    stop("Please specify parameter names in boundaries")
+  lb <- options$lb[[params_name]]
+  ub <- orderBoundaries(names(lb), options$ub[[params_name]])
+  result <- runif(n, lb, ub)
+  names(result) <- names(lb)
+  result
+}
+
 #' Initialize first guess for the parameters 
 #'
 #' @param pulseData a \code{\link{PulseData}} object 
@@ -163,16 +174,6 @@ initParams <- function(pulseData,
   args <- lapply(args, eval, envir = parent.frame()) 
   stopIfNotInRanges(args, options)
   notSpecified <- setdiff(names(options$lb),names(args))
-  sampleParams <- function(options, p) {
-    n <- length(options$lb[[p]])
-    if (is.null(names(options$lb[[p]])))
-      stop("Please specify parameter names in boundaries")
-    lb <- options$lb[[p]]
-    ub <- orderBoundaries(names(lb), options$ub[[p]])
-    result <- runif(n, lb, ub)
-    names(result) <- names(lb)
-    result
-  }
   guess <- lapply(
     notSpecified,
     function(p) {
