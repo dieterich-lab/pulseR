@@ -87,68 +87,46 @@ checkThresholds <- function(options){
 
 #' Set optimization boundaries for the model parameters.
 #'
-#' @param params boundaries for gene-specific parameters
-#' @param shared boundaries for shared parameters
-#' @param fraction_factors boundaries for fraction factors if relevant
-#' @param size boundaries for the size parameter of the negative binomial
-#' ditribution 
+#' @plist a named list of boundaries. Every list item is 
+#' another list of length 2: the lower \code{plist[[1]]}
+#' and the upper \code{plist[[1]]} boundaries. Use \code{\link{plist}}
+#' helper function in order to create this input.
 #' @param options an options object to use as a basis for a new parameter set
 #'
 #' @return   an options object with the new parameter values
 #' @details If no options object is provided, the default value is used.
 #' @export
 #'
-setBoundaries <- function(params = NULL,
-                          shared = NULL,
-                          fraction_factors = NULL,
-                          size = NULL,
-                          options = .defaultParams) {
+setBoundaries <- function(plist, options = .defaultParams) {
   if (!is.list(options))
     stop("Options must be a list")
   options <- addDefault(options)
-  args <- as.list(match.call())[-1]
-  args <- lapply(args, eval)
-  args$options <- NULL
-  options$lb[names(args)] <- lapply(args, `[[`, 1)
-  options$ub[names(args)] <- lapply(args, `[[`, 2)
-  validateOptions(options)
+  options$lb[names(plist)] <- lapply(plist, `[[`, 1)
+  options$ub[names(plist)] <- lapply(plist, `[[`, 2)
+  options <- alignBoundaries(options)
+  checkBoundaries(options)
   options
 }
 
 #' Set the stopping criteria in a form of the relative 
 #' changes during fitting iterations.
 #'
-#' @param params double
-#' @param shared double
-#' @param fraction_factors double
-#' @param size double
+#' @plist a named list of relative tolerance thresholds.
+#' Every list item is a single positive number.
+#' Use \code{\link{plist}} helper function in order to create this input.
+#' 
 #' @param options an options object to use as a basis for a new parameter set
 #'
 #' @return   an options object with the new parameter values
 #' @details If no options object is provided, the default value is used.
 #' @export
 #'
-setTolerance <- function(params = NULL,
-                         shared = NULL,
-                         fraction_factors = NULL,
-                         size = NULL,
-                         options = .defaultParams) {
+setTolerance <- function(plist, options = .defaultParams) {
   if (!is.list(options))
     stop("Options must be a list")
-  args <- as.list(match.call())[-1]
-  args <- lapply(args, eval)
-  args$options <- NULL
   options$tolerance[names(args)] <- args
-  isValid <- vapply(names(options$tolerance),
-         function(p) {
-           is.vector(options$tolerance[[p]])   &&
-           length(options$tolerance[[p]]) == 1 &&
-           is.numeric(options$tolerance[[p]])
-         }, logical(1))
-  if (!all(isValid))
-    stop("Tolerance must be a single number")
   options <- addDefault(options)
-  validateOptions(options)
+  checkThresholds(options)
   options
 }
 
