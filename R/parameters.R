@@ -34,8 +34,7 @@ validateOptions <- function(o){
     stop("Options must be a list")
   if (is.null(o$cores) || o$cores < 1)
     stop("Please specify correct number of cores")
-  if (!all(vapply(o$tolerance, function(x) x > 0, logical(1))))
-    stop("Tolerance must be a positive number")
+  checkThresholds(o)
   checkBoundaries(o)
   # order of boundaries
 }
