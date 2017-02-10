@@ -70,6 +70,7 @@ checkBoundaries <- function(options) {
   if (!(all(hasEqualLength)))
     stop(paste("Length of upper and lower boundaries are not equal for ",
                lnames[!hasEqualLength]))
+  alignBoundaries(options)
 }
 
 checkThresholds <- function(options){
