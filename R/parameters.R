@@ -288,13 +288,23 @@ stopIfNotInRanges <- function(args, options) {
   NULL
 }
  
-orderBoundaries <- function(parameter_names, b){
-  if (!is.null(names(b))) {
-    b <- b[parameter_names]
-    if (anyNA(names(b)))
-      stop(paste("Boundaries for ", parameter_names[is.na(names(b))],
-                 "are not set"))
+# Align boundary to parameters
+# if boundaries are not named - leave them unchanged
+.orderBoundaries <- function(plist, b) {
+  for (p in names(plist)) {
+    if (is.null(b[[p]]))
+      stop(paste("Boundaries are not set for the item: ", p))
+    if (p != "size" && !is.null(names(b[[p]]))) {
+      b <- b[parameter_names]
+      if (anyNA(names(b)))
+        stop(paste("Boundaries for ", parameter_names[is.na(names(b))],
+                   "are not set"))
+    }
   }
-  unlist(b)
+  b
 }
 
+orderBoundaries <- function(plist, options){
+ options$lb <- .orderBoundaries(plist, options$lb) 
+ options$ub <- .orderBoundaries(puist, options$ub) 
+ options
