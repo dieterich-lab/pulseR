@@ -193,6 +193,7 @@ initParams <- function(pulseData,
   args$options <- NULL
   args$pulseData <- NULL
   args <- lapply(args, eval, envir = parent.frame()) 
+  options <- validateNames(args, options)
   stopIfNotInRanges(args, options)
   notSpecified <- setdiff(names(options$lb),names(args))
   guess <- lapply(
@@ -213,8 +214,8 @@ initParams <- function(pulseData,
   args
 }
 
-# check if names if parameters are named and
-# order boundaries appropriately
+# checks  if parameters are named and
+# orders   boundaries appropriately
 validate <- function(p, b) {
   if (is.null(names(p)))
     stop("parameters are not named")
