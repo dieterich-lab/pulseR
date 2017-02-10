@@ -58,18 +58,19 @@ alignBoundaries <- function(options){
 }
 
 
-checkBoundaries <- function(options){
-  missingBoundaries <- setdiff(names(options$lb), names(options$ub))
+checkBoundaries <- function(options) {
+  lnames <- names(options$lb)
+  unames <- names(options$ub)
+  missingBoundaries <- setdiff(union(lnames, unames), intersect(lnames, unames))
   if (length(missingBoundaries) > 0)
     stop(paste("Please specify missing boundaries for \n", missingBoundaries))
-  hasEqualLength <- vapply(names(options$lb), 
-         function(p){
-           length(options$lb[[p]]) == length(options$ub[[p]])
-         }, logical(1))
+  hasEqualLength <- vapply(lnames,
+                           function(p) {
+                             length(options$lb[[p]]) == length(options$ub[[p]])
+                           }, logical(1))
   if (!(all(hasEqualLength)))
     stop(paste("Length of upper and lower boundaries are not equal for ",
-         names(options$lb)[!hasEqualLength]))
-  
+               lnames[!hasEqualLength]))
 }
 
 checkThresholds <- function(options){
