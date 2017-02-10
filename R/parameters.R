@@ -36,7 +36,6 @@ validateOptions <- function(o){
     stop("Please specify correct number of cores")
   checkThresholds(o)
   checkBoundaries(o)
-  # order of boundaries
 }
 
 # aligns lb and ub only if they are named
