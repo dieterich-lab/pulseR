@@ -71,6 +71,13 @@ checkBoundaries <- function(options) {
   if (!(all(hasEqualLength)))
     stop(paste("Length of upper and lower boundaries are not equal for ",
                lnames[!hasEqualLength]))
+  correctValues <- vapply(lnames,
+                          function(p) {
+                            all(options$lb[[p]] < options$ub[[p]])
+                          }, logical(1))
+  if (!all(correctValues))
+    stop(paste( "Lower boundaries values are not less than the upper ones in ",
+      lnames[!correctValues]))
   alignBoundaries(options)
 }
 
@@ -78,13 +85,16 @@ checkThresholds <- function(options){
   if (is.null(options$tolerance))
     stop("No tolerance is specified")
   isValid <- vapply(names(options$tolerance),
-         function(p) {
-           is.vector(options$tolerance[[p]])   &&
-           length(options$tolerance[[p]]) == 1 &&
-           is.numeric(options$tolerance[[p]])
-         }, logical(1))
+                    function(p) {
+                      if (is.vector(options$tolerance[[p]])   &&
+                          length(options$tolerance[[p]]) == 1 &&
+                          is.numeric(options$tolerance[[p]]))
+                        if (options$tolerance[[p]] > 0)
+                          return(TRUE)
+                      FALSE
+                    }, logical(1))
   if (!all(isValid))
-    stop("Tolerance must be a single number")
+    stop("Tolerance must be a single positive number")
 }
 
 checkPlist <- function(plist) {
