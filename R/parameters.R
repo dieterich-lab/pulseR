@@ -144,8 +144,8 @@ setTolerance <- function(plist, options = .defaultParams) {
   if (!is.list(options))
     stop("Options must be a list")
   checkPlist(plist)
-  options$tolerance[names(args)] <- args
   options <- addDefault(options)
+  options$tolerance[names(plist)] <- plist
   checkThresholds(options)
   options
 }
