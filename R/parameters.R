@@ -216,7 +216,7 @@ setTolerance <- function(params = NULL,
 #' @return an option object with modified specified parameters.
 #' @export
 #'
-fittingOptions <- function(
+setFittingOptions <- function(
     verbose = c("silent", "verbose"),
     cores = 1,
     options
