@@ -86,6 +86,22 @@ checkThresholds <- function(options){
     stop("Tolerance must be a single number")
 }
 
+checkPlist <- function(plist) {
+  if (is.null(plist))
+    stop("parameter list must be not NULL")
+  if (!is.list(plist))
+    stop("parameter list must be a list")
+  if (length(plist) > 0) {
+    listNames <- c("params", "shared", "size", "fraction_factor")
+    n <- setdiff(names(plist), listNames)
+    if (is.null(n) || length(n) > 0)
+      stop(paste(
+        "parameter list can have only the following named items: \n",
+        paste(listNames, collapse = ", ")
+      ))
+  }
+}
+
 #' Set optimization boundaries for the model parameters.
 #'
 #' @plist a named list of boundaries. Every list item is 
@@ -101,6 +117,7 @@ checkThresholds <- function(options){
 setBoundaries <- function(plist, options = .defaultParams) {
   if (!is.list(options))
     stop("Options must be a list")
+  checkPlist(plist)
   options <- addDefault(options)
   options$lb[names(plist)] <- lapply(plist, `[[`, 1)
   options$ub[names(plist)] <- lapply(plist, `[[`, 2)
@@ -125,6 +142,7 @@ setBoundaries <- function(plist, options = .defaultParams) {
 setTolerance <- function(plist, options = .defaultParams) {
   if (!is.list(options))
     stop("Options must be a list")
+  checkPlist(plist)
   options$tolerance[names(args)] <- args
   options <- addDefault(options)
   checkThresholds(options)
@@ -290,8 +308,9 @@ stopIfNotInRanges <- function(args, options) {
   b
 }
 
-orderBoundaries <- function(plist, options){
- options$lb <- .orderBoundaries(plist, options$lb) 
- options$ub <- .orderBoundaries(puist, options$ub) 
- options
+orderBoundaries <- function(plist, options) {
+  checkPlist(plist)
+  options$lb <- .orderBoundaries(plist, options$lb)
+  options$ub <- .orderBoundaries(puist, options$ub)
+  options
 }
