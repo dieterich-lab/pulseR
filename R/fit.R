@@ -12,8 +12,8 @@
 fitGeneParameters <- function(pulseData, par, options) {
   validateOptions(options)
   param_names <- colnames(par$params)
-  lb <- orderBoundaries(param_names,options$lb$params)
-  ub <- orderBoundaries(param_names,options$ub$params)
+  lb <- validate(par$params, options$lb$params)
+  ub <- validate(par$params, options$ub$params)
   objective <- ll_gene(pulseData, par)
   new_params <- list()
   new_params <- mclapply(
@@ -41,8 +41,8 @@ fitGeneParameters <- function(pulseData, par, options) {
 fitSharedParameters <- function(pulseData, par, options) {
   shared_objective <- ll_shared_params(pulseData, par)
   shared_names <- names(par$shared)
-  lb <- orderBoundaries(shared_names,options$lb$shared)
-  ub <- orderBoundaries(shared_names,options$ub$shared)
+  lb <- validate(par$shared, options$lb$shared)
+  ub <- validate(par$shared, options$ub$shared)
   shared_params <- optim(
     unlist(par$shared),
     shared_objective,
@@ -81,8 +81,8 @@ fitDispersion <- function(pulseData, par, options) {
 fitFractions <- function(pulseData, par, options){
   objective <- ll_norm_factors(pulseData, par)
   fraction_names <- names(par$fraction_factors)
-  lb <- orderBoundaries(fraction_names,options$lb$fraction_factors)
-  ub <- orderBoundaries(fraction_names,options$ub$fraction_factors)
+  lb <- validate(par$fraction_factors, options$lb$fraction_factors)
+  ub <- validate(par$fraction_factors, options$ub$fraction_factors)
   fraction_factors <- optim(
     unlist(par$fraction_factors)[-1],
     objective,
