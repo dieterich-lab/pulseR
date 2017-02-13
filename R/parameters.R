@@ -25,7 +25,8 @@ plist <- function(params = NULL,
                   shared = NULL,
                   fraction_factors = NULL,
                   size = NULL) {
-  as.list(match.call())[-1]
+  p <- as.list(match.call())[-1]
+  lapply(p, eval)
 }
 
 
