@@ -5,19 +5,17 @@
 \title{Set the stopping criteria in a form of the relative 
 changes during fitting iterations.}
 \usage{
-setTolerance(params = NULL, shared = NULL, fraction_factors = NULL,
-  size = NULL, options = .defaultParams)
+setTolerance(params = NULL, shared = NULL, fration_factors = NULL,
+  options = .defaultParams)
 }
 \arguments{
-\item{params}{double}
+\item{params}{a threshold for gene-specific parameter boundaries}
 
-\item{shared}{double}
-
-\item{fraction_factors}{double}
-
-\item{size}{double}
+\item{shared}{a threshold for shared parameters boundaries}
 
 \item{options}{an options object to use as a basis for a new parameter set}
+
+\item{fraction_factors}{a threshold for the fraction factors}
 }
 \value{
 an options object with the new parameter values
@@ -27,5 +25,12 @@ Set the stopping criteria in a form of the relative
 changes during fitting iterations.
 }
 \details{
-If no options object is provided, the default value is used.
+If no options object is provided, the default options are used
+as a base.
+A threshold  represents the relative changes in parameter values 
+between two subsequent fitting iterations.
+}
+\examples{
+setTolerance(params = 1e-2)
+
 }

@@ -21,6 +21,15 @@ addDefault <- function(options) {
   options
 }
 
+#' A function to assist parameter and options definition.
+#'
+#' @param params 
+#' @param shared 
+#' @param fraction_factors 
+#' @param size 
+#'
+#' @return a named list with defined arguments
+#'
 plist <- function(params = NULL,
                   shared = NULL,
                   fraction_factors = NULL,
@@ -115,23 +124,50 @@ checkPlist <- function(plist) {
 
 #' Set optimization boundaries for the model parameters.
 #'
-#' @plist a named list of boundaries. Every list item is 
-#' another list of length 2: the lower \code{plist[[1]]}
-#' and the upper \code{plist[[1]]} boundaries. Use \code{\link{plist}}
-#' helper function in order to create this input.
+#' @param params a list of gene-specific parameter boundaries
+#' @param shared a list of shared parameters boundaries
+#' @param fraction_factors the  lower and the upper boundaries 
+#'        for the fraction factors
+#' @param size the lower and the upper boundaries for the size parameter for
+#' \code{\link{dnbinom}}.
 #' @param options an options object to use as a basis for a new parameter set
 #'
 #' @return   an options object with the new parameter values
 #' @details If no options object is provided, the default value is used.
+#' Boundaries are provided as a named list of vectors or lists with 
+#' the length 2, see example.
 #' @export
+#' 
+#' @examples
+#' setBoundaries(params = list(a = c(1,2), b = c(10, 20)))
 #'
-setBoundaries <- function(plist, options = .defaultParams) {
+setBoundaries <- function(params = NULL,
+                          shared = NULL,
+                          fraction_factors = NULL,
+                          size = NULL,
+                          options = .defaultParams) {
   if (!is.list(options))
     stop("Options must be a list")
-  checkPlist(plist)
   options <- addDefault(options)
-  options$lb[names(plist)] <- lapply(plist, `[[`, 1)
-  options$ub[names(plist)] <- lapply(plist, `[[`, 2)
+  plist <- as.list(match.call())[-1]
+  plist$options <- NULL
+  plist <- lapply(plist, eval)
+  .getBoundaryValue <- function(x, i) {
+    x <- unlist(x)
+    if (length(x) != 2)
+      stop("Boundaries must have length of 2")
+    x[i]
+  }
+  for (type in names(plist)) {
+    options$lb[[type]] <- vapply(plist[[type]],
+                                 .getBoundaryValue,
+                                 i = 1,
+                                 FUN.VALUE = double(1))
+    options$ub[[type]] <- vapply(plist[[type]],
+                                 .getBoundaryValue,
+                                 i = 2,
+                                 FUN.VALUE = double(1))
+  }
   options <- alignBoundaries(options)
   checkBoundaries(options)
   options
@@ -140,21 +176,31 @@ setBoundaries <- function(plist, options = .defaultParams) {
 #' Set the stopping criteria in a form of the relative 
 #' changes during fitting iterations.
 #'
-#' @plist a named list of relative tolerance thresholds.
-#' Every list item is a single positive number.
-#' Use \code{\link{plist}} helper function in order to create this input.
+#' @param params a threshold for gene-specific parameter boundaries
+#' @param shared a threshold for shared parameters boundaries
+#' @param fraction_factors  a threshold for the fraction factors
 #' 
 #' @param options an options object to use as a basis for a new parameter set
 #'
 #' @return   an options object with the new parameter values
-#' @details If no options object is provided, the default value is used.
+#' @details If no options object is provided, the default options are used
+#' as a base.
+#' A threshold  represents the relative changes in parameter values 
+#' between two subsequent fitting iterations.
 #' @export
+#' @examples 
+#' setTolerance(params = 1e-2)
 #'
-setTolerance <- function(plist, options = .defaultParams) {
+setTolerance <- function(params = NULL,
+                         shared = NULL,
+                         fration_factors = NULL,
+                         options = .defaultParams) {
   if (!is.list(options))
     stop("Options must be a list")
-  checkPlist(plist)
   options <- addDefault(options)
+  plist <- as.list(match.call())[-1]
+  plist$options <- NULL
+  plist <- lapply(plist, eval)
   options$tolerance[names(plist)] <- plist
   checkThresholds(options)
   options
@@ -198,10 +244,8 @@ sampleParams <- function(options, params_type) {
       stop(paste("Please specify parameter names in boundaries for: ",
         params_type
       ))
-    lb <- options$lb[[params_type]]
-    ub <- orderBoundaries(names(lb), options$ub[[params_type]])
-    result <- runif(n, lb, ub)
-    names(result) <- names(lb)
+    result <- runif(n, options$lb[[params_type]], options$ub[[params_type]])
+    names(result) <- names(options$lb[[params_type]])
     result
   }
 }
@@ -213,6 +257,7 @@ sampleParams <- function(options, params_type) {
 #' @param params a data.frame
 #' @param shared a named list
 #' @param fraction_factors a vector
+#' @param size a double; size parameter for the \code{\link{dnbinom}}
 #' 
 #' @importFrom stats runif
 #'
@@ -223,8 +268,10 @@ initParams <- function(pulseData,
                        options,
                        params = NULL,
                        shared = NULL,
-                       fraction_factors = NULL) {
+                       fraction_factors = NULL,
+                       size = NULL) {
   validateOptions(options)
+        geneNum <- dim(pulseData$count_data)[1]
   args <- as.list(match.call())[-1]
   args$options <- NULL
   args$pulseData <- NULL
@@ -232,13 +279,20 @@ initParams <- function(pulseData,
   options <- validateNames(args, options)
   stopIfNotInRanges(args, options)
   notSpecified <- setdiff(names(options$lb),names(args))
+  if (!missing(params)) {
+    correctLength <- sapply(params, length) == geneNum
+    if (!all(correctLength))
+      stop(paste(
+        "Length of gene-specific parameters is not correct for: ",
+        paste(names(params)[!correctLength], collapse = ", ")
+      ))
+  }
   guess <- lapply(
     notSpecified,
     function(p) {
       if (p != "params") {
         sampleParams(options, p)
       } else {
-        geneNum <- dim(pulseData$count_data)[1]
         result <- replicate(geneNum,
                             sampleParams(options, "params"),
                             simplify = FALSE)
@@ -255,13 +309,27 @@ initParams <- function(pulseData,
 validate <- function(p, b) {
   if (is.null(names(p)))
     stop("parameters are not named")
+  if (length(p) != length(b))
+    stop(
+      paste(
+        "Number of parameters and the number of boundaries set are",
+        "not equal:\n parameter:",
+        paste0(names(p), collapse = " "),
+        "\n boundaries: ",
+        paste0(names(b), collapse = " ")
+      )
+    )
   if (is.null(names(b))) {
     message("Boundaries for the parameters are not named")
     message("The order is derived from the parameter values:")
     message(paste(names(p), collapse = "; "))
     names(b) <- names(p)
   }
-  b[names(p)]
+  b <- b[names(p)]
+  if (anyNA(names(b)))
+    stop(paste("Boundaries for ", names(p)[is.na(names(b))],
+               "are not set"))
+  b
 }
 
 validateNames <- function(args, options){
@@ -284,8 +352,8 @@ stopIfNotInRanges <- function(args, options) {
   is.inRange <- function(x, lb, ub) {
     all(vapply(names(x),
                function(par_name) {
-                 all(x[[par_name]] > lb[[par_name]]) &&
-                 all(x[[par_name]] < ub[[par_name]])
+                 all(x[[par_name]] >= lb[[par_name]]) &&
+                 all(x[[par_name]] <= ub[[par_name]])
                }, logical(1)))
   }
   inRange <- vapply(names(args),
@@ -301,27 +369,4 @@ stopIfNotInRanges <- function(args, options) {
     stop(msg)
   }
   NULL
-}
- 
-# Align boundary to parameters
-# if boundaries are not named - leave them unchanged
-.orderBoundaries <- function(plist, b) {
-  for (p in names(plist)) {
-    if (is.null(b[[p]]))
-      stop(paste("Boundaries are not set for the item: ", p))
-    if (p != "size" && !is.null(names(b[[p]]))) {
-      b <- b[parameter_names]
-      if (anyNA(names(b)))
-        stop(paste("Boundaries for ", parameter_names[is.na(names(b))],
-                   "are not set"))
-    }
-  }
-  b
-}
-
-orderBoundaries <- function(plist, options) {
-  checkPlist(plist)
-  options$lb <- .orderBoundaries(plist, options$lb)
-  options$ub <- .orderBoundaries(puist, options$ub)
-  options
 }

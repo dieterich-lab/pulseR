@@ -8,14 +8,15 @@ setBoundaries(params = NULL, shared = NULL, fraction_factors = NULL,
   size = NULL, options = .defaultParams)
 }
 \arguments{
-\item{params}{boundaries for gene-specific parameters}
+\item{params}{a list of gene-specific parameter boundaries}
 
-\item{shared}{boundaries for shared parameters}
+\item{shared}{a list of shared parameters boundaries}
 
-\item{fraction_factors}{boundaries for fraction factors if relevant}
+\item{fraction_factors}{the  lower and the upper boundaries 
+for the fraction factors}
 
-\item{size}{boundaries for the size parameter of the negative binomial
-ditribution}
+\item{size}{the lower and the upper boundaries for the size parameter for
+\code{\link{dnbinom}}.}
 
 \item{options}{an options object to use as a basis for a new parameter set}
 }
@@ -27,4 +28,10 @@ Set optimization boundaries for the model parameters.
 }
 \details{
 If no options object is provided, the default value is used.
+Boundaries are provided as a named list of vectors or lists with 
+the length 2, see example.
+}
+\examples{
+setBoundaries(params = list(a = c(1,2), b = c(10, 20)))
+
 }

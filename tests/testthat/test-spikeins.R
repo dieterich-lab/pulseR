@@ -41,17 +41,6 @@ pd <- PulseData(
     formulas   = formulas,
     spikeins = rownames(spikeins))
 
-test_that("initialisations work", {
-  expect_error(fittingOptions(verbose = "x"))
-  expect_error(fittingOptions(cores = -1))
-  expect_equal(fittingOptions(options = list()), pulseR:::.defaultParams)
-  expect_silent(setBoundaries(options = list()))
-  expect_silent(setTolerance(options = list()))
-  expect_error(setTolerance(c(1,2)))
-  expect_error(initParams(pd, options))
-  expect_error(
-    initParams(pulseData = pd, options = options, shared = list(a=Inf)))
-})
 
 test_that("individual parameters fitting works", {
   par2 <- par
@@ -60,9 +49,6 @@ test_that("individual parameters fitting works", {
   par2$params$b <- .3
   fit <- pulseR:::fitGeneParameters(pd, par2, options)
   expect_lt(max(abs(1 - fit / par$params)), .2)
-})
-
-test_that("parameter sampling works",{
 })
 
 test_that("shared params fitting works", {
