@@ -169,6 +169,7 @@ setBoundaries <- function(params = NULL,
   }
   for (type in names(plist)) {
     if (is.list(plist[[type]])) {
+      # add try
       options$lb[[type]] <- vapply(plist[[type]],
                                    .getBoundaryValue,
                                    i = 1,
@@ -256,7 +257,10 @@ sampleParams <- function(lb, ub, paramName) {
   result <- runif(n, lb, ub)
   if (is.null(names(lb)) && is.null(names(ub)))
     stop(paste("Please provide names for the boundaries in ", paramName))
-  names(result) <- ifelse(!is.null(names(lb)), names(lb), names(ub))
+  if (!is.null(names(lb)))
+    names(result) <- names(lb)
+  else
+    names(result) <-  names(ub)
   result
 }
 
@@ -285,6 +289,7 @@ initParameters <- function(pulseData,
   params <- initGeneParams(options, pulseData, params)
   fraction_factors <- initFractions(options, pulseData, fraction_factors)
   shared <- initShared(options, shared)
+  size <- runif(1, options$lb$size, options$ub$size)
   par <- plist(
     params = params,
     shared = shared,
@@ -310,18 +315,22 @@ validateNames <- function(par, options){
 initFractions <- function(options, pulseData, fraction_factors) {
   if (is.null(pulseData$fraction))
     return(NULL)
+  fractionNum <- length(levels(pulseData$fraction))
   if (!is.null(fraction_factors)) {
     if (is.vector(fraction_factors) &&
         length(fraction_factors) == 1) {
-      fractionNum <- length(levels(pulseData$fraction))
       fraction_factors <- rep(fraction_factors, fractionNum)
     } else {
       fraction_factors <- fraction_factors
     }
   } else {
-      fraction_factors <- sampleParams(options$lb$fraction_factors,
-                                       options$ub$fraction_factors,
-                                       "fraction_factors")
+      lb <- options$lb$fraction_factors
+      if (length(lb) == 1)
+        lb <- rep(lb, fractionNum)
+      fraction_factors <- sampleParams(
+        lb,
+        options$ub$fraction_factors,
+        "fraction_factors")
       names(fraction_factors) <- levels(pulseData$fraction)
   }
   fraction_factors
