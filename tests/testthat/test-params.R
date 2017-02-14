@@ -23,6 +23,7 @@ test_that("parameter initialization works", {
   
   N <- 10
   pd <- list(count_data = matrix(ncol = 5, nrow = N))
+  rownames(pd$count_data) <- paste("gene", 1:N)
   opts <- setBoundaries(params = list(a = c(1, 2), b = c(1, 4)),
                         shared = list(d = c(5, 15)))
   
@@ -39,5 +40,7 @@ test_that("parameter initialization works", {
   # wrong number of genes
   expect_error(initParameters(pd, opts, params = list(a = c(1,2,3), b = 2)),
                regexp = "Length")
+  pd$fraction <- factor(c("a", "b", "c"))
+(initParameters(pd, opts, params = list(a = c(1), b = 2)))
   
 })
