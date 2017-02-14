@@ -21,6 +21,11 @@ addDefault <- function(options) {
   options
 }
 
+setKnownGeneSpecific <- function(known, par){
+  par$known <- known
+  par
+}
+
 #' A function to assist parameter and options definition.
 #'
 #' @param params 
@@ -163,14 +168,21 @@ setBoundaries <- function(params = NULL,
     x[i]
   }
   for (type in names(plist)) {
-    options$lb[[type]] <- vapply(plist[[type]],
-                                 .getBoundaryValue,
-                                 i = 1,
-                                 FUN.VALUE = double(1))
-    options$ub[[type]] <- vapply(plist[[type]],
-                                 .getBoundaryValue,
-                                 i = 2,
-                                 FUN.VALUE = double(1))
+    if (is.list(plist[[type]])) {
+      options$lb[[type]] <- vapply(plist[[type]],
+                                   .getBoundaryValue,
+                                   i = 1,
+                                   FUN.VALUE = double(1))
+      options$ub[[type]] <- vapply(plist[[type]],
+                                   .getBoundaryValue,
+                                   i = 2,
+                                   FUN.VALUE = double(1))
+    } else {
+      if (is.vector(plist[[type]]) && length(plist[[type]])) {
+        options$lb[[type]] <- plist[[type]][1]
+        options$ub[[type]] <- plist[[type]][2]
+      }
+    }
   }
   options <- alignBoundaries(options)
   checkBoundaries(options)
@@ -239,19 +251,13 @@ setFittingOptions <- function(
 }
 
 
-sampleParams <- function(options, params_type) {
-  n <- length(options$lb[[params_type]])
-  if (params_type == "size") {
-    runif(1, options$lb$size, options$ub$size)
-  } else {
-    if (is.null(names(options$lb[[params_type]])))
-      stop(paste("Please specify parameter names in boundaries for: ",
-        params_type
-      ))
-    result <- runif(n, options$lb[[params_type]], options$ub[[params_type]])
-    names(result) <- names(options$lb[[params_type]])
-    result
-  }
+sampleParams <- function(lb, ub, paramName) {
+  n <- max(length(lb), length(ub))
+  result <- runif(n, lb, ub)
+  if (is.null(names(lb)) && is.null(names(ub)))
+    stop(paste("Please provide names for the boundaries in ", paramName))
+  names(result) <- ifelse(!is.null(names(lb)), names(lb), names(ub))
+  result
 }
 
 #' Initialize first guess for the parameters 
@@ -269,21 +275,22 @@ sampleParams <- function(options, params_type) {
 #' @export
 #'
 initParameters <- function(pulseData,
-                       options,
-                       params = NULL,
-                       shared = NULL,
-                       fraction_factors = NULL,
-                       size = NULL) {
+                           options,
+                           params = NULL,
+                           shared = NULL,
+                           fraction_factors = NULL,
+                           size = NULL) {
   res <- list()
   validateOptions(options)
   params <- initGeneParams(options, pulseData, params)
   fraction_factors <- initFractions(options, pulseData, fraction_factors)
   shared <- initShared(options, shared)
-  size
-  par <- plist(params = params,
-               shared = shared,
-               fraction_factors = fraction_factors,
-               size = size)
+  par <- plist(
+    params = params,
+    shared = shared,
+    fraction_factors = fraction_factors,
+    size = size
+  )
   validateNames(par, options)
   stopIfNotInRanges(par, options)
   par
@@ -301,6 +308,8 @@ validateNames <- function(par, options){
 
 # if not set - sample
 initFractions <- function(options, pulseData, fraction_factors) {
+  if (is.null(pulseData$fraction))
+    return(NULL)
   if (!is.null(fraction_factors)) {
     if (is.vector(fraction_factors) &&
         length(fraction_factors) == 1) {
@@ -310,9 +319,10 @@ initFractions <- function(options, pulseData, fraction_factors) {
       fraction_factors <- fraction_factors
     }
   } else {
-    if (!is.null(pulseData$fraction)) {
-      fraction_factors <- sampleParams(options, "fraction_factors")
-    }
+      fraction_factors <- sampleParams(options$lb$fraction_factors,
+                                       options$ub$fraction_factors,
+                                       "fraction_factors")
+      names(fraction_factors) <- levels(pulseData$fraction)
   }
   fraction_factors
 }
@@ -326,7 +336,7 @@ initShared <- function(options, shared){
         stop("Wrong number of shared parameters specified")
   } else {
     if (!is.null(options$lb$shared) && !is.null(options$ub$shared)) {
-     shared <- sampleParams(options, "shared") 
+      shared <- sampleParams(options$lb$shared, options$ub$shared, "shared") 
     }
   }
   shared
@@ -346,13 +356,14 @@ initGeneParams <- function(options, pulseData, params){
     if (dim(result)[1] == 1)
       result <- result[rep(1, geneNum),]
   } else {
-    result <- replicate(geneNum,
-                        sampleParams(options, "params"),
-                        simplify = FALSE)
-    params <- do.call(rbind, result)
+    result <- replicate(
+      geneNum,
+      sampleParams(options$lb$params, options$ub$params, "params"),
+      simplify = FALSE)
+    result <- do.call(rbind, result)
   }
-  rownames(params) <- rownames(pulseData$count_data)
-  as.data.frame(params)
+  rownames(result) <- rownames(pulseData$count_data)
+  as.data.frame(result)
 }
 
 # checks  if parameters are named and
