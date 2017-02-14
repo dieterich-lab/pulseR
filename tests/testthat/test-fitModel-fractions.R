@@ -48,8 +48,12 @@ test_that("all together fitting works", {
   par2$params$b <- runif(length(par$params$a),.1,.8)
   par2$size <- 1e4
   par2$fraction_factors <- rep(1, length(par$fraction_factors))
+  p <- initParameters(pd,options,
+                 params = data.frame(a=guess, b=.4),
+                 fraction_factors = rep(1, length(par$fraction_factors)))
   options$verbose <- "verbose"
-  fit <- fitModel(pd, par2, options)
+  #fit <- fitModel(pd, par2, options)
+  fit <- fitModel(pd, p, options)
   expect_gt(.3,
                    max(abs((fit$par$params - par$params) /
                              par$params
