@@ -8,11 +8,9 @@ nReplicates <- 3
 nTime <- 4
 
 options <- setBoundaries(
-  params = list(lb = c(1, 1e-3),
-                up = c(1e10, 1)),
-  shared = list(lb = .10, ub = 100),
-  fraction_factors = list(lb = .1, ub = 10)
-)
+  params = list(a = c(1, 1e10), b = c(.01, 1)),
+  shared = list(alpha = c(.10, 100)),
+  fraction_factors = list( c(.1,10)))
 
 options$cores <- 1
 
