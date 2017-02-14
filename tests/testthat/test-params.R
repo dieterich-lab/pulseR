@@ -1,9 +1,9 @@
 context("Parameters set up")
 
 test_that("setting options work", {
-  expect_error(fittingOptions(verbose = "x"))
-  expect_error(fittingOptions(cores = -1))
-  expect_equal(fittingOptions(options = list()), pulseR:::.defaultParams)
+  expect_error(setFittingOptions(verbose = "x"))
+  expect_error(setFittingOptions(cores = -1))
+  expect_equal(setFittingOptions(options = list()), pulseR:::.defaultParams)
   
 })
 
@@ -26,19 +26,18 @@ test_that("parameter initialization works", {
   opts <- setBoundaries(params = list(a = c(1, 2), b = c(1, 4)),
                         shared = list(d = c(5, 15)))
   
-  expect_silent(initParams(pd, opts))
-  expect_silent(initParams(pd, opts, params = list(a = 1, b = 2)))
+  expect_silent(initParameters(pd, opts))
   # wrong name
-  expect_error(initParams(pd, opts, shared = list(Y = 1)),
+  expect_error(initParameters(pd, opts, shared = list(Y = 1)),
                regexp = "are not set")
   # forgot a param
-  expect_error(initParams(pd, opts, params = list(a = rep(1,N))),
+  expect_error(initParameters(pd, opts, params = list(a = rep(1,N))),
                regexp = "not equal")
   # out of range
-  expect_error(initParams(pd, opts, params = list(a = -11, b = 2)),
+  expect_error(initParameters(pd, opts, params = list(a = -11, b = 2)),
                regexp = "within")
   # wrong number of genes
-  expect_error(initParams(pd, opts, params = list(a = 1, b = 2)),
+  expect_error(initParameters(pd, opts, params = list(a = c(1,2,3), b = 2)),
                regexp = "Length")
   
 })

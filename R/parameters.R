@@ -34,8 +34,12 @@ plist <- function(params = NULL,
                   shared = NULL,
                   fraction_factors = NULL,
                   size = NULL) {
-  p <- as.list(match.call())[-1]
-  lapply(p, eval)
+  list(
+    params = params,
+    shared = shared,
+    fraction_factors = fraction_factors,
+    size = size
+  )
 }
 
 
@@ -264,49 +268,99 @@ sampleParams <- function(options, params_type) {
 #' @return  a list to provide to the function \code{\link{fitModel}}.
 #' @export
 #'
-initParams <- function(pulseData,
+initParameters <- function(pulseData,
                        options,
                        params = NULL,
                        shared = NULL,
                        fraction_factors = NULL,
                        size = NULL) {
+  res <- list()
   validateOptions(options)
-        geneNum <- dim(pulseData$count_data)[1]
-  args <- as.list(match.call())[-1]
-  args$options <- NULL
-  args$pulseData <- NULL
-  args <- lapply(args, eval, envir = parent.frame()) 
-  options <- validateNames(args, options)
-  stopIfNotInRanges(args, options)
-  notSpecified <- setdiff(names(options$lb),names(args))
-  if (!missing(params)) {
-    correctLength <- sapply(params, length) == geneNum
+  params <- initGeneParams(options, pulseData, params)
+  fraction_factors <- initFractions(options, pulseData, fraction_factors)
+  shared <- initShared(options, shared)
+  size
+  par <- plist(params = params,
+               shared = shared,
+               fraction_factors = fraction_factors,
+               size = size)
+  validateNames(par, options)
+  stopIfNotInRanges(par, options)
+  par
+}
+
+validateNames <- function(par, options){
+  options$lb$params <- validate(par$params, options$lb$params)
+  options$ub$params <- validate(par$params, options$ub$params)
+  if (!is.null(par$shared)) {
+    options$lb$shared <- validate(par$shared, options$lb$shared)
+    options$ub$shared <- validate(par$shared, options$ub$shared)
+  }
+  options
+}
+
+# if not set - sample
+initFractions <- function(options, pulseData, fraction_factors) {
+  if (!is.null(fraction_factors)) {
+    if (is.vector(fraction_factors) &&
+        length(fraction_factors) == 1) {
+      fractionNum <- length(levels(pulseData$fraction))
+      fraction_factors <- rep(fraction_factors, fractionNum)
+    } else {
+      fraction_factors <- fraction_factors
+    }
+  } else {
+    if (!is.null(pulseData$fraction)) {
+      fraction_factors <- sampleParams(options, "fraction_factors")
+    }
+  }
+  fraction_factors
+}
+
+initShared <- function(options, shared){
+  if (!is.null(shared)) {
+    if (length(shared) != length(options$lb$shared))
+      if (length(shared) == 1)
+        shared <- rep(shared, length(options$lb$shared))
+      else
+        stop("Wrong number of shared parameters specified")
+  } else {
+    if (!is.null(options$lb$shared) && !is.null(options$ub$shared)) {
+     shared <- sampleParams(options, "shared") 
+    }
+  }
+  shared
+}
+
+initGeneParams <- function(options, pulseData, params){
+  geneNum <- dim(pulseData$count_data)[1]
+  if (!is.null(params)) {
+    correctLength <- sapply(params, length) %in% c(1, geneNum)
     if (!all(correctLength))
       stop(paste(
         "Length of gene-specific parameters is not correct for: ",
         paste(names(params)[!correctLength], collapse = ", ")
       ))
+    result <- data.frame(params)
+    # correct row number
+    if (dim(result)[1] == 1)
+      result <- result[rep(1, geneNum),]
+  } else {
+    result <- replicate(geneNum,
+                        sampleParams(options, "params"),
+                        simplify = FALSE)
+    params <- do.call(rbind, result)
   }
-  guess <- lapply(
-    notSpecified,
-    function(p) {
-      if (p != "params") {
-        sampleParams(options, p)
-      } else {
-        result <- replicate(geneNum,
-                            sampleParams(options, "params"),
-                            simplify = FALSE)
-        do.call(rbind, result)
-      }
-    })
-  names(guess) <- notSpecified
-  args[names(guess)] <- guess
-  args
+  rownames(params) <- rownames(pulseData$count_data)
+  as.data.frame(params)
 }
 
 # checks  if parameters are named and
 # orders   boundaries appropriately
+# if a a boundary is a double, returns b
 validate <- function(p, b) {
+  if (is.vector(b) && length(b) == 1 && is.null(names(b)))
+    return(b)
   if (is.null(names(p)))
     stop("parameters are not named")
   if (length(p) != length(b))
@@ -332,15 +386,6 @@ validate <- function(p, b) {
   b
 }
 
-validateNames <- function(args, options){
-  for (p in names(args)) {
-    options$lb[[p]] <- validate(args[[p]], options$lb[[p]])
-    options$ub[[p]] <- validate(args[[p]], options$ub[[p]])
-  }
-  options
-}
-
-
 #' Validate list of parameters according to allowed value ranges.
 #'
 #' @param args a list of parametets
@@ -356,9 +401,9 @@ stopIfNotInRanges <- function(args, options) {
                  all(x[[par_name]] <= ub[[par_name]])
                }, logical(1)))
   }
-  inRange <- vapply(names(args),
+  inRange <- vapply(names(args)[!is.null(args)],
                     function(p) {
-                      is.inRange(args[[p]], options$lb[[p]], options$ub[[p]])
+                        is.inRange(args[[p]], options$lb[[p]], options$ub[[p]])
                     }, logical(1))
   if (!all(inRange)) {
     msg <-  sapply(
@@ -368,5 +413,4 @@ stopIfNotInRanges <- function(args, options) {
       })
     stop(msg)
   }
-  NULL
 }
