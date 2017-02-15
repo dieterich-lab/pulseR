@@ -5,7 +5,7 @@
 \title{Set the stopping criteria in a form of the relative 
 changes during fitting iterations.}
 \usage{
-setTolerance(params = NULL, shared = NULL, fration_factors = NULL,
+setTolerance(params = NULL, shared = NULL, fraction_factors = NULL,
   options = .defaultParams)
 }
 \arguments{
@@ -13,9 +13,9 @@ setTolerance(params = NULL, shared = NULL, fration_factors = NULL,
 
 \item{shared}{a threshold for shared parameters boundaries}
 
-\item{options}{an options object to use as a basis for a new parameter set}
-
 \item{fraction_factors}{a threshold for the fraction factors}
+
+\item{options}{an options object to use as a basis for a new parameter set}
 }
 \value{
 an options object with the new parameter values
