@@ -1,0 +1,73 @@
+---
+title: "PulseR workflow"
+author: "Alexey Uvarovskii"
+date: "`r Sys.Date()`"
+output:
+  html_vignette:
+    keep_md: true
+vignette: >
+  %\VignetteIndexEntry{workflow}
+  \VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r}
+set.seed(258)
+library(pulseR)
+```
+
+## Prepare a data set and conditions
+
+### The experiment
+
+Let us have a labelling experiment with several time points
+```{r}
+replicateNum <- 3
+time <- 12
+geneNum <- 1000
+
+```
+
+```{r echo=TRUE}
+formulas <- MeanFormulas(
+  total = mu,
+  lab   = mu * (1 - exp(-d * time))
+)
+conditions <- data.frame(condition = rep(names(formulas),
+                                         each = replicateNum),
+                                         time = time)
+knitr::kable(conditions)
+
+```
+
+Here we create parameters for `r geneNum` genes:
+```{r}
+rownames(conditions) <- paste0("sample_", seq_along(conditions$condition))
+t <- pulseR:::addKnownShared(formulas, conditions)
+formulas_known <- t$formulas
+conditions_known <- data.frame(condition = t$conditions)
+
+fractions <- factor(conditions_known$condition)
+fractions <- relevel(fractions, "total.12")
+par <- list(size = 1e2)
+par$params<- data.frame(mu = 10^runif(geneNum, 0, 6),
+                                    d = -log(runif(geneNum, .1, .9))/12)
+rownames(par$params) <- paste0("gene_", 1:geneNum)
+
+par$fraction_factors <- 1 * (2:(length(levels(fractions))))
+```
+
+```{r}
+counts <- generateTestDataFrom(formulas_known, par,
+                               conditions_known,
+                               fractions)
+
+counts <- generateTestDataFrom(formulas, par,
+                               conditions,
+                               fractions)
+pd <- PulseData(
+    count_data = counts,
+    conditions = conditions,
+    formulas   = formulas,
+    fractions  = ~condition+time)
+```
