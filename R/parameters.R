@@ -324,13 +324,13 @@ initFractions <- function(options, pulseData, fraction_factors) {
     }
   } else {
       lb <- options$lb$fraction_factors
+      ub <- options$ub$fraction_factors
       if (length(lb) == 1)
         lb <- rep(lb, fractionNum)
-      fraction_factors <- sampleParams(
-        lb,
-        options$ub$fraction_factors,
-        "fraction_factors")
-      names(fraction_factors) <- levels(pulseData$fraction)
+      if (length(ub) == 1)
+        ub <- rep(ub, fractionNum)
+      names(ub) <- names(lb) <- levels(pulseData$fraction)
+      fraction_factors <- sampleParams(lb, ub, "fraction_factors")
   }
   fraction_factors
 }
