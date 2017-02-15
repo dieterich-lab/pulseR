@@ -40,13 +40,7 @@ PulseData <- function(count_data,
     e$spikeins <- spikeins
     e$fraction <- NULL
   } else {
-    # if no fractions formula provided, use the whole daat.frame from conditions
-    if (!is.null(fractions)) {
-      columns <- e$user_conditions[, all.vars(fractions), drop = FALSE]
-      e$fraction <- factor(apply(columns, 1, paste, collapse = "."))
-    } else {
-      e$fraction <- factor(apply(e$user_conditions, 1, paste, collapse = "."))
-    }
+    e$fraction <- codeFractions(e$user_conditions, fractions)
   }
   e$formulas <- t$formulas
   e$norm_factors <- NULL
@@ -54,6 +48,16 @@ PulseData <- function(count_data,
   e
 }
 
+codeFractions <- function(conditions, fractions){
+    # if no fractions formula provided, use the whole data.frame from conditions
+    if (!is.null(fractions)) {
+      columns <- conditions[, all.vars(fractions), drop = FALSE]
+      fractions <- factor(apply(columns, 1, paste, collapse = "."))
+    } else {
+      fractions <- factor(apply(conditions, 1, paste, collapse = "."))
+    }
+  fractions
+}
 
 #' Get fraction labels for the samples 
 #'
