@@ -48,6 +48,15 @@ PulseData <- function(count_data,
   e
 }
 
+#' Generate fraction names 
+#'
+#' @param conditions a data.frame. The condition matrix.
+#' @param fractions a formula, with the right side defining 
+#' how to divide samples into different fractions, e.g. ~ time + conditions.
+#'
+#' @return a factor
+#' @export
+#'
 codeFractions <- function(conditions, fractions){
     # if no fractions formula provided, use the whole data.frame from conditions
     if (!is.null(fractions)) {
