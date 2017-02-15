@@ -206,6 +206,8 @@ generateTestDataFrom <- function(formulas,
     # normalise
     norm_factors <- 1
     if (!is.null(fractions)) {
+      if (class(fractions) == "formula")
+        fractions <- codeFractions(conditions, fractions)
       fraction_indexes <- as.integer(fractions)
       par$fraction_factors[1] <- 1
       norm_factors <- par$fraction_factors[fraction_indexes]
