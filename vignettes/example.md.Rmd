@@ -1,10 +1,11 @@
 ---
 title: "PulseR workflow"
 author: "Alexey Uvarovskii"
-date: "`r Sys.Date()`"
+date: '`r Sys.Date()`'
 output:
+  pdf_document: default
   html_vignette:
-    keep_md: true
+    keep_md: yes
 vignette: >
   %\VignetteIndexEntry{workflow}
   %\VignetteEngine{knitr::rmarkdown}
@@ -13,12 +14,11 @@ vignette: >
 
 ```{r}
 set.seed(258)
-library(pulseR)
 ```
 
 ## Prepare a data set and conditions
 
-### The experiment
+### The experiment description
 
 Let us have a labelling experiment with several time points
 ```{r}
@@ -33,32 +33,77 @@ formulas <- MeanFormulas(
   total = mu,
   lab   = mu * (1 - exp(-d * time))
 )
+```
+
+We create a condition matrix with two columns: the first is the condition of 
+samples ("total" or "lab"), the second is the time point.
+```{r echo=TRUE}
 conditions <- expand.grid(condition = names(formulas), time = time)
 conditions <- conditions[rep(seq_along(conditions$time),
                              each = replicateNum),]
 rownames(conditions) <- paste0("sample_", seq_along(conditions$condition))
-knitr::kable(head(conditions))
-
+head(conditions)
 ```
 
-Here we create parameters for `r geneNum` genes:
+### Generate artificial data
+
+This section is just for reproducibility, you can easily proceed to the next one.
+
+Create the parameters for `r geneNum` genes:
 ```{r}
-fractions <- ~ time + condition
 par <- list(size = 1e2)
 par$params <- data.frame(mu = 10 ^ runif(geneNum, 0, 6),
                          d = -log(runif(geneNum, .1, .9)) / 12)
 rownames(par$params) <- paste0("gene_", 1:geneNum)
+
+fractions <- ~ time + condition
 fraction_names <- levels(codeFractions(conditions, fractions))
 par$fraction_factors <- seq_along(fraction_names)
 ```
 
+Sample read counts from the negative binomial distribution:
 ```{r}
 counts <- generateTestDataFrom(formulas, par,
                                conditions,
                                fractions)
+```
+
+## Create `PulseData` object
+```{r}
 pd <- PulseData(
     count_data = counts,
     conditions = conditions,
     formulas   = formulas,
     fractions  = ~condition+time)
+
 ```
+
+### Fitting options
+Now we set options for fitting. It is important to provide boundaries for the
+optimal parameter search:
+```{r}
+opts <- setBoundaries(params = list(mu = c(.5, 1e6),
+                                    d = c(.01, .99)),
+                      fraction_factors = c(.1,10))
+```
+For other possible parameters please see "set" functions in the package
+documentation (`setBoundaries, setTolerance, setFittingOptions`).  
+
+### Initial parameter guess
+Optimisation procedure may depend on the initial parameter values.
+A function `initParams` provides an intyerface to simplify this step.
+There are two options for how to set the parameters:
+
+- to sample random numbers within the given boundaries 
+- manual values by the user
+```{r}
+par <- initParameters(pulseData = pd,
+                      options = opts)
+```
+
+## Fitting
+```{r}
+result <- fitModel(pd, par, opts)
+```
+
+
