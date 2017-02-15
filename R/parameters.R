@@ -210,7 +210,7 @@ setBoundaries <- function(params = NULL,
 #'
 setTolerance <- function(params = NULL,
                          shared = NULL,
-                         fration_factors = NULL,
+                         fraction_factors = NULL,
                          options = .defaultParams) {
   if (!is.list(options))
     stop("Options must be a list")
