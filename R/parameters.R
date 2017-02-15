@@ -288,7 +288,7 @@ initParameters <- function(pulseData,
     size = size
   )
   validateNames(par, options)
-  stopIfNotInRanges(par, options)
+  stopIfNotInRanges(par[names(options$lb)], options)
   par
 }
 
@@ -323,16 +323,21 @@ initFractions <- function(options, pulseData, fraction_factors) {
       fraction_factors <- fraction_factors
     }
   } else {
-      lb <- options$lb$fraction_factors
-      ub <- options$ub$fraction_factors
-      if (length(lb) == 1)
-        lb <- rep(lb, fractionNum)
-      if (length(ub) == 1)
-        ub <- rep(ub, fractionNum)
-      names(ub) <- names(lb) <- levels(pulseData$fraction)
+      lb <- .expandBoundary(options$lb$fraction_factors, 
+                            as.character(levels(pulseData$fraction)))
+      ub <- .expandBoundary(options$ub$fraction_factors, 
+                            as.character(levels(pulseData$fraction)))
       fraction_factors <- sampleParams(lb, ub, "fraction_factors")
   }
   fraction_factors
+}
+
+.expandBoundary <- function(b, parNames) {
+  if (length(b) == 1) {
+    b <- rep(b, length(parNames))
+    names(b) <- parNames
+  }
+  b
 }
 
 initShared <- function(options, shared){
@@ -414,13 +419,15 @@ validate <- function(p, b) {
 #'
 stopIfNotInRanges <- function(args, options) {
   is.inRange <- function(x, lb, ub) {
+    lb <- .expandBoundary(x, lb)
+    ub <- .expandBoundary(x, ub)
     all(vapply(names(x),
                function(par_name) {
                  all(x[[par_name]] >= lb[[par_name]]) &&
                  all(x[[par_name]] <= ub[[par_name]])
                }, logical(1)))
   }
-  inRange <- vapply(names(args)[!is.null(args)],
+  inRange <- vapply(names(args),
                     function(p) {
                         is.inRange(args[[p]], options$lb[[p]], options$ub[[p]])
                     }, logical(1))
