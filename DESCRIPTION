@@ -9,5 +9,8 @@ Imports:
     stats,
     parallel
 Suggests:
-    testthat
+    testthat,
+    knitr,
+    rmarkdown
 RoxygenNote: 6.0.0
+VignetteBuilder: knitr
