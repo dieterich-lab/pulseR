@@ -26,15 +26,6 @@ setKnownGeneSpecific <- function(known, par){
   par
 }
 
-#' A function to assist parameter and options definition.
-#'
-#' @param params 
-#' @param shared 
-#' @param fraction_factors 
-#' @param size 
-#'
-#' @return a named list with defined arguments
-#'
 plist <- function(params = NULL,
                   shared = NULL,
                   fraction_factors = NULL,
