@@ -315,6 +315,14 @@ validateNames <- function(par, options){
 initFractions <- function(options, pulseData, fraction_factors) {
   if (is.null(pulseData$fraction))
     return(NULL)
+  if (is.null(options$lb$fraction_factors) ||
+      is.null(options$ub$fraction_factors)) 
+    stop(
+      paste(
+        "Fractions are set in the PulseData object, ",
+        "but boundaries for the fraction factors are not defined"
+      )
+    )
   fractionNum <- length(levels(pulseData$fraction))
   if (!is.null(fraction_factors)) {
     if (is.vector(fraction_factors) &&

@@ -41,6 +41,8 @@ test_that("parameter initialization works", {
   expect_error(initParameters(pd, opts, params = list(a = c(1,2,3), b = 2)),
                regexp = "Length")
   pd$fraction <- factor(c("a", "b", "c"))
-(initParameters(pd, opts, params = list(a = c(1), b = 2)))
+
+  expect_error(initParameters(pd, opts, params = list(a = c(1), b = 2)),
+               regexp = "boundaries for the fraction")
   
 })
