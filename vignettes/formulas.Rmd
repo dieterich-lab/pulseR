@@ -78,3 +78,16 @@ unlab_chase <- grow(unlab, total, "d", "time_C")
 unlab_chase
 ```
 
+##### Non-standard evaluation functions
+
+Functions `grow`, `degrade` and `amount` have versions which use 
+the non-standard evaluation, namely `grow_`, `degrade_` and `amount_`.
+The first argument provided, must be an expression or a character string.
+Other parameters, however, will be used in the form they were defined on input.
+
+Usage example:
+```{r}
+degrade_(total, rate, time +1)
+grow_(unlab, mu, rate, time +1)
+```
+
