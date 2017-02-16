@@ -3,8 +3,7 @@ title: "PulseR workflow"
 author: "Alexey Uvarovskii"
 date: '`r Sys.Date()`'
 output:
-  html_vignette:
-    keep_md: yes
+  html_vignette: default
 vignette: >
   %\VignetteIndexEntry{workflow}
   \VignetteEncoding{UTF-8}
@@ -113,6 +112,7 @@ par <- initParameters(pulseData = pd,
 
 
 ## Fitting
+
 You can specify other options as the number of cores or error 
 tolerance thresholds for parameter fitting. The fitting procedure will stop,
 once the difference in parameters values between two subsequent iteration is 
@@ -132,6 +132,8 @@ result <- fitModel(pd, par, opts)
 ```{r}
 pr <- predictExpression(pd, result)
 
+plot(pr$predictions, pd$count_data, pch=16, cex=.3, log='xy')
 ```
+
 
 
