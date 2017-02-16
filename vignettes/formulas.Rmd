@@ -78,6 +78,16 @@ unlab_chase <- grow(unlab, total, "d", "time_C")
 unlab_chase
 ```
 
+To use the created functions, one must to gather them in one list with 
+the proper naming of the fractions:
+```{r}
+forms <- list(
+  total = total,
+  unlab = unlab,
+  label = lab)
+forms
+```
+
 ##### Non-standard evaluation functions
 
 Functions `grow`, `degrade` and `amount` have versions which use 
