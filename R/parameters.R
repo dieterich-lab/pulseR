@@ -446,6 +446,22 @@ stopIfNotInRanges <- function(args, options) {
   }
 }
 
+#' Estimate initial guess for the mean expression level 
+#'
+#' @param pulseData  the \code{\link{PulseData}} object
+#' @param totalLabel a character, the name of the factor level in the
+#' condition matrix, which correspond to the total fraction ("total" by default).
+#' @param fun a function used to estimate the expression level. 
+#' Possible variants are mean, median and adjusted geometric mean (i.e.
+#' $exp(mean(log(x + .5)))$.
+#' 
+#'
+#' @return a vector of expression level estimations for every gene
+#' 
+#' @details Use this function to estimate mean read numbers
+#' on the basis of the total fraction.
+#' @export
+#'
 guessMeans <- function(pulseData,
                        totalLabel = "total",
                        fun = c("mean", "geomean", "median")) {
