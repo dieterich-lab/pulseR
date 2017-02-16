@@ -145,18 +145,14 @@ ll_dispersion <- function(pulseData, par) {
 predictExpression <- function(pulseData, par) {
   norm_factors <- getNormFactors(pulseData, par)
   means <- getMeans(formulas =  pulseData$formulas, par = par)
-  llog <- NULL
-  if (!missing(pulseData)) {
-    mean_indexes <-
-      sapply(pulseData$conditions, match, names(pulseData$formulas))
-    lambdas <- t(t(means[, mean_indexes]) * norm_factors)
-    llog <- dnbinom(
-      x = pulseData$count_data,
-      mu = lambdas,
-      log = TRUE,
-      size = par$size
-    )
-  }
+  mean_indexes <- sapply(pulseData$conditions, match, names(pulseData$formulas))
+  lambdas <- t(t(means[, mean_indexes]) * norm_factors)
+  llog <- dnbinom(
+    x = pulseData$count_data,
+    mu = lambdas,
+    log = TRUE,
+    size = par$size
+  )
   list(predictions = lambdas, llog = llog)
 }
 
