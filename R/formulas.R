@@ -223,13 +223,13 @@ growFrom0 <- function(mu, d, t) {
 #' grow_(x,b,c,d)
 #' # b - (b - a) * exp(-c * d)
 #' 
-grow_ <- function(x, mu, d, t){
+grow_ <- function(x, mu, d, t) {
   args <- as.list(match.call()[-1])
-  if(!missing(x)){
-		args$x <- x
-		bquote(.(mu) - (.(mu) - .(x)) * exp(-.(d) * .(t)), args)
+  if (!missing(x)) {
+    args$x <- x
+    bquote(.(mu) - (.(mu) - .(x)) * exp(-.(d) * .(t)), args)
   } else {
-		bquote(.(mu) - .(mu) * exp(-.(d) * .(t)), args)
+    bquote(.(mu) * (1 - exp(-.(d) * .(t))), args)
   }
 }
 
