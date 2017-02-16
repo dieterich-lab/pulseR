@@ -121,7 +121,7 @@ getMaxRelDifference <- function(x,y) max(abs(1 - unlist(x)/unlist(y)))
 #' \dontrun{
 #' fitResult <- fitModel(pd, par)
 #' }
-fitModel <- function(pulseData, par, options = .defaultParams) {
+fitModel <- function(pulseData, par, options) {
   param_names <- names(par$params)
   log2screen(options, cat("\n"))
   rel_err <- Inf
