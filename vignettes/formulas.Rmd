@@ -2,7 +2,8 @@
 title: "Formula creation"
 author: "Uvarovskii Alexey"
 date: "`r Sys.Date()`"
-output: rmarkdown::html_vignette
+output: 
+  html_vignette: default
 vignette: >
   %\VignetteIndexEntry{Vignette Title}
   %\VignetteEngine{knitr::rmarkdown}

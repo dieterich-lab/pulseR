@@ -4,7 +4,7 @@
 \alias{fitModel}
 \title{Fit the model by MLE}
 \usage{
-fitModel(pulseData, par, options = .defaultParams)
+fitModel(pulseData, par, options)
 }
 \arguments{
 \item{pulseData}{PulseData object}
@@ -14,8 +14,8 @@ fitModel(pulseData, par, options = .defaultParams)
 \item{options}{\code{list} of options}
 }
 \value{
-a list `l` with fitted parameters `l$par` and
-    formulas `l$formulas`
+a list with the fitted parameters in the same form as
+the initial guess `par`
 }
 \description{
 Fit the model by MLE
