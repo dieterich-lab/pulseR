@@ -440,3 +440,18 @@ stopIfNotInRanges <- function(args, options) {
     stop(msg)
   }
 }
+
+guessMeans <- function(pulseData,
+                       totalLabel = "total",
+                       fun = c("mean", "geomean", "median")) {
+  fun <- match.arg(fun)
+  fun <- switch(
+    fun,
+    mean = mean,
+    median = median,
+    geomean = function(x)
+      exp(mean(log(x + .01)))
+  )
+  totals <- pulseData$user_conditions[,1] == totalLabel
+  apply(pulseData$count_data, 1, fun)
+}
