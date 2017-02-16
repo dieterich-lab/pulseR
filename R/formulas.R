@@ -155,7 +155,7 @@ degrade <- function(x, d, t){
 #' 
 degrade_ <- function(x, d, t) {
   args <- as.list(match.call()[-1])
-  args$x <- x
+  args$x <- toLanguage(x)
   bquote(.(x) * exp(-.(d) * .(t)), args)
 }
 
@@ -226,7 +226,7 @@ growFrom0 <- function(mu, d, t) {
 grow_ <- function(x, mu, d, t) {
   args <- as.list(match.call()[-1])
   if (!missing(x)) {
-    args$x <- x
+    args$x <- toLanguage(x)
     bquote(.(mu) - (.(mu) - .(x)) * exp(-.(d) * .(t)), args)
   } else {
     bquote(.(mu) * (1 - exp(-.(d) * .(t))), args)
