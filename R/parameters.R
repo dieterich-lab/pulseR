@@ -424,8 +424,8 @@ stopIfNotInRanges <- function(args, options) {
     args$size <- NULL
   }
   is.inRange <- function(x, lb, ub) {
-    lb <- .expandBoundary(lb, names(lb))
-    ub <- .expandBoundary(ub, names(ub))
+    lb <- .expandBoundary(lb, names(x))
+    ub <- .expandBoundary(ub, names(x))
     all(vapply(names(x),
                function(par_name) {
                  all(x[[par_name]] >= lb[[par_name]]) &&
