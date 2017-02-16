@@ -101,8 +101,8 @@ getMaxRelDifference <- function(x,y) max(abs(1 - unlist(x)/unlist(y)))
 #' @param par initial guess for parameters as a \code{list}.  
 #' @param options \code{list} of options
 #'
-#' @return a list `l` with fitted parameters `l$par` and
-#'     formulas `l$formulas` 
+#' @return a list with the fitted parameters in the same form as
+#' the initial guess `par`
 #'     
 #' @details 
 #'    In the initial guess \code{par},
@@ -127,8 +127,8 @@ fitModel <- function(pulseData, par, options = .defaultParams) {
   rel_err <- Inf
   shared_rel_err <- ifelse(is.null(par$shared), 0, Inf)
   fraction_rel_err <- ifelse(is.null(par$fraction_factors), 0, Inf)
-  while (rel_err > options$tolerance$params||
-         shared_rel_err > options$tolerance$shared||
+  while (rel_err > options$tolerance$params ||
+         shared_rel_err > options$tolerance$shared ||
          fraction_rel_err > options$tolerance$fraction) {
     # Fit shared params
     if (!is.null(par$shared_params)) {
@@ -139,7 +139,7 @@ fitModel <- function(pulseData, par, options = .defaultParams) {
     # Fit params for every genes individually
     params <- fitGeneParameters(pulseData, par, options)
     rel_err <- getMaxRelDifference(params, par$params)
-    par$params<- params
+    par$params <- params
     if (!is.null(par$fraction_factors)) {
       res <- fitFractions(pulseData, par, options)
       fraction_rel_err <- getMaxRelDifference(res, par$fraction_factors)
@@ -161,5 +161,5 @@ fitModel <- function(pulseData, par, options = .defaultParams) {
   ## fit gene specific final parameters
   par$individual_params <- fitGeneParameters(pulseData, par, options)
   names(par$fraction_factors)  <- levels(pulseData$fraction)
-  list(par = par, formulas = pulseData$formulas)
+  par
 }
