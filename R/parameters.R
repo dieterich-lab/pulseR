@@ -418,9 +418,14 @@ validate <- function(p, b) {
 #' @return NULL
 #'
 stopIfNotInRanges <- function(args, options) {
+  if (!is.null(args$size)) {
+    if (args$size < options$lb$size || args$size > options$ub$size)
+      stop("Error: Argument 'size' is not within the specified range\n")
+    args$size <- NULL
+  }
   is.inRange <- function(x, lb, ub) {
-    lb <- .expandBoundary(x, lb)
-    ub <- .expandBoundary(x, ub)
+    lb <- .expandBoundary(lb, names(lb))
+    ub <- .expandBoundary(ub, names(ub))
     all(vapply(names(x),
                function(par_name) {
                  all(x[[par_name]] >= lb[[par_name]]) &&
