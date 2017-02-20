@@ -23,6 +23,10 @@ norm_factors <- list(
   1
 )
 
+llgene <- function(params){
+  
+}
+
 evaled <- lapply(forms, eval, par)
 
 sample_means <- function(evaled_forms, form_indexes, norm_factors){
@@ -33,7 +37,11 @@ sample_means <- function(evaled_forms, form_indexes, norm_factors){
     },
     form_indexes,
     norm_factors, SIMPLIFY=FALSE)
-  mus
+  do.call(cbind, mus)
+}
+
+ll <- function(mus, counts, size){
+  sum(dnbinom(counts, mus, log=TRUE, size=size))
 }
 
 .mu <- function(evaled_form_list, norm_fac){
