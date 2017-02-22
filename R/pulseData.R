@@ -19,72 +19,26 @@
 #' @return an object of class "PulseData"
 #' @export
 #'
-PulseData <- function(count_data,
+PulseData <- function(counts,
                       conditions,
                       formulas,
+                      formulaIndexes = NULL,
                       spikeins = NULL,
                       fractions = NULL) {
   e <- new.env()
   class(e) <- "PulseData"
-  samples <- sort(colnames(count_data))
+  samples <- sort(colnames(counts))
   e$user_conditions <- conditions[samples,, drop = FALSE]
-  e$count_data <- as.matrix(count_data[, samples])
+  e$counts <- as.matrix(count_data[, samples])
   t <- addKnownShared(formulas, e$user_conditions[samples, , drop = FALSE])
   e$conditions <- t$conditions
   e$formulas <- t$formulas
   e$user_formulas <- formulas
-  if (!is.null(spikeins) && !is.null(fractions))
-    stop(paste("Fractions can not be specified if spike-ins are given.\n"))
-  # create e$fraction if spike-ins are not provided
-  if (!is.null(spikeins)) {
-    e$spikeins <- spikeins
-    e$fraction <- NULL
-  } else {
-    e$fraction <- codeFractions(e$user_conditions, fractions)
-  }
-  e$formulas <- t$formulas
-  e$norm_factors <- NULL
   normalise(e)
   e
 }
 
-#' Generate fraction names 
-#'
-#' @param conditions a data.frame. The condition matrix.
-#' @param fractions a formula, with the right side defining 
-#' how to divide samples into different fractions, e.g. ~ time + conditions.
-#'
-#' @return a factor
-#' @export
-#'
-codeFractions <- function(conditions, fractions){
-    # if no fractions formula provided, use the whole data.frame from conditions
-    if (!is.null(fractions)) {
-      columns <- conditions[, all.vars(fractions), drop = FALSE]
-      fractions <- factor(apply(columns, 1, paste, collapse = "."))
-    } else {
-      fractions <- factor(apply(conditions, 1, paste, collapse = "."))
-    }
-  fractions
-}
 
-#' Get fraction labels for the samples 
-#'
-#' @param pulseData a \code{\link{PulseData}} object
-#'
-#' @return a vector of factors corresponding to the fraction 
-#'    labels for samples, if fractions were specified in the \code{pulseData}
-#'    argument. Otherwise, return \code{NULL}. 
-#'    Sample labels are provided in the vector names.
-#' @export
-#' @seealso \link{names}, \link{PulseData}
-#'
-getFractions <- function(pulseData){
-  result <- pulseData$fraction
-  if (!is.null(result))
-    names(result) <- colnames(pulseData$count_data)
-  result
-}
 
 #' @export
 print.PulseData <- function(x,...){
@@ -133,30 +87,6 @@ findDeseqFactorsForFractions <- function(count_data, conditions) {
     unlist(deseqFactors)[colnames(count_data)]
 }
 
-# Performs DESeq normalisation according to first column of *conditions*
-# specified by the user (default), or according to *fraction formula*,
-# e.g. ~ condition + time
-#' Estimate normalisation factors for fraction with the same method as
-#' in the DESeq2 package
-#'
-#' @param pulseData a PulseData object
-#'
-#' @return the same PulseData object with estimated normalisation factors
-#' @export
-#'
-normalise <- function(pulseData) {
-  if (!is.null(pulseData$spikeins)) {
-    pulseData$norm_factors <- findDeseqFactorsSingle(
-      pulseData$count_data[pulseData$spikeins, , drop = FALSE])
-    genes <- setdiff(rownames(pulseData$count_data),pulseData$spikeins)
-    pulseData$count_data <- pulseData$count_data[genes,, drop=FALSE]
-  } else {
-    pulseData$norm_factors <- findDeseqFactorsForFractions(
-      pulseData$count_data, pulseData$fraction)
-  }
-  pulseData
-}
-
 # evaluate formulas in the environment of known params from the conditions
 # Returns list( [evaluated formulas], [conditions as vector])
 addKnownShared <- function(formulas, user_conditions){
@@ -177,6 +107,26 @@ addKnownShared <- function(formulas, user_conditions){
     conditions  = interactions)
 }
 
+addKnownToFormulas <- function(forms, formulaIndexes, conditions) {
+  uc <- unique(conditions)
+  newIndexes <- list()
+  newForms <- list()
+  for (i in seq_along(uc[, 1])) {
+    f <- forms[formulaIndexes[[as.character(uc[i, 1])]]]
+    newNames <- as.character(
+      interaction(c(list(names(f)), uc[i, -1])))
+    res <- lapply(f, substitute_q, env = as.list(uc[i, ]))
+    names(res) <- newNames
+    newForms[names(res)] <- res
+    newIndexes[[i]] <- newNames
+  }
+  newIndexes <- names2numbers(newIndexes, names(newForms))
+  list(forms=newForms, formulaIndexes=newIndexes)
+}
+
+names2numbers <- function(nameLists, nameVector){
+  lapply(nameLists, match, nameVector)
+}
 
 #' Create a test count data
 #'
