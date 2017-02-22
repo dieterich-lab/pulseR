@@ -27,11 +27,10 @@ sample_means <- function(evaled_forms, form_indexes, norm_factors){
 }
 
 # universal likehood
-ll <- function(counts, par, namesToOptimise) {
-  p <- par[namesToOptimise]
+ll <- function(par, namesToOptimise, pattern=par[namesToOptimise]) {
   par[namesToOptimise] <- NULL
-  function(x){
-    par[namesToOptimise] <- relist(x, p)
+  function(x, counts){
+    par[namesToOptimise] <- relist(x, pattern)
     evaledForms <- lapply(forms, eval, envir = par) 
     means <- sample_means(evaledForms, formIndexes, normFactors)
     -sum(dnbinom(counts, mu = means, size = par$size, log = TRUE))

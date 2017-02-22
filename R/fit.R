@@ -1,4 +1,39 @@
 
+fitParams <- function(counts, par, namesToOptimise, opts) {
+  lb <- unlist(opts$lb[namesToOptimise])
+  ub <- unlist(opts$ub[namesToOptimise])
+  objective <- ll(par, namesToOptimise)
+  x <- optim(
+    x,
+    objective,
+    method = "L-BFGS-B",
+    control = list(parscale = x),
+    lower = lb,
+    upper = ub,
+    counts = counts
+  )$par
+  relist(x, par[namesToOptimise])
+}
+
+fitParamsSeparately <- function(counts, par, namesToOptimise, opts) {
+  lb <- unlist(opts$lb[namesToOptimise])
+  ub <- unlist(opts$ub[namesToOptimise])
+  p <- data.frame(par[namesToOptimise])
+  objective <- ll(par, namesToOptimise, as.list(p[1, ]))
+  for (i in seq_len(p[, 1])) {
+    p[i, ] <- optim(
+      p[i, ],
+      objective,
+      method = "L-BFGS-B",
+      control = list(parscale = x),
+      lower = lb,
+      upper = ub,
+      counts = counts
+    )$par
+  }
+  as.list(p)
+}
+
 #' Fit gene-specific parameters
 #'
 #' @param pulseData PulseData object
