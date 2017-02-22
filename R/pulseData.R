@@ -138,4 +138,5 @@ generateTestDataFrom <- function(formulas,
   means <- sample_means(evaled, indexes, normFactors)
   counts <- matrix(rnbinom(length(means), mu = means, size = par$size),
          ncol = length(formulaIndexes))
+  counts
 }
