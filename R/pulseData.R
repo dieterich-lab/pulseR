@@ -26,15 +26,19 @@ PulseData <- function(counts,
                       spikeins = NULL,
                       fractions = NULL) {
   e <- new.env()
+  if (is.null(formulaIndexes))
+    formulaIndexes <- match(conditions[, 1], names(formulas))
   class(e) <- "PulseData"
   samples <- sort(colnames(counts))
   e$user_conditions <- conditions[samples,, drop = FALSE]
-  e$counts <- as.matrix(count_data[, samples])
-  t <- addKnownShared(formulas, e$user_conditions[samples, , drop = FALSE])
-  e$conditions <- t$conditions
-  e$formulas <- t$formulas
+  e$counts <- as.matrix(counts[, samples])
+  known <- addKnownToFormulas(formulas, formulaIndexes, conditions)
+  e$conditions <- conditions
+  e$formulas <- known$formulas
+  e$formulaIndexes <- known$formulaIndexes
   e$user_formulas <- formulas
-  normalise(e)
+  e$normFactors <- relist(rep(1,length(unlist(formulaIndexes))), formulaIndexes)
+  #normalise(e)
   e
 }
 
@@ -89,23 +93,6 @@ findDeseqFactorsForFractions <- function(count_data, conditions) {
 
 # evaluate formulas in the environment of known params from the conditions
 # Returns list( [evaluated formulas], [conditions as vector])
-addKnownShared <- function(formulas, user_conditions){
-  if (dim(as.matrix(user_conditions))[2] == 1)
-    return(list(formulas=formulas, conditions=user_conditions[,1]))
-  knownParams <-
-    which(colnames(user_conditions) %in% unlist(lapply(formulas, all.vars)))
-  conditions <- user_conditions[, c(1,knownParams), drop=FALSE]
-  interactions <- interaction(conditions,drop = TRUE, lex.order=TRUE)
-  names(interactions)   <- rownames(conditions)
-  conditions <- unique(conditions)
-  evaledFormulas <- lapply(seq_along(conditions[,1]), function(i){
-    substitute_q(formulas[[as.character(conditions[i,1])]],
-      as.list(conditions[i,-1, drop=FALSE]))
-      })
-  names(evaledFormulas) <- unique(interactions)
-  list(formulas = evaledFormulas,
-    conditions  = interactions)
-}
 
 addKnownToFormulas <- function(forms, formulaIndexes, conditions) {
   uc <- unique(conditions)
@@ -121,7 +108,7 @@ addKnownToFormulas <- function(forms, formulaIndexes, conditions) {
     newIndexes[[i]] <- newNames
   }
   newIndexes <- names2numbers(newIndexes, names(newForms))
-  list(forms=newForms, formulaIndexes=newIndexes)
+  list(formulas = newForms, formulaIndexes = newIndexes)
 }
 
 names2numbers <- function(nameLists, nameVector){
@@ -135,50 +122,20 @@ names2numbers <- function(nameLists, nameVector){
 #'     and shared_params (optional). If \code{fractions} is defined,
 #'     \code{par$fraction_factors} must be not \code{NULL}
 #' @param conditions a condition data.frame
-#' @param fractions a factor for splitting the samples into subsets with 
-#'   different normalisation coefficients
 #' @return matrix of counts with the order of columns as in conditions 
 #' @importFrom stats rnbinom
 #' @export
 #'
 generateTestDataFrom <- function(formulas,
+                                 formulaIndexes,
+                                 normFactors,
                                  par,
-                                 conditions,
-                                 fractions = NULL){
-  if (!is.null(fractions) && is.null(par$fraction_factors)) {
-    stop(
-      paste(
-        "Fraction factors must be specified in par$fraction_factors according\n",
-        "to factor levels in the fractions argument"
-      )
-    )
-  }
-  t <- addKnownShared(formulas, conditions)
-  formulas <- t$formulas
-  conditions_known <- data.frame(condition=t$conditions)
-  counts <- list()
-  for (i in seq_along(par$params[,1])){
-    means <- sapply(formulas, eval, 
-      c(as.list(par$params[i,]),
-        as.list(par$shared),
-        as.list(par$known[i,, drop=FALSE])))
-    # normalise
-    norm_factors <- 1
-    if (!is.null(fractions)) {
-      if (class(fractions) == "formula")
-        fractions <- codeFractions(conditions, fractions)
-      fraction_indexes <- as.integer(fractions)
-      par$fraction_factors[1] <- 1
-      norm_factors <- par$fraction_factors[fraction_indexes]
-    }
-    indexes <- match(conditions_known$condition, names(formulas))
-    counts[[i]] <- rnbinom(
-      n    = length(conditions$condition),
-      mu   = means[indexes] * norm_factors,
-      size = par$size)
-  }
-  counts <- do.call(rbind, counts)
-  rownames(counts) <- rownames(par$params)
-  colnames(counts) <- rownames(conditions)
-  counts
+                                 conditions) {
+  known <- addKnownToFormulas(formulas, formulaIndexes, conditions)
+  formulas <- known$formulas
+  indexes <- known$formulaIndexes
+  evaled <- lapply(formulas, eval, env=par) 
+  means <- sample_means(evaled, indexes, normFactors)
+  counts <- matrix(rnbinom(length(means), mu = means, size = par$size),
+         ncol = length(formulaIndexes))
 }
