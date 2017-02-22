@@ -12,6 +12,27 @@ par <-  c(par, list(
   a = (1:nGenes) * 1e5, b = rep(1e6, nGenes)))
 par$size <- 100000
 
+conditions <- data.frame(
+  fraction = c("lab", "unlab", "total"),
+  time = c(2,2,1))
+
+formulaIndexes <- list(
+  lab = c("lab", "unlab"),
+  unlab = c("lab", "unlab"),
+  total = c('total'))
+
+normFactors <- list(
+  c(1,0),
+  c(0,1),
+  1
+)
+
+generateTestDataFrom(formulas = forms,
+                     par = par,
+                     formulaIndexes = formulaIndexes,
+                     normFactors = normFactors,
+                     conditions = conditions)
+                     
 
 counts <- as.matrix(data.frame(
   s1 = rnbinom(nGenes, size = par$size, mu = par$a),
@@ -19,16 +40,14 @@ counts <- as.matrix(data.frame(
   s3 = rnbinom(nGenes, size = par$size, mu = par$a + par$b)
 ))
   
-conditions <- data.frame(
-  fraction = c("lab", "unlab", "total"),
-  time = c(2,2,1))
-pulseR:::addKnownShared(forms, conditions)
-formulaIndexes <- list(
-  lab = c("lab", "unlab"),
-  unlab = c("lab", "unlab"),
-  total = c('total'))
 
-
+pd <- PulseData(
+  counts = counts,
+  conditions = conditions,
+  formulas = forms,
+  formulaIndexes = formulaIndexes
+)
+                
 
 pd$formIndexes <- lapply(formulaIndexes, match, names(forms))  
   
