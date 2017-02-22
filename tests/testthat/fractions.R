@@ -27,20 +27,14 @@ normFactors <- list(
   1
 )
 
-generateTestDataFrom(formulas = forms,
-                     par = par,
-                     formulaIndexes = formulaIndexes,
-                     normFactors = normFactors,
-                     conditions = conditions)
+counts <- generateTestDataFrom(
+  formulas = forms,
+  par = par,
+  formulaIndexes = formulaIndexes,
+  normFactors = normFactors,
+  conditions = conditions
+)
                      
-
-counts <- as.matrix(data.frame(
-  s1 = rnbinom(nGenes, size = par$size, mu = par$a),
-  s2 = rnbinom(nGenes, size = par$size, mu = par$b),
-  s3 = rnbinom(nGenes, size = par$size, mu = par$a + par$b)
-))
-  
-
 pd <- PulseData(
   counts = counts,
   conditions = conditions,
