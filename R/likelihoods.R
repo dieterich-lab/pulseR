@@ -27,48 +27,20 @@ sample_means <- function(evaled_forms, form_indexes, norm_factors){
 }
 
 # universal likehood
-ll <- function(par, namesToOptimise, pattern=par[namesToOptimise]) {
+ll <- function(par, namesToOptimise, pd, singleValue = FALSE) {
+  pattern <- par[namesToOptimise]
+  if (singleValue)
+    pattern <- lapply(pattern, '[', 1)
   par[namesToOptimise] <- NULL
-  function(x, counts){
+  function(x, counts) {
     par[namesToOptimise] <- relist(x, pattern)
-    evaledForms <- lapply(forms, eval, envir = par) 
-    means <- sample_means(evaledForms, formIndexes, normFactors)
+    evaledForms <- lapply(pd$formulas, eval, envir = par)
+    means <- sample_means(evaledForms, pd$formIndexes, pd$normFactors)
     -sum(dnbinom(counts, mu = means, size = par$size, log = TRUE))
   }
 }
 
 
-
-#' Create a likelihood function for shared parameters
-#' 
-#' The values of gene-specific parameters, \code{size} from
-#'  \code{\link{dnbinom}} and
-#' normalisation factors are taken from \code{par}. 
-#' @inheritParams ll_gene
-#'
-#' @return a function(params, counts), which returns a  log likelihood
-#' for a given vector of shared parameters, which are ordered as in 
-#' \code{par$shared}.
-#' @importFrom stats dnbinom
-#'
-ll_shared_params <- function(pulseData, par) {
-  shared_param_names <- names(par$shared)
-  norm_factors <- getNormFactors(pulseData, par)
-  function(shared_params) {
-    names(shared_params) <- shared_param_names
-    par$shared <- shared_params
-    means <- getMeans(formulas = pulseData$formulas, par = par)
-    mean_indexes <-
-      sapply(pulseData$conditions, match, names(pulseData$formulas))
-    lambdas <- t(t(means[, mean_indexes]) * norm_factors)
-    - sum(dnbinom(
-      x    = pulseData$count_data,
-      mu   = lambdas,
-      log  = TRUE,
-      size = par$size
-    ))
-  }
-}
 
 
 
