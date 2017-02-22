@@ -1,3 +1,11 @@
+# extend boundaries to param length
+.b <- function(b, par) {
+  for (p in names(b)) {
+    if (length(b[[p]]) == 1)
+      b[[p]] <- rep(b[[p]], length(par[[p]]))
+  }
+  b
+}
 
 #from pryr package
 substitute_q <- function(x, env)
@@ -6,63 +14,31 @@ substitute_q <- function(x, env)
   eval(call)
 }
 
-makeVector <- function(forms) {
-  as.call(c(c,forms))
+# get matrix for samples
+sample_means <- function(evaled_forms, form_indexes, norm_factors){
+  mus <- mapply(
+    function(i, n){
+      m <- do.call(cbind,evaled_forms[i])
+      m %*% n
+    },
+    form_indexes,
+    norm_factors, SIMPLIFY=FALSE)
+  do.call(cbind, mus)
 }
 
-getNormFactors <- function(pulseData, par) {
-  norm_factors <- pulseData$norm_factors
-  if (!is.null(par$fraction_factors)) {
-    norm_factors <- norm_factors *
-      par$fraction_factors[as.integer(pulseData$fraction)]
-  }
-  norm_factors
-}
-
-getMeans <- function(formulas, par) {
-  params <- c(par$params, par$shared, par$known)
-  means <- lapply(formulas, function(x) {
-    eval(x, envir = params)
-  })
-  means <- do.call(cbind, means) 
-  means
-}
-
-#' Create a likelihood function for gene-specific parameters
-#' 
-#' The values of shared parameters, \code{size} from \code{\link{dnbinom}} and
-#' normalisation factors are taken from \code{par}. 
-#'
-#' @param pulseData PulseData object
-#' @param par list; must have fields \code{shared_params}, \code{size},
-#'  \code{params}, \code{fraction_factors}.
-#'
-#' @return a function(params, counts), which returns a  log likelihood
-#' for a given vector of individual parameters, which are ordered as in 
-#' \code{par$params}. 
-#' @importFrom stats dnbinom
-#'
-ll_gene <- function(pulseData, par) {
-  mean_indexes <- sapply(pulseData$conditions, match, names(pulseData$formulas))
-  formulas <- pulseData$formulas
-  if (!is.null(par$shared))
-    formulas <- lapply(formulas, substitute_q, par$shared)
-  means_vector <-  makeVector(formulas)
-  param_names <- names(par$params)
-  norm_factors <- getNormFactors(pulseData, par)
-  function(params, counts, known=NULL) {
-    names(params) <- param_names
-    mus <- eval(means_vector, as.list(c(params, known)))
-    if(any(mus<=0)) return(Inf)
-    lambdas <-  mus[mean_indexes]
-    - sum(dnbinom(
-      x    = counts,
-      mu   = lambdas * norm_factors,
-      log  = TRUE,
-      size = par$size
-    ))
+# universal likehood
+ll <- function(counts, par, namesToOptimise) {
+  p <- par[namesToOptimise]
+  par[namesToOptimise] <- NULL
+  function(x){
+    par[namesToOptimise] <- relist(x, p)
+    evaledForms <- lapply(forms, eval, envir = par) 
+    means <- sample_means(evaledForms, formIndexes, normFactors)
+    -sum(dnbinom(counts, mu = means, size = par$size, log = TRUE))
   }
 }
+
+
 
 #' Create a likelihood function for shared parameters
 #' 
@@ -95,41 +71,7 @@ ll_shared_params <- function(pulseData, par) {
   }
 }
 
-ll_norm_factors <- function(pulseData, par) {
-  means <- getMeans(formulas = pulseData$formulas, par = par)
-  mean_indexes <-
-    sapply(pulseData$conditions, match, names(pulseData$formulas))
-  lambdas <- means[, mean_indexes]
-  norm_indexes <- as.integer(pulseData$fraction)
-  function(fraction_factors) {
-    fraction_factors <-
-      c(1, fraction_factors)[norm_indexes] * pulseData$norm_factors
-    norm_lambdas <- t(t(lambdas) * fraction_factors)
-    if(any(norm_lambdas<=0)) return(Inf)
-    - sum(dnbinom(
-      x    = pulseData$count_data,
-      mu   = norm_lambdas,
-      log  = TRUE,
-      size = par$size
-    ))
-  }
-}
 
-ll_dispersion <- function(pulseData, par) {
-  norm_factors <- getNormFactors(pulseData, par)
-  means <- getMeans(formulas = pulseData$formulas, par = par)
-  mean_indexes <- sapply(pulseData$conditions, match, names(pulseData$formulas))
-  lambdas <- t(t(means[, mean_indexes]) * norm_factors)
-  function(size) {
-    -sum(dnbinom(
-        x    = pulseData$count_data,
-        mu   = lambdas,
-        log  = TRUE,
-        size = size
-      )
-    )
-  }
-}
 
 #' Calculate expected read numbers for the raw data 
 #'
