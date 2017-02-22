@@ -1,8 +1,9 @@
 
-fitParams <- function(counts, par, namesToOptimise, opts) {
+fitParams <- function(pd, par, namesToOptimise, opts) {
   lb <- unlist(opts$lb[namesToOptimise])
   ub <- unlist(opts$ub[namesToOptimise])
-  objective <- ll(par, namesToOptimise)
+  objective <- ll(par = par, namesToOptimise = namesToOptimise, pd = pd)
+  x <- unlist(par[namesToOptimise])
   x <- optim(
     x,
     objective,
@@ -10,101 +11,30 @@ fitParams <- function(counts, par, namesToOptimise, opts) {
     control = list(parscale = x),
     lower = lb,
     upper = ub,
-    counts = counts
+    counts = pd$counts
   )$par
   relist(x, par[namesToOptimise])
 }
 
-fitParamsSeparately <- function(counts, par, namesToOptimise, opts) {
+fitParamsSeparately <- function(pd, par, namesToOptimise, opts) {
   lb <- unlist(opts$lb[namesToOptimise])
   ub <- unlist(opts$ub[namesToOptimise])
   p <- data.frame(par[namesToOptimise])
-  objective <- ll(par, namesToOptimise, as.list(p[1, ]))
+  objective <- ll(par, namesToOptimise, pd,  singleValue=TRUE)
   for (i in seq_len(p[, 1])) {
     p[i, ] <- optim(
       p[i, ],
       objective,
       method = "L-BFGS-B",
-      control = list(parscale = x),
+      control = list(parscale = p[i,]),
       lower = lb,
       upper = ub,
-      counts = counts
+      counts = pd$counts[i,]
     )$par
   }
   as.list(p)
 }
 
-#' Fit gene-specific parameters
-#'
-#' @param pulseData PulseData object
-#' @param par all needed parameters as a \code{list}
-#' @param options \code{list} of options
-#'
-#' @return fitted parameters as a data.frame ordered as initial parameters
-#' @importFrom  stats optim dnbinom
-#' @importFrom parallel mclapply
-#' 
-fitGeneParameters <- function(pulseData, par, options) {
-  validateOptions(options)
-  param_names <- colnames(par$params)
-  lb <- validate(par$params, options$lb$params)
-  ub <- validate(par$params, options$ub$params)
-  objective <- ll_gene(pulseData, par)
-  new_params <- list()
-  new_params <- mclapply(
-    X = seq_len(dim(par$params)[1]),
-    FUN = function(i) {
-      olds <- par$params[i,, drop = FALSE]
-      optim(
-        olds,
-        objective,
-        method = "L-BFGS-B",
-        lower = lb,
-        upper = ub,
-        control = list(parscale = olds),
-        counts = pulseData$count_data[i,],
-        known = par$known[i,, drop = FALSE]
-      )$par
-    }
-    ,mc.cores = options$cores
-  )
-  new_params <- do.call(rbind, new_params)
-  rownames(new_params) <- rownames(par$params)
-  as.data.frame(new_params)
-}
-
-fitSharedParameters <- function(pulseData, par, options) {
-  shared_objective <- ll_shared_params(pulseData, par)
-  shared_names <- names(par$shared)
-  lb <- validate(par$shared, options$lb$shared)
-  ub <- validate(par$shared, options$ub$shared)
-  shared_params <- optim(
-    unlist(par$shared),
-    shared_objective,
-    method = "L-BFGS-B",
-    lower = lb,
-    upper = ub
-  )$par
-  names(shared_params) <- shared_names
-  as.list(shared_params)
-}
-
-#' Fit the dispersion parameter
-#'
-#' @param pulseData PulseData object
-#' @param par all needed parameters as a \code{list}
-#' @param options \code{list} of options
-#'
-#' @return the MLE of the \code{size} for \code{\link{dnbinom}}
-#' @importFrom  stats optimise
-#'
-fitDispersion <- function(pulseData, par, options) {
-  dispersion_objective <- ll_dispersion(pulseData, par)
-  interval <- c(options$lb$size, options$ub$size)
-  size <- optimise(dispersion_objective,
-                   interval = interval)$minimum
-  size
-}
 
 #' Fit fraction normalisation coefficients
 #'
@@ -167,8 +97,13 @@ fitModel <- function(pulseData, par, options) {
          fraction_rel_err > options$tolerance$fraction) {
     # Fit shared params
     if (!is.null(par$shared_params)) {
-      shared_params <- fitSharedParameters(pulseData, par, options)
-      shared_rel_err <- getMaxRelDifference(shared_params, par$shared)
+      shared_params <- fitParams(
+        pd = pd,
+        par = par,
+        namesToOptimise = shared_names,
+        opts = options
+      )
+      shared_rel_err <- getMaxRelDifference(shared_params, par[shared_names])
       par$shared <- shared_params
     }
     # Fit params for every genes individually
