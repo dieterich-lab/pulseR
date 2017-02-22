@@ -1,16 +1,13 @@
 
 #' Create an object for pulse-change count data
 #'
-#' @param count_data a matrix; column names correspond to sample names
+#' @param counts a matrix; column names correspond to sample names
 #' @param conditions a data.frame;
 #'   the first column corresponds to the conditions given in \code{formulas}.
-#'   May columns named as parameters,
-#'   used in the formula definitions, e.g. "time" 
-#'   if formula = ~condition + time.
-#'   
 #' @param formulas a list, created by \code{\link{MeanFormulas}}
-#' @param spikeins a vector of characters or indexes, optional;
-#'  defines which genes to use as a reference for normalisation 
+#' @param formulaIndexes list of lists; defines indexes of formulas 
+#' used for calculation of the expected read number
+#' @param spikeins 
 #' @param fractions a formula, e.g. ~ condition + time (if spike-ins are
 #' not provided).
 #' the names used in the \code{fractions} defines different fractions,
@@ -118,9 +115,12 @@ names2numbers <- function(nameLists, nameVector){
 #' Create a test count data
 #'
 #' @param formulas a list
-#' @param par a list with individual_params(must have), size (must have) 
-#'     and shared_params (optional). If \code{fractions} is defined,
-#'     \code{par$fraction_factors} must be not \code{NULL}
+#' @param formulaIndexes list of lists; defines indexes of formulas 
+#' used for calculation of the expected read number
+#' @param normFactors list of vectors; normalisation factors, if
+#' known
+#' @param par a list of named parameters; gene-specific parameters 
+#' are vectors
 #' @param conditions a condition data.frame
 #' @return matrix of counts with the order of columns as in conditions 
 #' @importFrom stats rnbinom

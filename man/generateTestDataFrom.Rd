@@ -4,19 +4,21 @@
 \alias{generateTestDataFrom}
 \title{Create a test count data}
 \usage{
-generateTestDataFrom(formulas, par, conditions, fractions = NULL)
+generateTestDataFrom(formulas, formulaIndexes, normFactors, par, conditions)
 }
 \arguments{
 \item{formulas}{a list}
 
-\item{par}{a list with individual_params(must have), size (must have) 
-and shared_params (optional). If \code{fractions} is defined,
-\code{par$fraction_factors} must be not \code{NULL}}
+\item{formulaIndexes}{list of lists; defines indexes of formulas 
+used for calculation of the expected read number}
+
+\item{normFactors}{list of vectors; normalisation factors, if
+known}
+
+\item{par}{a list of named parameters; gene-specific parameters 
+are vectors}
 
 \item{conditions}{a condition data.frame}
-
-\item{fractions}{a factor for splitting the samples into subsets with 
-different normalisation coefficients}
 }
 \value{
 matrix of counts with the order of columns as in conditions
