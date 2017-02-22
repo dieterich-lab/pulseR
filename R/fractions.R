@@ -34,27 +34,7 @@ normFactors <- list(
 
 evaled <- lapply(forms, eval, par)
 
-sample_means <- function(evaled_forms, form_indexes, norm_factors){
-  mus <- mapply(
-    function(i, n){
-      m <- do.call(cbind,evaled_forms[i])
-      m %*% n
-    },
-    form_indexes,
-    norm_factors, SIMPLIFY=FALSE)
-  do.call(cbind, mus)
-}
 
-ll <- function(counts, par, namesToOptimise) {
-  p <- par[namesToOptimise]
-  par[namesToOptimise] <- NULL
-  function(x){
-    par[namesToOptimise] <- relist(x, p)
-    evaledForms <- lapply(forms, eval, envir = par) 
-    means <- sample_means(evaledForms, formIndexes, normFactors)
-    -sum(dnbinom(counts, mu = means, size = par$size, log = TRUE))
-  }
-}
 
 f <- ll(counts, par, c("a", "b"))
 
@@ -62,14 +42,6 @@ paramClasses <- list(
   part = c("a", "b"),
   shared = c("alpha"))
 
-# extend boundaries to param length
-.b <- function(b, par) {
-  for (p in names(b)) {
-    if (length(b[[p]]) == 1)
-      b[[p]] <- rep(b[[p]], length(par[[p]]))
-  }
-  b
-}
 
 fitParams <- function(counts, par, namesToOptimise, opts){
  objective <- ll(counts, par, namesToOptimise)
