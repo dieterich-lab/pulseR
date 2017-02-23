@@ -1,4 +1,15 @@
 
+#' Fit parameters given the initial values and the parameter names
+#'
+#' @param pd the \code{\link{PulseData}} object
+#' @param par the parameter named list
+#' @param namesToOptimise a vector of names
+#' @param opts a list with optimisation options
+#'
+#' @return a list with fitted parameters
+#' @export
+#'
+#' @examples
 fitParams <- function(pd, par, namesToOptimise, opts) {
   lb <- unlist(opts$lb[namesToOptimise])
   ub <- unlist(opts$ub[namesToOptimise])
