@@ -140,3 +140,11 @@ generateTestDataFrom <- function(formulas,
          ncol = length(formulaIndexes))
   counts
 }
+
+multiplyList <- function(source, pattern) {
+  res <- list()
+  for (i in seq_along(pattern)) {
+    res[[i]] <- source[[as.character(pattern[i])]]
+  }
+  res
+}
