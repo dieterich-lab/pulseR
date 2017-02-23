@@ -49,25 +49,24 @@ fitParamsSeparately <- function(pd, par, namesToOptimise, opts) {
 
 #' Fit fraction normalisation coefficients
 #'
-#' @inheritParams fitDispersion
-#' @return vector of normalisation factors; \code{c(1,norm_factors)}
-#'   corresponds to the fractions in \code{pulseData$fractions}
-#'
 #' @importFrom  stats optimise
-fitFractions <- function(pulseData, par, options){
-  objective <- ll_norm_factors(pulseData, par)
-  fraction_names <- names(par$fraction_factors)
-  lb <- validate(par$fraction_factors, options$lb$fraction_factors)
-  ub <- validate(par$fraction_factors, options$ub$fraction_factors)
-  fraction_factors <- optim(
-    unlist(par$fraction_factors)[-1],
+fitNormFactors <- function(pd, par, opts) {
+  lb <- unlist(opts$lb$normFactors)
+  ub <- unlist(opts$ub$normFactors)
+  objective <- llnormFactors(par = par, pd = pd)
+  x <- unlist(par$normFactors)
+  x <- optim(
+    x,
     objective,
     method = "L-BFGS-B",
-    lower  = options$lb$fraction_factors,
-    upper  = options$ub$fraction_factors
+    control = list(parscale = x),
+    lower = lb,
+    upper = ub,
+    counts = pd$counts
   )$par
-  c(1,fraction_factors)
+  relist(x, par$normFactors)
 }
+
 
 getMaxRelDifference <- function(x,y) max(abs(1 - unlist(x)/unlist(y)))
 
