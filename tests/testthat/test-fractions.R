@@ -45,6 +45,10 @@ pd <- PulseData(
   formulaIndexes = formulaIndexes
 )
                 
+assignList <- function(l, x){
+ relist(rep(x, length(unlist(l))), l) 
+}
+
 opts <- list()
 opts$lb <- list(a=.1, b=.01)
 opts$lb <- pulseR:::.b(opts$lb, par)
@@ -52,6 +56,9 @@ opts$ub <- list(a=1e7, b=.99)
 opts$ub <- pulseR:::.b(opts$ub, par)
 opts$lb$alpha <- .1
 opts$ub$alpha <- 10
+
+opts$lb$normFactors <- assignList(normFactors, .1)
+opts$ub$normFactors <- assignList(normFactors, 10)
 
 par$normFactors <- normFactors
 err <- function(x,y){
@@ -63,7 +70,7 @@ test_that("gene params fitting works (together)", {
   par2 <- par
   toOptimise <- c("a", "b")
   par2[toOptimise] <- opts$lb[toOptimise]
-  res <- fitParams(pd, par, toOptimise, opts)
+  res <- pulseR:::fitParams(pd, par, toOptimise, opts)
   expect_lt(max(err(res, par)), .1)
 })
 
@@ -71,7 +78,7 @@ test_that("gene params fitting works (separately)", {
   par2 <- par
   toOptimise <- c("a", "b")
   par2[toOptimise] <- opts$lb[toOptimise]
-  res <- fitParamsSeparately(pd, par, toOptimise, opts)
+  res <- pulseR:::fitParamsSeparately(pd, par, toOptimise, opts)
   expect_lt(max(err(res, par)), .1)
 })
 
@@ -79,8 +86,14 @@ test_that("shared params fitting works", {
   par2 <- par
   toOptimise <- c("alpha")
   par2[toOptimise] <- opts$lb[toOptimise]
-  res <- fitParams(pd, par, toOptimise, opts)
+  res <- pulseR:::fitParams(pd, par, toOptimise, opts)
   expect_lt(max(err(res, par)), .1)
 })
 
+test_that("norm factors fitting works", {
+  par2 <- par
+  par2$normFactors <- assignList(par2$normFactors, 2)
+  res <- pulseR:::fitNormFactors(pd, par2, opts)
+  expect_lt(max(1-unlist(res)/unlist(par$normFactors)), .1)
+})
 
