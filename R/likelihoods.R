@@ -40,6 +40,15 @@ ll <- function(par, namesToOptimise, pd, singleValue = FALSE) {
   }
 }
 
+# likelihood for norm factors
+llnormFactors <- function(par, pd) {
+  evaledForms <- lapply(pd$formulas, eval, envir = par)
+  function(x, counts) {
+    x <- relist(x, par$normFactors)
+    means <- sample_means(evaledForms, pd$formulaIndexes, x)
+    -sum(dnbinom(counts, mu = means, size = par$size, log = TRUE))
+  }
+}
 
 
 
