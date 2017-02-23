@@ -37,9 +37,9 @@ fitParamsSeparately <- function(pd, par, namesToOptimise, opts) {
   ub <- unlist(opts$ub[namesToOptimise])
   p <- data.frame(par[namesToOptimise])
   objective <- ll(par, namesToOptimise, pd,  singleValue=TRUE)
-  for (i in seq_len(p[, 1])) {
+  for (i in seq_along(p[, 1])) {
     p[i, ] <- optim(
-      p[i, ],
+      unlist(p[i, ]),
       objective,
       method = "L-BFGS-B",
       control = list(parscale = p[i,]),

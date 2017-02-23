@@ -59,11 +59,19 @@ err <- function(x,y){
     max(1 - abs(x[[nx]])/abs(y[[nx]])), double(1))
 }
 
-test_that("gene params fitting works", {
+test_that("gene params fitting works (together)", {
   par2 <- par
   toOptimise <- c("a", "b")
   par2[toOptimise] <- opts$lb[toOptimise]
   res <- fitParams(pd, par, toOptimise, opts)
+  expect_lt(max(err(res, par)), .1)
+})
+
+test_that("gene params fitting works (separately)", {
+  par2 <- par
+  toOptimise <- c("a", "b")
+  par2[toOptimise] <- opts$lb[toOptimise]
+  res <- fitParamsSeparately(pd, par, toOptimise, opts)
   expect_lt(max(err(res, par)), .1)
 })
 
@@ -74,3 +82,5 @@ test_that("shared params fitting works", {
   res <- fitParams(pd, par, toOptimise, opts)
   expect_lt(max(err(res, par)), .1)
 })
+
+
