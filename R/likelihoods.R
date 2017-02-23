@@ -30,7 +30,7 @@ sample_means <- function(evaled_forms, form_indexes, norm_factors){
 ll <- function(par, namesToOptimise, pd, singleValue = FALSE) {
   pattern <- par[namesToOptimise]
   if (singleValue)
-    pattern <- lapply(pattern, '[', 1)
+    pattern <- lapply(pattern, '[[', 1)
   par[namesToOptimise] <- NULL
   function(x, counts) {
     par[namesToOptimise] <- relist(x, pattern)
