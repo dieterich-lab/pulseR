@@ -35,7 +35,7 @@ ll <- function(par, namesToOptimise, pd, singleValue = FALSE) {
   function(x, counts) {
     par[namesToOptimise] <- relist(x, pattern)
     evaledForms <- lapply(pd$formulas, eval, envir = par)
-    means <- sample_means(evaledForms, pd$formIndexes, pd$normFactors)
+    means <- sample_means(evaledForms, pd$formulaIndexes, par$normFactors)
     -sum(dnbinom(counts, mu = means, size = par$size, log = TRUE))
   }
 }
