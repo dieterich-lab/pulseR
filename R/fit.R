@@ -9,7 +9,6 @@
 #' @return a list with fitted parameters
 #' @export
 #'
-#' @examples
 fitParams <- function(pd, par, namesToOptimise, opts) {
   lb <- unlist(opts$lb[namesToOptimise])
   ub <- unlist(opts$ub[namesToOptimise])
@@ -27,6 +26,12 @@ fitParams <- function(pd, par, namesToOptimise, opts) {
   relist(x, par[namesToOptimise])
 }
 
+#' Fit parameters with separate likelihood functions
+#'
+#' @inheritParams fitParams
+#' @return a list with fitted parameters
+#' @export
+#'
 fitParamsSeparately <- function(pd, par, namesToOptimise, opts) {
   lb <- unlist(opts$lb[namesToOptimise])
   ub <- unlist(opts$ub[namesToOptimise])
