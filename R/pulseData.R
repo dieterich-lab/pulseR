@@ -102,6 +102,8 @@ addKnownToFormulas <- function(forms, formulaIndexes, conditions) {
     newForms[names(res)] <- res
     newIndexes[[i]] <- newNames
   }
+  names(newIndexes) <- uc[,1]
+  newIndexes <- multiplyList(newIndexes, conditions[,1])
   newIndexes <- names2numbers(newIndexes, names(newForms))
   list(formulas = newForms, formulaIndexes = newIndexes)
 }
@@ -129,6 +131,8 @@ generateTestDataFrom <- function(formulas,
                                  normFactors,
                                  par,
                                  conditions) {
+  if (all(vapply(formulaIndexes, is.character, logical(1))))
+    formulaIndexes <- names2numbers(formulaIndexes, names(formulas))
   known <- addKnownToFormulas(formulas, formulaIndexes, conditions)
   formulas <- known$formulas
   indexes <- known$formulaIndexes
