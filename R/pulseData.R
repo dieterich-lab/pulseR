@@ -26,15 +26,13 @@ PulseData <- function(counts,
   if (is.null(formulaIndexes))
     formulaIndexes <- match(conditions[, 1], names(formulas))
   class(e) <- "PulseData"
-  samples <- sort(colnames(counts))
-  e$user_conditions <- conditions[samples,, drop = FALSE]
-  e$counts <- as.matrix(counts[, samples])
+  e$user_conditions <- conditions
+  e$counts <- as.matrix(counts)
   known <- addKnownToFormulas(formulas, formulaIndexes, conditions)
   e$conditions <- conditions
   e$formulas <- known$formulas
   e$formulaIndexes <- known$formulaIndexes
   e$user_formulas <- formulas
-  e$normFactors <- relist(rep(1,length(unlist(formulaIndexes))), formulaIndexes)
   #normalise(e)
   e
 }
