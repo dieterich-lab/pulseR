@@ -2,7 +2,7 @@
 context("fitting with fraction factors for time dependent data")
 set.seed(259)
 
-nGenes <- 4
+nGenes <- 40
 nReplicates <- 3
 nTime <- 4
 
@@ -65,10 +65,14 @@ opts$ub <- list(a=1e7, b=.99)
 opts$ub <- pulseR:::.b(opts$ub, par)
 opts$lb$alpha <- .1
 opts$ub$alpha <- 10
+opts$lb$size <- 1
+opts$ub$size <- 1e6
 
 opts$lb$normFactors <- pulseR:::assignList(normFactors, .01)
 opts$ub$normFactors <- pulseR:::assignList(normFactors, 20)
+opts <- setTolerance(.1,shared = .1,fraction_factors = .1,options = opts)
 
+opts$verbose <- "silent"
 par$normFactors <- normFactors 
 
 err <- function(x,y){
@@ -77,6 +81,7 @@ err <- function(x,y){
 }
 
 test_that("gene params fitting works (together)", {
+  skip("not testing gene params together")
   par2 <- par
   toOptimise <- c("a", "b")
   par2[toOptimise] <- opts$lb[toOptimise]
@@ -107,3 +112,15 @@ test_that("norm factors fitting works", {
   expect_lt(max(1-unlist(res)/unlist(par$normFactors)), .1)
 })
 
+
+test_that("all together fitting works", {
+  par2 <- par
+  par2["alpha"] <- .5
+  par2[c("a", "b")] <- opts$ub[c("a", "b")]
+  par2$normFactors <- pulseR:::assignList(par2$normFactors, 2)
+  par2$a <- par$a
+  opts$verbose <- "verbose"
+  res <- pulseR:::fitModel(pd, par2, opts)
+  expect_lt(max(1-unlist(res)/unlist(par)), .1)
+})
+  
