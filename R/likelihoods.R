@@ -60,6 +60,14 @@ llnormFactors <- function(par, pd) {
   }
 }
 
+totalll <- function(par, pd){
+  function(x, counts) {
+  evaledForms <- lapply(pd$formulas, eval, envir = x)
+    norms <- getNorms(pd, x$normFactors)
+    means <- sample_means(evaledForms, pd$formulaIndexes, norms)
+    -sum(dnbinom(counts, mu = means, size = par$size, log = TRUE))
+  }
+}
 
 #' Calculate expected read numbers for the raw data 
 #'
