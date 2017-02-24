@@ -33,17 +33,25 @@ PulseData <- function(counts,
   e$formulas <- known$formulas
   e$formulaIndexes <- known$formulaIndexes
   e$user_formulas <- formulas
-  if (!is.null(groups)) {
+  if (!is.null(spikeins)) {
+    
+  } else {
+    if (is.null(groups))
+      groups <- seq_along(conditions[,1])
     if (is(groups, "formula"))
       groups <- interaction(conditions[, all.vars(groups)])
     g <- makeGroups(e, groups)
-    e$normCoeffs <- g$normCoeffs
-    e$normCoeffIndexes <- g$normCoeffIndexes
+    e$interSampleCoeffs <- g$normCoeffs
+    e$interSampleIndexes <- g$normCoeffIndexes
   }
+  e$depthNormalisation <- assignList(e$formulaIndexes, 1)
   #normalise(e)
   e
 }
 
+assignList <- function(l, x){
+ relist(rep(x, length(unlist(l))), l) 
+}
 
 
 #' @export

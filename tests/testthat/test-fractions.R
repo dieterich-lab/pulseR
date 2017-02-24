@@ -44,10 +44,10 @@ pd <- PulseData(
   formulas = formulas,
   formulaIndexes = formulaIndexes
 )
+
+
+#getNormIndex <- function(formulaIndexes, 
                 
-assignList <- function(l, x){
- relist(rep(x, length(unlist(l))), l) 
-}
 
 opts <- list()
 opts$lb <- list(a=.1, b=.01)
@@ -57,8 +57,8 @@ opts$ub <- pulseR:::.b(opts$ub, par)
 opts$lb$alpha <- .1
 opts$ub$alpha <- 10
 
-opts$lb$normFactors <- assignList(normFactors, .1)
-opts$ub$normFactors <- assignList(normFactors, 10)
+opts$lb$normFactors <- pulseR:::assignList(normFactors, .01)
+opts$ub$normFactors <- pulseR:::assignList(normFactors, 10)
 
 par$normFactors <- normFactors
 err <- function(x,y){
@@ -92,7 +92,7 @@ test_that("shared params fitting works", {
 
 test_that("norm factors fitting works", {
   par2 <- par
-  par2$normFactors <- assignList(par2$normFactors, 2)
+  par2$normFactors <- pulseR:::assignList(par2$normFactors, 2)
   res <- pulseR:::fitNormFactors(pd, par2, opts)
   expect_lt(max(1-unlist(res)/unlist(par$normFactors)), .1)
 })
