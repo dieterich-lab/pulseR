@@ -32,12 +32,22 @@ ll <- function(par, namesToOptimise, pd, singleValue = FALSE) {
   if (singleValue)
     pattern <- lapply(pattern, '[[', 1)
   par[namesToOptimise] <- NULL
+  norms <- getNorms(pd, par$normFactors)
   function(x, counts) {
     par[namesToOptimise] <- relist(x, pattern)
     evaledForms <- lapply(pd$formulas, eval, envir = par)
-    means <- sample_means(evaledForms, pd$formulaIndexes, par$normFactors)
+    means <- sample_means(evaledForms, pd$formulaIndexes, norms)
     -sum(dnbinom(counts, mu = means, size = par$size, log = TRUE))
   }
+}
+
+getNorms <- function(pd, normFactors = NULL) {
+  norms <- pd$depthNormalisation
+  if (!is.null(normFactors)) {
+    norms <- unlist(norms) * unlist(normFactors)[unlist(pd$interSampleIndexes)]
+    norms <- relist(norms, pd$interSampleIndexes)
+  }
+  norms
 }
 
 # likelihood for norm factors
