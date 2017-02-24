@@ -5,7 +5,7 @@
 \title{Create an object for pulse-change count data}
 \usage{
 PulseData(counts, conditions, formulas, formulaIndexes = NULL,
-  spikeins = NULL, fractions = NULL)
+  spikeins = NULL, groups = NULL)
 }
 \arguments{
 \item{counts}{a matrix; column names correspond to sample names}
@@ -20,8 +20,8 @@ used for calculation of the expected read number}
 
 \item{spikeins}{}
 
-\item{fractions}{a formula, e.g. ~ condition + time (if spike-ins are
-not provided).
+\item{fractions}{a formula or a vector, e.g. ~ condition + time (if spike-ins are
+not provided). The vector length must be the same as the sample number.
 the names used in the \code{fractions} defines different fractions,
 which should have distinct coefficients for mean expression fitting.}
 }

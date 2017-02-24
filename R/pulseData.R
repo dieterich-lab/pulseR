@@ -8,8 +8,8 @@
 #' @param formulaIndexes list of lists; defines indexes of formulas 
 #' used for calculation of the expected read number
 #' @param spikeins 
-#' @param fractions a formula, e.g. ~ condition + time (if spike-ins are
-#' not provided).
+#' @param fractions a formula or a vector, e.g. ~ condition + time (if spike-ins are
+#' not provided). The vector length must be the same as the sample number.
 #' the names used in the \code{fractions} defines different fractions,
 #' which should have distinct coefficients for mean expression fitting.
 #'
