@@ -54,18 +54,19 @@ getNorms <- function(pd, normFactors = NULL) {
 llnormFactors <- function(par, pd) {
   evaledForms <- lapply(pd$formulas, eval, envir = par)
   function(x, counts) {
-    norms <- getNorms(pd, x)
+    norms <- getNorms(pd, c(1,x))
     means <- sample_means(evaledForms, pd$formulaIndexes, norms)
     -sum(dnbinom(counts, mu = means, size = par$size, log = TRUE))
   }
 }
 
-totalll <- function(par, pd){
+totalll <- function(par, pd) {
   function(x, counts) {
-  evaledForms <- lapply(pd$formulas, eval, envir = x)
-    norms <- getNorms(pd, x$normFactors)
+    x <- relist(x, par)
+    evaledForms <- lapply(pd$formulas, eval, envir = x)
+    norms <- getNorms(pd, c(1, x$normFactors))
     means <- sample_means(evaledForms, pd$formulaIndexes, norms)
-    -sum(dnbinom(counts, mu = means, size = par$size, log = TRUE))
+    - sum(dnbinom( counts,mu = means, size = x$size, log = TRUE))
   }
 }
 
