@@ -21,7 +21,7 @@ PulseData <- function(counts,
                       formulas,
                       formulaIndexes = NULL,
                       spikeins = NULL,
-                      fractions = NULL) {
+                      groups = NULL) {
   e <- new.env()
   if (is.null(formulaIndexes))
     formulaIndexes <- match(conditions[, 1], names(formulas))
@@ -33,6 +33,13 @@ PulseData <- function(counts,
   e$formulas <- known$formulas
   e$formulaIndexes <- known$formulaIndexes
   e$user_formulas <- formulas
+  if (!is.null(groups)) {
+    if (is(groups, "formula"))
+      groups <- interaction(conditions[, all.vars(groups)])
+    g <- makeGroups(e, groups)
+    e$normCoeffs <- g$normCoeffs
+    e$normCoeffIndexes <- g$normCoeffIndexes
+  }
   #normalise(e)
   e
 }
@@ -102,10 +109,20 @@ addKnownToFormulas <- function(forms, formulaIndexes, conditions) {
     newForms[names(res)] <- res
     newIndexes[[i]] <- newNames
   }
-  names(newIndexes) <- uc[,1]
-  newIndexes <- multiplyList(newIndexes, conditions[,1])
+  names(newIndexes) <- interaction(uc)
+  newIndexes <- multiplyList(newIndexes, interaction(conditions))
   newIndexes <- names2numbers(newIndexes, names(newForms))
   list(formulas = newForms, formulaIndexes = newIndexes)
+}
+
+makeGroups <- function(pd, normGroups) {
+  normCoeffs <- pd$formulaIndexes[match(unique(normGroups), normGroups)]
+  names(normCoeffs) <- unique(normGroups)
+  normCoeffs <-
+    relist(seq_along(unlist(normCoeffs)), normCoeffs)
+  normCoeffIndexes <- multiplyList(normCoeffs, normGroups)
+  list(normCoeffs = normCoeffs,
+       normCoeffIndexes = normCoeffIndexes)
 }
 
 names2numbers <- function(nameLists, nameVector){
@@ -148,5 +165,10 @@ multiplyList <- function(source, pattern) {
   for (i in seq_along(pattern)) {
     res[[i]] <- source[[as.character(pattern[i])]]
   }
+  names(res) <- pattern
   res
+}
+
+shrinkList <- function(l){
+ l[unique(names(l))] 
 }
