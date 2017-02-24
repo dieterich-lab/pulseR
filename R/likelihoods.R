@@ -54,19 +54,8 @@ getNorms <- function(pd, normFactors = NULL) {
 llnormFactors <- function(par, pd) {
   evaledForms <- lapply(pd$formulas, eval, envir = par)
   function(x, counts) {
-    x <- relist(x, par$normFactors)
-    means <- sample_means(evaledForms, pd$formulaIndexes, x)
-    -sum(dnbinom(counts, mu = means, size = par$size, log = TRUE))
-  }
-}
-
-
-# likelihood for norm factors shared inside one condition
-llnormFactorsShared <- function(par, pd) {
-  evaledForms <- lapply(pd$formulas, eval, envir = par)
-  function(x, counts) {
-    x <- relist(x[unlist(pd$normIndexes)], pd$normIndexes)
-    means <- sample_means(evaledForms, pd$formulaIndexes, x)
+    norms <- getNorms(pd, x)
+    means <- sample_means(evaledForms, pd$formulaIndexes, norms)
     -sum(dnbinom(counts, mu = means, size = par$size, log = TRUE))
   }
 }

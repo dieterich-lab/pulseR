@@ -24,8 +24,16 @@ normFactors <- list(
 conditions <- data.frame(condition = rep(names(formulaIndexes), each = nTime),
                          time = rep(1:nTime, length(formulas) * nReplicates))
 rownames(conditions) <- paste0("sample_", seq_along(conditions$condition))
+known <- addKnownToFormulas(formulas, formulaIndexes, conditions)
 
-normFactors <- pulseR:::multiplyList(normFactors,conditions[,1])
+# create norm factors as 1...13, 13 is for the total ("A")
+normFactors <- known$formulaIndexes[unique(names(known$formulaIndexes))]
+normFactors <- normFactors[-grep("A", names(normFactors))]
+normFactors <- c(list(total = 1), normFactors)
+normFactors <- relist(seq_along(unlist(normFactors)), normFactors)
+
+fractions <- as.character(interaction(conditions))
+fractions[grep("A", fractions)] <- "total"
 
 par <- list(size = 1e2)
 par$alpha <-  .5
@@ -33,16 +41,17 @@ par <-  c(par, list(
   a = (1:nGenes) * 1e5, b = runif( nGenes,.1,.9)))
 par$size <- 100000
 
-
+allNormFactors <- multiplyList(normFactors, fractions)
 
 counts <- generateTestDataFrom(
-  formulas, formulaIndexes, normFactors, par, conditions)
+  formulas, formulaIndexes, allNormFactors, par, conditions)
 
 pd <- PulseData(
   counts = counts,
   conditions = conditions,
   formulas = formulas,
-  formulaIndexes = formulaIndexes
+  formulaIndexes = formulaIndexes,
+  groups = fractions
 )
 
 
@@ -58,9 +67,10 @@ opts$lb$alpha <- .1
 opts$ub$alpha <- 10
 
 opts$lb$normFactors <- pulseR:::assignList(normFactors, .01)
-opts$ub$normFactors <- pulseR:::assignList(normFactors, 10)
+opts$ub$normFactors <- pulseR:::assignList(normFactors, 20)
 
-par$normFactors <- normFactors
+par$normFactors <- normFactors 
+
 err <- function(x,y){
   vapply(intersect(names(x), names(y)), function(nx)
     max(1 - abs(x[[nx]])/abs(y[[nx]])), double(1))
