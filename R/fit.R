@@ -133,7 +133,7 @@ fitModel <- function(pulseData, par, options) {
   fraction_rel_err <- ifelse(is.null(par$normFactors), 0, Inf)
   while (rel_err > options$tolerance$params ||
          shared_rel_err > options$tolerance$shared ||
-         fraction_rel_err > options$tolerance$fraction) {
+         fraction_rel_err > options$tolerance$fraction_factors) {
     # Fit shared params
     if (length(sharedParams) > 0) {
       res <- fitParams(
