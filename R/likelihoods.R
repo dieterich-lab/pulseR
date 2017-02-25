@@ -16,14 +16,8 @@ substitute_q <- function(x, env)
 
 # get matrix for samples
 sample_means <- function(evaled_forms, form_indexes, norm_factors){
-  mus <- mapply(
-    function(i, n){
-      m <- do.call(cbind,evaled_forms[i])
-      m %*% n
-    },
-    form_indexes,
-    norm_factors, SIMPLIFY=FALSE)
-  do.call(cbind, mus)
+  evaled_forms <- do.call(cbind, evaled_forms)
+  evaled_forms %*% norm_factors
 }
 
 # universal likehood
@@ -35,19 +29,26 @@ ll <- function(par, namesToOptimise, pd, singleValue = FALSE) {
   norms <- getNorms(pd, par$normFactors)
   function(x, counts) {
     par[namesToOptimise] <- relist(x, pattern)
-    evaledForms <- lapply(pd$formulas, eval, envir = par)
+    evaledForms <- lapply(pd$formulas, eval, par)
     means <- sample_means(evaledForms, pd$formulaIndexes, norms)
     -sum(dnbinom(counts, mu = means, size = par$size, log = TRUE))
   }
 }
 
 getNorms <- function(pd, normFactors = NULL) {
-  norms <- pd$depthNormalisation
+  m <- matrix(0,
+           ncol = length(pd$formulaIndexes),
+           nrow = length(pd$formulas))
+  indexes <- do.call(rbind,lapply(seq_along(pd$formulaIndexes),
+         function(i){
+           cbind(pd$formulaIndexes[[i]],i)
+         }))
+  norms <- unlist(pd$depthNormalisation)
   if (!is.null(normFactors)) {
-    norms <- unlist(norms) * unlist(normFactors)[unlist(pd$interSampleIndexes)]
-    norms <- relist(norms, pd$interSampleIndexes)
+    norms <- norms * unlist(normFactors)[unlist(pd$interSampleIndexes)]
   }
-  norms
+  m[indexes] <- norms
+  m
 }
 
 # likelihood for norm factors
