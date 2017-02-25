@@ -162,7 +162,10 @@ generateTestDataFrom <- function(formulas,
   formulas <- known$formulas
   indexes <- known$formulaIndexes
   evaled <- lapply(formulas, eval, env=par) 
-  means <- sample_means(evaled, indexes, normFactors)
+  pd <- list(formulas = formulas, formulaIndexes = indexes,
+             depthNormalisation = normFactors)
+  norms <- getNorms(pd)
+  means <- sample_means(evaled, indexes, norms)
   counts <- matrix(rnbinom(length(means), mu = means, size = par$size),
          ncol = length(conditions[,1]))
   counts
