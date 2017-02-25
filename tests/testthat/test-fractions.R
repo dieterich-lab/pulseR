@@ -2,7 +2,7 @@
 context("fitting with fraction factors for time dependent data")
 set.seed(259)
 
-nGenes <- 40
+nGenes <- 100
 nReplicates <- 3
 nTime <- 4
 
@@ -36,9 +36,9 @@ fractions <- as.character(interaction(conditions))
 fractions[grep("A", fractions)] <- "total"
 
 par <- list(size = 1e2)
-par$alpha <-  .5
+par$alpha <-  1
 par <-  c(par, list(
-  a = (1:nGenes) * 1e5, b = runif( nGenes,.1,.9)))
+  a = (1:nGenes) * 1e5, b = runif( nGenes,1,1)))
 par$size <- 100000
 
 allNormFactors <- multiplyList(normFactors, fractions)
@@ -116,9 +116,10 @@ test_that("norm factors fitting works", {
 test_that("all together fitting works", {
   par2 <- par
   par2["alpha"] <- .5
-  par2[c("a", "b")] <- opts$ub[c("a", "b")]
-  par2$normFactors <- pulseR:::assignList(par2$normFactors, 2)
-  par2$a <- par$a
+  for (p in c("a", "b")) {
+    par2[[p]] <-
+      runif(length(par[[p]]), opts$lb[[p]], opts$ub[[p]])
+  }
   opts$verbose <- "verbose"
   res <- pulseR:::fitModel(pd, par2, opts)
   expect_lt(max(1-unlist(res)/unlist(par)), .1)
