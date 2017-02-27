@@ -137,7 +137,7 @@ fitModel <- function(pulseData, par, options) {
     # Fit shared params
     if (length(sharedParams) > 0) {
       res <- fitParams(
-        pd = pd,
+        pd = pulseData,
         par = par,
         namesToOptimise = sharedParams,
         opts = options
@@ -160,7 +160,7 @@ fitModel <- function(pulseData, par, options) {
       par$normFactors <- res
     }
     par["size"] <- fitParams(
-      pd = pd,
+      pd = pulseData,
       par = par,
       namesToOptimise = "size",
       opts = options
