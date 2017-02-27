@@ -1,15 +1,78 @@
 context("PulseData creation and normalisation")
 
-  pd <- new.env()
-  pd$user_conditions <- data.frame(conditions=rep(c("a","b"), each=3))
-  pd$count_data <- matrix(rep(c(1,2,4),2),ncol=6, nrow=20, byrow=TRUE)
-  colnames(pd$count_data) <- rownames(pd$user_conditions)
-  rownames(pd$count_data) <- 1:20
-  pd$fraction <- pd$user_conditions
-  class(pd) <- "PulseData"    
-  
-test_that("normalisation works", {
-  normalise(pd)
-  expect_equivalent(pd$norm_factors, rep(c(.5,1,2),2))
+set.seed(259)
+
+nGenes <- 4
+nReplicates <- 3
+nTime <- 4
+
+
+formulas <- MeanFormulas(A = a, B =  a * b^time, C = a * alpha^time)
+
+
+formulaIndexes <- list(
+  A_samp = 'A',
+  B_samp = c('B', 'A'),
+  C_samp = c('C'))
+
+normFactors <- list(
+  A_samp = c(1),
+  B_samp = c(1, .1),
+  C_samp = 2
+)
+
+conditions <- data.frame(condition = rep(names(formulaIndexes), each = nTime),
+                         time = rep(1:nTime, length(formulas) * nReplicates))
+rownames(conditions) <- paste0("sample_", seq_along(conditions$condition))
+
+normFactors <- pulseR:::multiplyList(normFactors,conditions[,1])
+
+par <- list(size = 1e2)
+par$alpha <-  .5
+par <-  c(par, list(
+  a = (1:nGenes) * 1e5, b = runif( nGenes,.1,.9)))
+par$size <- 100000
+
+counts <- generateTestDataFrom(
+  formulas, formulaIndexes, normFactors, par, conditions)
+
+pd <- PulseData(
+  counts = counts,
+  conditions = conditions,
+  formulas = formulas,
+  formulaIndexes = formulaIndexes
+)
+
+test_that( "pd can be created without groups", {
+    pd <- PulseData(
+      counts = counts,
+      conditions = conditions,
+      formulas = formulas,
+      formulaIndexes = formulaIndexes
+    )
+})
+
+test_that( "groups can be set by vector", {
+  expect_silent({
+    pd <- PulseData(
+      counts = counts,
+      conditions = conditions,
+      formulas = formulas,
+      formulaIndexes = formulaIndexes,
+      groups = conditions[,1]
+    )
+  })
+})
+
+test_that( "groups can be set by formula", {
+  expect_silent({
+    pd <- PulseData(
+      counts = counts,
+      conditions = conditions,
+      formulas = formulas,
+      formulaIndexes = formulaIndexes,
+      groups = ~ time
+    )
+  })
 })
 

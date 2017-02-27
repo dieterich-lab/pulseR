@@ -1,74 +1,117 @@
 ## Tests for data with several time points
 context("fitting with fraction factors for time dependent data")
-source("test-utils.R")
 set.seed(259)
 
-nGenes <- 40
+nGenes <- 10
 nReplicates <- 3
-nTime <- 4
+nTime <- 3
 
-options <- setBoundaries(
-  params = list(a = c(1, 1e10), b = c(.01, 1)),
-  shared = list(alpha = c(.10, 100)),
-  fraction_factors = list( c(.1,10)))
 
-options$cores <- 1
+formulas <- MeanFormulas(A = a, B =  a * b^time, C = a * (1 - b^time))
 
-formulas <- MeanFormulas(A = a, B =  a * b^time, C= 1e7 * alpha^time)
-conditions <- data.frame(condition = rep(names(formulas), each = nTime),
+
+formulaIndexes <- list(
+  A_samp = 'A',
+  B_samp = c('B', 'A'),
+  C_samp = c('C'))
+
+normFactors <- list(
+  A_samp = c(1),
+  B_samp = c(1, .1),
+  C_samp = 2
+)
+
+conditions <- data.frame(condition = rep(names(formulaIndexes), each = nTime),
                          time = rep(1:nTime, length(formulas) * nReplicates))
 rownames(conditions) <- paste0("sample_", seq_along(conditions$condition))
-t <- pulseR:::addKnownShared(formulas, conditions)
-formulas_known <- t$formulas
-conditions_known <- data.frame(condition = t$conditions)
+known <- addKnownToFormulas(formulas, formulaIndexes, conditions)
+
+# create norm factors as 1...13, 13 is for the total ("A")
+normFactors <- known$formulaIndexes[unique(names(known$formulaIndexes))]
+normFactors <- normFactors[-grep("A", names(normFactors))]
+normFactors <- c(list(total = 1), normFactors)
+normFactors <- relist(seq_along(unlist(normFactors)), normFactors)
+normFactors[grep("B", names(normFactors))] <- list(c(3,.2))
+
+fractions <- as.character(interaction(conditions))
+fractions[grep("A", fractions)] <- "total"
 
 par <- list(size = 1e2)
-par$shared <- list(alpha = 1)
-fractions <- factor(conditions_known$condition)
-par$params<- data.frame(a = (1:nGenes) * 1e5, b = runif(nGenes,.1,.8))
-rownames(par$params) <- paste0("gene_", 1:nGenes)
+par <-  c(par, list(
+  a = (1:nGenes) * 1e5, b = runif( nGenes,.1,1)))
+par$size <- 100000
 
-#par$fraction_factors <- 1 * (1:(length(levels(fractions)) - 1))
-#par$fraction_factors <- rep(1,length(levels(fractions))-1)
-par$fraction_factors <- runif(length(levels(fractions)), 1, 5)
+allNormFactors <- multiplyList(normFactors, fractions)
 
-par$fraction_factors[1] <- 1
-
-counts <- generateTestDataFrom(formulas_known,par,conditions_known, fractions)
+counts <- generateTestDataFrom(
+  formulas, formulaIndexes, allNormFactors, par, conditions)
 
 pd <- PulseData(
-    count_data = counts,
-    conditions = conditions,
-    formulas   = formulas,
-    fractions  = ~condition+time)
-normalise(pd) 
+  counts = counts,
+  conditions = conditions,
+  formulas = formulas,
+  formulaIndexes = formulaIndexes,
+  groups = fractions
+)
 
-test_that("gene-specific parameters fitting works", {
+
+#getNormIndex <- function(formulaIndexes, 
+                
+
+opts <- list()
+opts$lb <- list(a=.1, b=.01)
+opts$lb <- pulseR:::.b(opts$lb, par)
+opts$ub <- list(a=1e7, b=.99)
+opts$ub <- pulseR:::.b(opts$ub, par)
+opts$lb$size <- 1
+opts$ub$size <- 1e6
+
+opts$lb$normFactors <- pulseR:::assignList(normFactors, .01)
+opts$ub$normFactors <- pulseR:::assignList(normFactors, 20)
+opts <- setTolerance(.01,shared = .01,fraction_factors = .01,options = opts)
+
+opts$verbose <- "silent"
+par$normFactors <- normFactors 
+
+err <- function(x,y){
+  vapply(intersect(names(x), names(y)), function(nx)
+    max(1 - abs(x[[nx]])/abs(y[[nx]])), double(1))
+}
+
+test_that("gene params fitting works (together)", {
   par2 <- par
-  guess <-  apply(counts[, conditions$condition == "A"], 1, mean)
-  par2$params$a <- guess
-  par2$params$b <- .3
-  fit <- pulseR:::fitGeneParameters(pd, par2, options)
-  expect_lt(max(abs(1 - fit / par$params)), .2)
+  toOptimise <- c("a", "b")
+  par2[toOptimise] <- opts$lb[toOptimise]
+  res <- pulseR:::fitParams(pd, par, toOptimise, opts)
+  expect_lt(max(err(res, par)), .1)
 })
 
-test_that("shared params fitting works", {
+test_that("gene params fitting works (separately)", {
   par2 <- par
-  par2$shared <- list(alpha = 10)
-  fit <- pulseR:::fitSharedParameters(pd, par2, options)
-  expect_lt(max(abs(1 - unlist(fit) / unlist(par$shared))), .2)
+  toOptimise <- c("a", "b")
+  par2[toOptimise] <- opts$lb[toOptimise]
+  res <- pulseR:::fitParamsSeparately(pd, par, toOptimise, opts)
+  expect_lt(max(err(res, par)), .1)
 })
 
-test_that("overdispersion fitting works", {
+test_that("norm factors fitting works", {
   par2 <- par
-  par2$size <- 1e4
-  fit <- pulseR:::fitDispersion(pd, par2, options)
-  expect_lt(max(abs(1 - unlist(fit) / unlist(par$size))), .2)
+  par2$normFactors <- pulseR:::assignList(par2$normFactors, 2)
+  res <- pulseR:::fitNormFactors(pd, par2, opts)
+  expect_lt(max(1-unlist(res)/unlist(par$normFactors)), .1)
 })
 
-test_that("fraction factors fitting works", {
+
+test_that("all together fitting works", {
   par2 <- par
-  par2$fraction_factors <- rep(1, length(par$fraction_factors))
-  fit <- pulseR:::fitFractions(pd, par2, options)
-  expect_lt(max(abs(1 - unlist(fit) / unlist(par$fraction_factors))), .2)
+  for (p in c("a", "b")) {
+    par2[[p]] <-
+      runif(length(par[[p]]), opts$lb[[p]], opts$ub[[p]])
+  }
+  opts$verbose <- "verbose"
+  res <- pulseR:::fitModel(pd, par2, opts)
+  res$size <- NULL
+  par$size <- NULL
+  expect_lt(max(1-unlist(res)/unlist(par)), .1)
 })
+  
