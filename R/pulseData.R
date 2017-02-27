@@ -84,6 +84,14 @@ findDeseqFactorsSingle <- function(count_data)
   deseqFactors
 }
 
+normaliseWithoutSpikeins <- function(pd, groups){
+  factors <- double(length(groups))
+  for (g in unique(groups)){
+    factors[groups == g] <- findDeseqFactorsSingle(pd$counts[, groups == g])
+  }
+  factors
+}
+
 #' Calculate normalisation factors
 #'
 #' @param count_data integer matrix, colnames correspond to samples 
