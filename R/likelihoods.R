@@ -31,7 +31,7 @@ ll <- function(par, namesToOptimise, pd, singleValue = FALSE) {
     par[namesToOptimise] <- relist(x, pattern)
     evaledForms <- lapply(pd$formulas, eval, par)
     means <- sample_means(evaledForms, pd$formulaIndexes, norms)
-    -sum(dnbinom(counts, mu = means, size = par$size, log = TRUE))
+    -sum(stats::dnbinom(counts, mu = means, size = par$size, log = TRUE))
   }
 }
 
@@ -57,7 +57,7 @@ llnormFactors <- function(par, pd) {
   function(x, counts) {
     norms <- getNorms(pd, c(1,x))
     means <- sample_means(evaledForms, pd$formulaIndexes, norms)
-    -sum(dnbinom(counts, mu = means, size = par$size, log = TRUE))
+    -sum(stats::dnbinom(counts, mu = means, size = par$size, log = TRUE))
   }
 }
 
@@ -67,7 +67,7 @@ totalll <- function(par, pd) {
     evaledForms <- lapply(pd$formulas, eval, envir = x)
     norms <- getNorms(pd, c(1, x$normFactors))
     means <- sample_means(evaledForms, pd$formulaIndexes, norms)
-    - sum(dnbinom( counts,mu = means, size = x$size, log = TRUE))
+    - sum(stats::dnbinom( counts,mu = means, size = x$size, log = TRUE))
   }
 }
 
@@ -87,7 +87,7 @@ predictExpression <- function(pulseData, par) {
   means <- getMeans(formulas =  pulseData$formulas, par = par)
   mean_indexes <- sapply(pulseData$conditions, match, names(pulseData$formulas))
   lambdas <- t(t(means[, mean_indexes]) * norm_factors)
-  llog <- dnbinom(
+  llog <- stats::dnbinom(
     x = pulseData$count_data,
     mu = lambdas,
     log = TRUE,

@@ -79,7 +79,6 @@ err <- function(x,y){
 }
 
 test_that("gene params fitting works (together)", {
-  skip("not testing gene params together")
   par2 <- par
   toOptimise <- c("a", "b")
   par2[toOptimise] <- opts$lb[toOptimise]
