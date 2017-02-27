@@ -35,7 +35,12 @@ PulseData <- function(counts,
   e$user_formulas <- formulas
   e$depthNormalisation <- assignList(e$formulaIndexes, 1)
   if (!is.null(spikeins)) {
-    
+    e$depthNormalisation <- normaliseWithSpikeIns(
+      e, spikeins$refGroup, spikeins$spikeLists)
+    refSpikes <- unlist(spikeins$spikeLists[[spikeins$refGroup]])
+    if (is.character(refSpikes))
+      refSpikes <- which(rownames(e$counts) %in% refSpikes)
+    e$counts <- e$counts[-refSpikes,]
   } else {
     if (is.null(groups))
       groups <- seq_along(conditions[,1])
@@ -44,12 +49,11 @@ PulseData <- function(counts,
     g <- makeGroups(e, groups)
     e$interSampleCoeffs <- g$normCoeffs
     e$interSampleIndexes <- g$normCoeffIndexes
-    deseqFactors <- normaliseWithoutSpikeins(pd, groups)
-    for (i in seq_along(e$depthNormalisation)){
-     e$depthNormalisation[[i]][] <- deseqFactors[i] 
+    deseqFactors <- normaliseNoSpikeins(e, groups)
+    for (i in seq_along(e$depthNormalisation)) {
+      e$depthNormalisation[[i]][] <- deseqFactors[i]
     }
   }
-  #normalise(e)
   e
 }
 
@@ -74,24 +78,48 @@ print.PulseData <- function(x,...){
 findDeseqFactorsSingle <- function(count_data)
 {
   loggeomeans <- rowMeans(log(count_data))
-  deseqFactors <-  apply(count_data, 2, function(x) {
-    finitePositive <- is.finite(loggeomeans) & x > 0
-    if (any(finitePositive))
-      res <- exp(median((log(x) - loggeomeans)[finitePositive], na.rm = TRUE))
-    else {
-      print(count_data[1:6,])
-      stop("Can't normalise accross a condition. 
-              Too many zero expressed genes. ")
-    }
-    res  
-  })
+  deseqFactors <- apply(count_data, 2, deseq, loggeomeans = loggeomeans) 
   deseqFactors
 }
 
-normaliseWithoutSpikeins <- function(pd, groups){
+deseq <- function(x, loggeomeans) {
+  finitePositive <- is.finite(loggeomeans) & x > 0
+  if (any(finitePositive)) {
+    res <- exp(median((log(x) - loggeomeans)[finitePositive], na.rm = TRUE))
+  } else {
+    print(count_data[1:6, ])
+    stop("Can't normalise accross a condition.
+         Too many zero expressed genes. ")
+  }
+  res
+}
+
+normaliseWithSpikeIns <- function(pd, refGroup, spikeLists){
+  refSpikes <- unlist(spikeLists[[refGroup]])
+  spikeCounts <- pd$counts[refSpikes,]
+  spikeLists <- lapply(spikeLists,
+                       function(l) {
+                         lapply(l, function(spikes)
+                           spikes == refSpikes)
+                       })
+                       
+  superSample <- rowMeans(
+    log(pd$counts[refSpikes, pd$conditions$condition == refGroup]))
+  lapply(seq_along(pd$conditions[, 1]),
+         function(i) {
+           sampleSpikes <- spikeLists[[as.character(pd$conditions[i, 1])]]
+           vapply(sampleSpikes, function(spikes) {
+             deseq(spikeCounts[spikes, i], superSample)
+           }, double(1))
+         })
+}
+
+
+normaliseNoSpikeins <- function(pd, groups){
   factors <- double(length(groups))
   for (g in unique(groups)){
-    factors[groups == g] <- findDeseqFactorsSingle(pd$counts[, groups == g])
+    factors[groups == g] <-
+      findDeseqFactorsSingle(pd$counts[, groups == g, drop = FALSE])
   }
   factors
 }
