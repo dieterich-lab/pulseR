@@ -2,7 +2,7 @@
 context("fitting with fraction factors for time dependent data")
 set.seed(259)
 
-nGenes <- 10
+nGenes <- 51
 nReplicates <- 3
 nTime <- 3
 
@@ -38,7 +38,7 @@ fractions[grep("A", fractions)] <- "total"
 
 par <- list(size = 1e2)
 par <-  c(par, list(
-  a = (1:nGenes) * 1e5, b = runif( nGenes,.1,1)))
+  a = (1:nGenes) * 1e5, b = runif( nGenes,.1,.91)))
 par$size <- 100000
 
 allNormFactors <- multiplyList(normFactors, fractions)
