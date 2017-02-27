@@ -33,8 +33,8 @@ fitParams <- function(pd, par, namesToOptimise, opts) {
 #' @export
 #'
 fitParamsSeparately <- function(pd, par, namesToOptimise, opts) {
-  lb <- unlist(opts$lb[namesToOptimise])
-  ub <- unlist(opts$ub[namesToOptimise])
+  lb <- as.data.frame(opts$lb[namesToOptimise])
+  ub <- as.data.frame(opts$ub[namesToOptimise])
   p <- data.frame(par[namesToOptimise])
   objective <- ll(par, namesToOptimise, pd,  singleValue=TRUE)
   for (i in seq_along(p[, 1])) {
@@ -43,8 +43,8 @@ fitParamsSeparately <- function(pd, par, namesToOptimise, opts) {
       objective,
       method = "L-BFGS-B",
       control = list(parscale = p[i,]),
-      lower = lb,
-      upper = ub,
+      lower = lb[i,],
+      upper = ub[i,],
       counts = pd$counts[i,]
     )$par
   }
