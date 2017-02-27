@@ -1,90 +1,66 @@
 
 #' Create an object for pulse-change count data
 #'
-#' @param count_data a matrix; column names correspond to sample names
+#' @param counts a matrix; column names correspond to sample names
 #' @param conditions a data.frame;
 #'   the first column corresponds to the conditions given in \code{formulas}.
-#'   May columns named as parameters,
-#'   used in the formula definitions, e.g. "time" 
-#'   if formula = ~condition + time.
-#'   
 #' @param formulas a list, created by \code{\link{MeanFormulas}}
-#' @param spikeins a vector of characters or indexes, optional;
-#'  defines which genes to use as a reference for normalisation 
-#' @param fractions a formula, e.g. ~ condition + time (if spike-ins are
-#' not provided).
+#' @param formulaIndexes list of lists; defines indexes of formulas 
+#' used for calculation of the expected read number
+#' @param spikeins 
+#' @param fractions a formula or a vector, e.g. ~ condition + time (if spike-ins are
+#' not provided). The vector length must be the same as the sample number.
 #' the names used in the \code{fractions} defines different fractions,
 #' which should have distinct coefficients for mean expression fitting.
 #'
 #' @return an object of class "PulseData"
 #' @export
 #'
-PulseData <- function(count_data,
+PulseData <- function(counts,
                       conditions,
                       formulas,
+                      formulaIndexes = NULL,
                       spikeins = NULL,
-                      fractions = NULL) {
+                      groups = NULL) {
   e <- new.env()
+  if (is.null(formulaIndexes))
+    formulaIndexes <- match(conditions[, 1], names(formulas))
   class(e) <- "PulseData"
-  samples <- sort(colnames(count_data))
-  e$user_conditions <- conditions[samples,, drop = FALSE]
-  e$count_data <- as.matrix(count_data[, samples])
-  t <- addKnownShared(formulas, e$user_conditions[samples, , drop = FALSE])
-  e$conditions <- t$conditions
-  e$formulas <- t$formulas
+  e$user_conditions <- conditions
+  e$counts <- as.matrix(counts)
+  known <- addKnownToFormulas(formulas, formulaIndexes, conditions)
+  e$conditions <- conditions
+  e$formulas <- known$formulas
+  e$formulaIndexes <- known$formulaIndexes
   e$user_formulas <- formulas
-  if (!is.null(spikeins) && !is.null(fractions))
-    stop(paste("Fractions can not be specified if spike-ins are given.\n"))
-  # create e$fraction if spike-ins are not provided
+  e$depthNormalisation <- assignList(e$formulaIndexes, 1)
   if (!is.null(spikeins)) {
-    e$spikeins <- spikeins
-    e$fraction <- NULL
+    e$depthNormalisation <- normaliseWithSpikeIns(
+      e, spikeins$refGroup, spikeins$spikeLists)
+    refSpikes <- unlist(spikeins$spikeLists[[spikeins$refGroup]])
+    if (is.character(refSpikes))
+      refSpikes <- which(rownames(e$counts) %in% refSpikes)
+    e$counts <- e$counts[-refSpikes,]
   } else {
-    e$fraction <- codeFractions(e$user_conditions, fractions)
+    if (is.null(groups))
+      groups <- seq_along(conditions[,1])
+    if (is(groups, "formula"))
+      groups <- interaction(conditions[, all.vars(groups)])
+    g <- makeGroups(e, groups)
+    e$interSampleCoeffs <- g$normCoeffs
+    e$interSampleIndexes <- g$normCoeffIndexes
+    deseqFactors <- normaliseNoSpikeins(e, groups)
+    for (i in seq_along(e$depthNormalisation)) {
+      e$depthNormalisation[[i]][] <- deseqFactors[i]
+    }
   }
-  e$formulas <- t$formulas
-  e$norm_factors <- NULL
-  normalise(e)
   e
 }
 
-#' Generate fraction names 
-#'
-#' @param conditions a data.frame. The condition matrix.
-#' @param fractions a formula, with the right side defining 
-#' how to divide samples into different fractions, e.g. ~ time + conditions.
-#'
-#' @return a factor
-#' @export
-#'
-codeFractions <- function(conditions, fractions){
-    # if no fractions formula provided, use the whole data.frame from conditions
-    if (!is.null(fractions)) {
-      columns <- conditions[, all.vars(fractions), drop = FALSE]
-      fractions <- factor(apply(columns, 1, paste, collapse = "."))
-    } else {
-      fractions <- factor(apply(conditions, 1, paste, collapse = "."))
-    }
-  fractions
+assignList <- function(l, x){
+ relist(rep(x, length(unlist(l))), l) 
 }
 
-#' Get fraction labels for the samples 
-#'
-#' @param pulseData a \code{\link{PulseData}} object
-#'
-#' @return a vector of factors corresponding to the fraction 
-#'    labels for samples, if fractions were specified in the \code{pulseData}
-#'    argument. Otherwise, return \code{NULL}. 
-#'    Sample labels are provided in the vector names.
-#' @export
-#' @seealso \link{names}, \link{PulseData}
-#'
-getFractions <- function(pulseData){
-  result <- pulseData$fraction
-  if (!is.null(result))
-    names(result) <- colnames(pulseData$count_data)
-  result
-}
 
 #' @export
 print.PulseData <- function(x,...){
@@ -102,18 +78,50 @@ print.PulseData <- function(x,...){
 findDeseqFactorsSingle <- function(count_data)
 {
   loggeomeans <- rowMeans(log(count_data))
-  deseqFactors <-  apply(count_data, 2, function(x) {
-    finitePositive <- is.finite(loggeomeans) & x > 0
-    if (any(finitePositive))
-      res <- exp(median((log(x) - loggeomeans)[finitePositive], na.rm = TRUE))
-    else {
-      print(count_data[1:6,])
-      stop("Can't normalise accross a condition. 
-              Too many zero expressed genes. ")
-    }
-    res  
-  })
+  deseqFactors <- apply(count_data, 2, deseq, loggeomeans = loggeomeans) 
   deseqFactors
+}
+
+deseq <- function(x, loggeomeans) {
+  finitePositive <- is.finite(loggeomeans) & x > 0
+  if (any(finitePositive)) {
+    res <- exp(median((log(x) - loggeomeans)[finitePositive], na.rm = TRUE))
+  } else {
+    print(count_data[1:6, ])
+    stop("Can't normalise accross a condition.
+         Too many zero expressed genes. ")
+  }
+  res
+}
+
+normaliseWithSpikeIns <- function(pd, refGroup, spikeLists){
+  refSpikes <- unlist(spikeLists[[refGroup]])
+  spikeCounts <- pd$counts[refSpikes,]
+  spikeLists <- lapply(spikeLists,
+                       function(l) {
+                         lapply(l, function(spikes)
+                           spikes == refSpikes)
+                       })
+                       
+  superSample <- rowMeans(
+    log(pd$counts[refSpikes, pd$conditions$condition == refGroup]))
+  lapply(seq_along(pd$conditions[, 1]),
+         function(i) {
+           sampleSpikes <- spikeLists[[as.character(pd$conditions[i, 1])]]
+           vapply(sampleSpikes, function(spikes) {
+             deseq(spikeCounts[spikes, i], superSample)
+           }, double(1))
+         })
+}
+
+
+normaliseNoSpikeins <- function(pd, groups){
+  factors <- double(length(groups))
+  for (g in unique(groups)){
+    factors[groups == g] <-
+      findDeseqFactorsSingle(pd$counts[, groups == g, drop = FALSE])
+  }
+  factors
 }
 
 #' Calculate normalisation factors
@@ -133,102 +141,85 @@ findDeseqFactorsForFractions <- function(count_data, conditions) {
     unlist(deseqFactors)[colnames(count_data)]
 }
 
-# Performs DESeq normalisation according to first column of *conditions*
-# specified by the user (default), or according to *fraction formula*,
-# e.g. ~ condition + time
-#' Estimate normalisation factors for fraction with the same method as
-#' in the DESeq2 package
-#'
-#' @param pulseData a PulseData object
-#'
-#' @return the same PulseData object with estimated normalisation factors
-#' @export
-#'
-normalise <- function(pulseData) {
-  if (!is.null(pulseData$spikeins)) {
-    pulseData$norm_factors <- findDeseqFactorsSingle(
-      pulseData$count_data[pulseData$spikeins, , drop = FALSE])
-    genes <- setdiff(rownames(pulseData$count_data),pulseData$spikeins)
-    pulseData$count_data <- pulseData$count_data[genes,, drop=FALSE]
-  } else {
-    pulseData$norm_factors <- findDeseqFactorsForFractions(
-      pulseData$count_data, pulseData$fraction)
-  }
-  pulseData
-}
-
 # evaluate formulas in the environment of known params from the conditions
 # Returns list( [evaluated formulas], [conditions as vector])
-addKnownShared <- function(formulas, user_conditions){
-  if (dim(as.matrix(user_conditions))[2] == 1)
-    return(list(formulas=formulas, conditions=user_conditions[,1]))
-  knownParams <-
-    which(colnames(user_conditions) %in% unlist(lapply(formulas, all.vars)))
-  conditions <- user_conditions[, c(1,knownParams), drop=FALSE]
-  interactions <- interaction(conditions,drop = TRUE, lex.order=TRUE)
-  names(interactions)   <- rownames(conditions)
-  conditions <- unique(conditions)
-  evaledFormulas <- lapply(seq_along(conditions[,1]), function(i){
-    substitute_q(formulas[[as.character(conditions[i,1])]],
-      as.list(conditions[i,-1, drop=FALSE]))
-      })
-  names(evaledFormulas) <- unique(interactions)
-  list(formulas = evaledFormulas,
-    conditions  = interactions)
+
+addKnownToFormulas <- function(forms, formulaIndexes, conditions) {
+  uc <- unique(conditions)
+  newIndexes <- list()
+  newForms <- list()
+  for (i in seq_along(uc[, 1])) {
+    f <- forms[formulaIndexes[[as.character(uc[i, 1])]]]
+    newNames <- as.character(
+      interaction(c(list(names(f)), uc[i, -1])))
+    res <- lapply(f, substitute_q, env = as.list(uc[i, ]))
+    names(res) <- newNames
+    newForms[names(res)] <- res
+    newIndexes[[i]] <- newNames
+  }
+  names(newIndexes) <- interaction(uc)
+  newIndexes <- multiplyList(newIndexes, interaction(conditions))
+  newIndexes <- names2numbers(newIndexes, names(newForms))
+  list(formulas = newForms, formulaIndexes = newIndexes)
 }
 
+makeGroups <- function(pd, normGroups) {
+  normCoeffs <- pd$formulaIndexes[match(unique(normGroups), normGroups)]
+  names(normCoeffs) <- unique(normGroups)
+  normCoeffs <-
+    relist(seq_along(unlist(normCoeffs)), normCoeffs)
+  normCoeffIndexes <- multiplyList(normCoeffs, normGroups)
+  list(normCoeffs = normCoeffs,
+       normCoeffIndexes = normCoeffIndexes)
+}
+
+names2numbers <- function(nameLists, nameVector){
+  lapply(nameLists, match, nameVector)
+}
 
 #' Create a test count data
 #'
 #' @param formulas a list
-#' @param par a list with individual_params(must have), size (must have) 
-#'     and shared_params (optional). If \code{fractions} is defined,
-#'     \code{par$fraction_factors} must be not \code{NULL}
+#' @param formulaIndexes list of lists; defines indexes of formulas 
+#' used for calculation of the expected read number
+#' @param normFactors list of vectors; normalisation factors, if
+#' known
+#' @param par a list of named parameters; gene-specific parameters 
+#' are vectors
 #' @param conditions a condition data.frame
-#' @param fractions a factor for splitting the samples into subsets with 
-#'   different normalisation coefficients
 #' @return matrix of counts with the order of columns as in conditions 
 #' @importFrom stats rnbinom
 #' @export
 #'
 generateTestDataFrom <- function(formulas,
+                                 formulaIndexes,
+                                 normFactors,
                                  par,
-                                 conditions,
-                                 fractions = NULL){
-  if (!is.null(fractions) && is.null(par$fraction_factors)) {
-    stop(
-      paste(
-        "Fraction factors must be specified in par$fraction_factors according\n",
-        "to factor levels in the fractions argument"
-      )
-    )
-  }
-  t <- addKnownShared(formulas, conditions)
-  formulas <- t$formulas
-  conditions_known <- data.frame(condition=t$conditions)
-  counts <- list()
-  for (i in seq_along(par$params[,1])){
-    means <- sapply(formulas, eval, 
-      c(as.list(par$params[i,]),
-        as.list(par$shared),
-        as.list(par$known[i,, drop=FALSE])))
-    # normalise
-    norm_factors <- 1
-    if (!is.null(fractions)) {
-      if (class(fractions) == "formula")
-        fractions <- codeFractions(conditions, fractions)
-      fraction_indexes <- as.integer(fractions)
-      par$fraction_factors[1] <- 1
-      norm_factors <- par$fraction_factors[fraction_indexes]
-    }
-    indexes <- match(conditions_known$condition, names(formulas))
-    counts[[i]] <- rnbinom(
-      n    = length(conditions$condition),
-      mu   = means[indexes] * norm_factors,
-      size = par$size)
-  }
-  counts <- do.call(rbind, counts)
-  rownames(counts) <- rownames(par$params)
-  colnames(counts) <- rownames(conditions)
+                                 conditions) {
+  if (all(vapply(formulaIndexes, is.character, logical(1))))
+    formulaIndexes <- names2numbers(formulaIndexes, names(formulas))
+  known <- addKnownToFormulas(formulas, formulaIndexes, conditions)
+  formulas <- known$formulas
+  indexes <- known$formulaIndexes
+  evaled <- lapply(formulas, eval, env=par) 
+  pd <- list(formulas = formulas, formulaIndexes = indexes,
+             depthNormalisation = normFactors)
+  norms <- getNorms(pd)
+  means <- sample_means(evaled, indexes, norms)
+  counts <- matrix(rnbinom(length(means), mu = means, size = par$size),
+         ncol = length(conditions[,1]))
   counts
+}
+
+multiplyList <- function(source, pattern) {
+  res <- list()
+  for (i in seq_along(pattern)) {
+    res[[i]] <- source[[as.character(pattern[i])]]
+  }
+  names(res) <- pattern
+  res
+}
+
+shrinkList <- function(l){
+ l[unique(names(l))] 
 }

@@ -4,25 +4,24 @@
 \alias{PulseData}
 \title{Create an object for pulse-change count data}
 \usage{
-PulseData(count_data, conditions, formulas, spikeins = NULL,
-  fractions = NULL)
+PulseData(counts, conditions, formulas, formulaIndexes = NULL,
+  spikeins = NULL, groups = NULL)
 }
 \arguments{
-\item{count_data}{a matrix; column names correspond to sample names}
+\item{counts}{a matrix; column names correspond to sample names}
 
 \item{conditions}{a data.frame;
-the first column corresponds to the conditions given in \code{formulas}.
-May columns named as parameters,
-used in the formula definitions, e.g. "time" 
-if formula = ~condition + time.}
+the first column corresponds to the conditions given in \code{formulas}.}
 
 \item{formulas}{a list, created by \code{\link{MeanFormulas}}}
 
-\item{spikeins}{a vector of characters or indexes, optional;
-defines which genes to use as a reference for normalisation}
+\item{formulaIndexes}{list of lists; defines indexes of formulas 
+used for calculation of the expected read number}
 
-\item{fractions}{a formula, e.g. ~ condition + time (if spike-ins are
-not provided).
+\item{spikeins}{}
+
+\item{fractions}{a formula or a vector, e.g. ~ condition + time (if spike-ins are
+not provided). The vector length must be the same as the sample number.
 the names used in the \code{fractions} defines different fractions,
 which should have distinct coefficients for mean expression fitting.}
 }

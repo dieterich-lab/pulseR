@@ -1,3 +1,11 @@
+# extend boundaries to param length
+.b <- function(b, par) {
+  for (p in names(b)) {
+    if (length(b[[p]]) == 1)
+      b[[p]] <- rep(b[[p]], length(par[[p]]))
+  }
+  b
+}
 
 #from pryr package
 substitute_q <- function(x, env)
@@ -6,128 +14,60 @@ substitute_q <- function(x, env)
   eval(call)
 }
 
-makeVector <- function(forms) {
-  as.call(c(c,forms))
+# get matrix for samples
+sample_means <- function(evaled_forms, form_indexes, norm_factors){
+  evaled_forms <- do.call(cbind, evaled_forms)
+  evaled_forms %*% norm_factors
 }
 
-getNormFactors <- function(pulseData, par) {
-  norm_factors <- pulseData$norm_factors
-  if (!is.null(par$fraction_factors)) {
-    norm_factors <- norm_factors *
-      par$fraction_factors[as.integer(pulseData$fraction)]
-  }
-  norm_factors
-}
-
-getMeans <- function(formulas, par) {
-  params <- c(par$params, par$shared, par$known)
-  means <- lapply(formulas, function(x) {
-    eval(x, envir = params)
-  })
-  means <- do.call(cbind, means) 
-  means
-}
-
-#' Create a likelihood function for gene-specific parameters
-#' 
-#' The values of shared parameters, \code{size} from \code{\link{dnbinom}} and
-#' normalisation factors are taken from \code{par}. 
-#'
-#' @param pulseData PulseData object
-#' @param par list; must have fields \code{shared_params}, \code{size},
-#'  \code{params}, \code{fraction_factors}.
-#'
-#' @return a function(params, counts), which returns a  log likelihood
-#' for a given vector of individual parameters, which are ordered as in 
-#' \code{par$params}. 
-#' @importFrom stats dnbinom
-#'
-ll_gene <- function(pulseData, par) {
-  mean_indexes <- sapply(pulseData$conditions, match, names(pulseData$formulas))
-  formulas <- pulseData$formulas
-  if (!is.null(par$shared))
-    formulas <- lapply(formulas, substitute_q, par$shared)
-  means_vector <-  makeVector(formulas)
-  param_names <- names(par$params)
-  norm_factors <- getNormFactors(pulseData, par)
-  function(params, counts, known=NULL) {
-    names(params) <- param_names
-    mus <- eval(means_vector, as.list(c(params, known)))
-    if(any(mus<=0)) return(Inf)
-    lambdas <-  mus[mean_indexes]
-    - sum(dnbinom(
-      x    = counts,
-      mu   = lambdas * norm_factors,
-      log  = TRUE,
-      size = par$size
-    ))
+# universal likehood
+ll <- function(par, namesToOptimise, pd, singleValue = FALSE) {
+  pattern <- par[namesToOptimise]
+  if (singleValue)
+    pattern <- lapply(pattern, '[[', 1)
+  par[namesToOptimise] <- NULL
+  norms <- getNorms(pd, par$normFactors)
+  function(x, counts) {
+    par[namesToOptimise] <- relist(x, pattern)
+    evaledForms <- lapply(pd$formulas, eval, par)
+    means <- sample_means(evaledForms, pd$formulaIndexes, norms)
+    -sum(stats::dnbinom(counts, mu = means, size = par$size, log = TRUE))
   }
 }
 
-#' Create a likelihood function for shared parameters
-#' 
-#' The values of gene-specific parameters, \code{size} from
-#'  \code{\link{dnbinom}} and
-#' normalisation factors are taken from \code{par}. 
-#' @inheritParams ll_gene
-#'
-#' @return a function(params, counts), which returns a  log likelihood
-#' for a given vector of shared parameters, which are ordered as in 
-#' \code{par$shared}.
-#' @importFrom stats dnbinom
-#'
-ll_shared_params <- function(pulseData, par) {
-  shared_param_names <- names(par$shared)
-  norm_factors <- getNormFactors(pulseData, par)
-  function(shared_params) {
-    names(shared_params) <- shared_param_names
-    par$shared <- shared_params
-    means <- getMeans(formulas = pulseData$formulas, par = par)
-    mean_indexes <-
-      sapply(pulseData$conditions, match, names(pulseData$formulas))
-    lambdas <- t(t(means[, mean_indexes]) * norm_factors)
-    - sum(dnbinom(
-      x    = pulseData$count_data,
-      mu   = lambdas,
-      log  = TRUE,
-      size = par$size
-    ))
+getNorms <- function(pd, normFactors = NULL) {
+  m <- matrix(0,
+           ncol = length(pd$formulaIndexes),
+           nrow = length(pd$formulas))
+  indexes <- do.call(rbind,lapply(seq_along(pd$formulaIndexes),
+         function(i){
+           cbind(pd$formulaIndexes[[i]],i)
+         }))
+  norms <- unlist(pd$depthNormalisation)
+  if (!is.null(normFactors)) {
+    norms <- norms * unlist(normFactors)[unlist(pd$interSampleIndexes)]
+  }
+  m[indexes] <- norms
+  m
+}
+
+# likelihood for norm factors
+llnormFactors <- function(par, pd) {
+  evaledForms <- lapply(pd$formulas, eval, envir = par)
+  function(x, counts) {
+    norms <- getNorms(pd, c(1,x))
+    means <- sample_means(evaledForms, pd$formulaIndexes, norms)
+    -sum(stats::dnbinom(counts, mu = means, size = par$size, log = TRUE))
   }
 }
 
-ll_norm_factors <- function(pulseData, par) {
-  means <- getMeans(formulas = pulseData$formulas, par = par)
-  mean_indexes <-
-    sapply(pulseData$conditions, match, names(pulseData$formulas))
-  lambdas <- means[, mean_indexes]
-  norm_indexes <- as.integer(pulseData$fraction)
-  function(fraction_factors) {
-    fraction_factors <-
-      c(1, fraction_factors)[norm_indexes] * pulseData$norm_factors
-    norm_lambdas <- t(t(lambdas) * fraction_factors)
-    if(any(norm_lambdas<=0)) return(Inf)
-    - sum(dnbinom(
-      x    = pulseData$count_data,
-      mu   = norm_lambdas,
-      log  = TRUE,
-      size = par$size
-    ))
-  }
-}
-
-ll_dispersion <- function(pulseData, par) {
-  norm_factors <- getNormFactors(pulseData, par)
-  means <- getMeans(formulas = pulseData$formulas, par = par)
-  mean_indexes <- sapply(pulseData$conditions, match, names(pulseData$formulas))
-  lambdas <- t(t(means[, mean_indexes]) * norm_factors)
-  function(size) {
-    -sum(dnbinom(
-        x    = pulseData$count_data,
-        mu   = lambdas,
-        log  = TRUE,
-        size = size
-      )
-    )
+totalll <- function(par, pd) {
+  function(x, counts) {
+    x <- relist(x, par)
+    evaledForms <- lapply(pd$formulas, eval, envir = x)
+    norms <- getNorms(pd, c(1, x$normFactors))
+    means <- sample_means(evaledForms, pd$formulaIndexes, norms)
+    - sum(stats::dnbinom( counts,mu = means, size = x$size, log = TRUE))
   }
 }
 
@@ -147,7 +87,7 @@ predictExpression <- function(pulseData, par) {
   means <- getMeans(formulas =  pulseData$formulas, par = par)
   mean_indexes <- sapply(pulseData$conditions, match, names(pulseData$formulas))
   lambdas <- t(t(means[, mean_indexes]) * norm_factors)
-  llog <- dnbinom(
+  llog <- stats::dnbinom(
     x = pulseData$count_data,
     mu = lambdas,
     log = TRUE,
