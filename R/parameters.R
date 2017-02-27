@@ -7,7 +7,7 @@
   tolerance = list(
     params = 1e-3,
     shared = 1e-2,
-    fraction = 1e-3
+    fraction_factors = 1e-3
   ),
   verbose = "silent",
   cores = 1,
@@ -199,9 +199,9 @@ setBoundaries <- function(params = NULL,
 #' @examples 
 #' setTolerance(params = 1e-2)
 #'
-setTolerance <- function(params = NULL,
-                         shared = NULL,
-                         fraction_factors = NULL,
+setTolerance <- function(params = .01,
+                         shared = .01,
+                         fraction_factors = .01,
                          options = .defaultParams) {
   if (!is.list(options))
     stop("Options must be a list")
