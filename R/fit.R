@@ -14,7 +14,7 @@ fitParams <- function(pd, par, namesToOptimise, opts) {
   ub <- unlist(opts$ub[namesToOptimise])
   objective <- ll(par = par, namesToOptimise = namesToOptimise, pd = pd)
   x <- unlist(par[namesToOptimise])
-  x <- optim(
+  x <- stats::optim(
     x,
     objective,
     method = "L-BFGS-B",
@@ -38,7 +38,7 @@ fitParamsSeparately <- function(pd, par, namesToOptimise, opts) {
   p <- data.frame(par[namesToOptimise])
   objective <- ll(par, namesToOptimise, pd,  singleValue=TRUE)
   for (i in seq_along(p[, 1])) {
-    p[i, ] <- optim(
+    p[i, ] <- stats::optim(
       unlist(p[i, ]),
       objective,
       method = "L-BFGS-B",
@@ -60,7 +60,7 @@ fitNormFactors <- function(pd, par, opts) {
   ub <- unlist(opts$ub$normFactors)[-1]
   objective <- llnormFactors(par = par, pd = pd)
   x <- unlist(par$normFactors)[-1]
-  x <- optim(
+  x <- stats::optim(
     x,
     objective,
     method = "L-BFGS-B",
@@ -81,7 +81,7 @@ fitAll <- function(pd, par, opts) {
   ub <- unlist(opts$ub[names(par)])
   objective <- totalll(par, pd)
   x <- unlist(par)
-  x <- optim(
+  x <- stats::optim(
     x,
     objective,
     method = "L-BFGS-B",

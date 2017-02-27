@@ -5,7 +5,7 @@
 \title{Set the stopping criteria in a form of the relative 
 changes during fitting iterations.}
 \usage{
-setTolerance(params = NULL, shared = NULL, fraction_factors = NULL,
+setTolerance(params = 0.01, shared = 0.01, fraction_factors = 0.01,
   options = .defaultParams)
 }
 \arguments{
