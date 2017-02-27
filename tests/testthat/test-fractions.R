@@ -7,7 +7,7 @@ nReplicates <- 3
 nTime <- 3
 
 
-formulas <- MeanFormulas(A = a, B =  a * b^time, C = a * (1 + alpha/time))
+formulas <- MeanFormulas(A = a, B =  a * b^time, C = a * (1 - b^time))
 
 
 formulaIndexes <- list(
@@ -39,7 +39,6 @@ fractions[grep("A", fractions)] <- "total"
 par <- list(size = 1e2)
 par <-  c(par, list(
   a = (1:nGenes) * 1e5, b = runif( nGenes,.1,1)))
-par$alpha <- .9 
 par$size <- 100000
 
 allNormFactors <- multiplyList(normFactors, fractions)
@@ -64,8 +63,6 @@ opts$lb <- list(a=.1, b=.01)
 opts$lb <- pulseR:::.b(opts$lb, par)
 opts$ub <- list(a=1e7, b=.99)
 opts$ub <- pulseR:::.b(opts$ub, par)
-opts$lb$alpha <- .1
-opts$ub$alpha <- .991
 opts$lb$size <- 1
 opts$ub$size <- 1e6
 
@@ -98,14 +95,6 @@ test_that("gene params fitting works (separately)", {
   expect_lt(max(err(res, par)), .1)
 })
 
-test_that("shared params fitting works", {
-  par2 <- par
-  toOptimise <- c("alpha")
-  par2[toOptimise] <- opts$lb[toOptimise]
-  res <- pulseR:::fitParams(pd, par, toOptimise, opts)
-  expect_lt(max(err(res, par)), .1)
-})
-
 test_that("norm factors fitting works", {
   par2 <- par
   par2$normFactors <- pulseR:::assignList(par2$normFactors, 2)
@@ -116,7 +105,6 @@ test_that("norm factors fitting works", {
 
 test_that("all together fitting works", {
   par2 <- par
-  par2["alpha"] <- .5
   for (p in c("a", "b")) {
     par2[[p]] <-
       runif(length(par[[p]]), opts$lb[[p]], opts$ub[[p]])
