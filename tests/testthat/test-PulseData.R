@@ -76,9 +76,3 @@ test_that( "groups can be set by formula", {
   })
 })
 
-test_that("normalisation works", {
-  skip(message = "")
-  normalise(pd)
-  expect_equivalent(pd$norm_factors, rep(c(.5,1,2),2))
-})
-
