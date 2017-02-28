@@ -27,15 +27,19 @@ ll <- function(par, namesToOptimise, pd, byOne=FALSE) {
   par[namesToOptimise] <- NULL
   evalCall <- as.call(c(cbind, pd$formulas))
   norms <- getNorms(pd, par$normFactors)
-  function(x, counts, fixedPars = par) {
-    #if (byOne)
-    #  fixedPars[namesToOptimise] <- as.list(x)
-    #else 
-      fixedPars[namesToOptimise] <- relist(x, pattern)
-    evaledForms <- eval(evalCall, fixedPars)
-    means <- sample_means(evaledForms, norms)
-    -sum(stats::dnbinom(counts, mu = means, size = fixedPars$size, log = TRUE))
-  }
+  if (!byOne)
+    getPars <- quote(relist(x, pattern))
+  else 
+    getPars <- quote(as.list(x))
+  f <- bquote(
+    function(x, counts, fixedPars = par) {
+      fixedPars[namesToOptimise] <- .(getPars)
+      evaledForms <- eval(evalCall, fixedPars)
+      means <- sample_means(evaledForms, norms)
+      -sum(stats::dnbinom(
+        counts, mu = means, size = fixedPars$size, log = TRUE))
+    }, list(getPars = getPars)) 
+  eval(f)
 }
 
 getNorms <- function(pd, normFactors = NULL) {
