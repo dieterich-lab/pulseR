@@ -39,7 +39,7 @@ allNormFactors <- multiplyList(normFactors, conditions[,1])
 
 par <- list(size = 1e2)
 par <-  c(par, list(
-  a = (1:nGenes) * 1e5, b = runif( nGenes,.1,1)))
+  a = runif(nGenes, 10, 1e5), b = runif( nGenes,.1,.99)))
 par$alpha <- 5
 par$size <- 100000
 
@@ -118,7 +118,7 @@ test_that("gene params fitting works (separately)", {
   expect_lt(max(err(res, par)), .1)
 })
 
-test_that("shared params fitting works (separately)", {
+test_that("shared params fitting works", {
   par2 <- par
   toOptimise <- c("alpha")
   par2[toOptimise] <- opts$lb[toOptimise]
