@@ -20,18 +20,21 @@ sample_means <- function(evaled_forms, norm_factors){
 }
 
 # universal likehood
-ll <- function(par, namesToOptimise, pd, singleValue = FALSE) {
+ll <- function(par, namesToOptimise, pd, byOne=FALSE) {
   pattern <- par[namesToOptimise]
-  if (singleValue)
-    pattern <- lapply(pattern, '[[', 1)
+  if (byOne)
+    pattern <- lapply(pattern, `[[`, 1)
   par[namesToOptimise] <- NULL
   evalCall <- as.call(c(cbind, pd$formulas))
   norms <- getNorms(pd, par$normFactors)
-  function(x, counts, p=par) {
-    p[namesToOptimise] <- relist(x, pattern)
-    evaledForms <- eval(evalCall, p)
+  function(x, counts, fixedPars = par) {
+    #if (byOne)
+    #  fixedPars[namesToOptimise] <- as.list(x)
+    #else 
+      fixedPars[namesToOptimise] <- relist(x, pattern)
+    evaledForms <- eval(evalCall, fixedPars)
     means <- sample_means(evaledForms, norms)
-    -sum(stats::dnbinom(counts, mu = means, size = p$size, log = TRUE))
+    -sum(stats::dnbinom(counts, mu = means, size = fixedPars$size, log = TRUE))
   }
 }
 
