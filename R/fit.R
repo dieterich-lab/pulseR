@@ -32,12 +32,15 @@ fitParams <- function(pd, par, namesToOptimise, opts) {
 #' @return a list with fitted parameters
 #' @export
 #'
-fitParamsSeparately <- function(pd, par, namesToOptimise, opts) {
+fitParamsSeparately <- function(pd, par, knownNames, namesToOptimise, opts) {
   lb <- as.data.frame(opts$lb[namesToOptimise])
   ub <- as.data.frame(opts$ub[namesToOptimise])
   p <- data.frame(par[namesToOptimise])
-  objective <- ll(par, namesToOptimise, pd,  singleValue=TRUE)
+  objective <- ll(par, namesToOptimise, pd, byOne = TRUE)
+  par[namesToOptimise] <- NULL
+  fixedPars <- par
   for (i in seq_along(p[, 1])) {
+    fixedPars[knownNames] <- lapply(par[knownNames], `[[`, i)
     p[i, ] <- stats::optim(
       unlist(p[i, ]),
       objective,
@@ -45,7 +48,8 @@ fitParamsSeparately <- function(pd, par, namesToOptimise, opts) {
       control = list(parscale = p[i,]),
       lower = lb[i,],
       upper = ub[i,],
-      counts = pd$counts[i,]
+      counts = pd$counts[i,],
+      fixedPars = fixedPars
     )$par
   }
   as.list(p)
@@ -70,29 +74,6 @@ fitNormFactors <- function(pd, par, opts) {
     counts = pd$counts
   )$par
   relist(c(1,x), par$normFactors)
-}
-
-
-fitAll <- function(pd, par, opts) {
-  par$normFactors <- par$normFactors[-1]
-  opts$lb$normFactors <- opts$lb$normFactors[-1]
-  opts$ub$normFactors <- opts$ub$normFactors[-1]
-  lb <- unlist(opts$lb[names(par)])
-  ub <- unlist(opts$ub[names(par)])
-  objective <- totalll(par, pd)
-  x <- unlist(par)
-  x <- stats::optim(
-    x,
-    objective,
-    method = "L-BFGS-B",
-    control = list(parscale = x),
-    lower = lb,
-    upper = ub,
-    counts = pd$counts
-  )$par
-  x <- relist(x, par)
-  x$normFactors <- c(1,x$normFactors)
-  x
 }
 
 getMaxRelDifference <- function(x,y) max(abs(1 - unlist(x)/unlist(y)))
@@ -123,10 +104,13 @@ getMaxRelDifference <- function(x,y) max(abs(1 - unlist(x)/unlist(y)))
 #' \dontrun{
 #' fitResult <- fitModel(pd, par)
 #' }
-fitModel <- function(pulseData, par, options) {
+fitModel <- function(pulseData, par, options){
+  known <- setdiff(names(par), names(options$lb))
+  toFit <- setdiff(names(par), c("size", "normFactors", known))
   len <- vapply(par, length, integer(1))
-  sharedParams <- names(par)[len == 1 & names(par) != "size"]
-  geneParams <- names(par)[len > 1 & names(par) != "normFactors"]
+  sharedParams <- toFit[len[toFit] == 1] 
+  geneParams <- toFit[len[toFit] > 1]
+  knownGenePars <- names(len[known] > 1)
   log2screen(options, cat("\n"))
   rel_err <- Inf
   shared_rel_err <- ifelse(length(sharedParams) == 0, 0, Inf)
@@ -150,6 +134,7 @@ fitModel <- function(pulseData, par, options) {
       pd = pulseData,
       par = par,
       namesToOptimise = geneParams,
+      knownNames = knownGenePars,
       opts = options
     )
     rel_err <- getMaxRelDifference(res, par[geneParams])
@@ -182,6 +167,7 @@ fitModel <- function(pulseData, par, options) {
     pd = pulseData,
     par = par,
     namesToOptimise = geneParams,
+    knownNames = knownGenePars,
     opts = options
   )
   par[geneParams] <- res
