@@ -30,7 +30,10 @@ PulseData <- function(counts,
   e$counts <- as.matrix(counts)
   known <- addKnownToFormulas(formulas, formulaIndexes, conditions)
   e$conditions <- conditions
-  e$formulas <- known$formulas
+  e$rawFormulas <- known$formulas
+  e$formulas <- known$formulaslapply(known$formulas,
+                     compiler::compile,
+                     options = list(suppressAll = TRUE))
   e$formulaIndexes <- known$formulaIndexes
   e$user_formulas <- formulas
   e$depthNormalisation <- assignList(e$formulaIndexes, 1)
