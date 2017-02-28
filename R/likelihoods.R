@@ -15,8 +15,7 @@ substitute_q <- function(x, env)
 }
 
 # get matrix for samples
-sample_means <- function(evaled_forms, form_indexes, norm_factors){
-  evaled_forms <- do.call(cbind, evaled_forms)
+sample_means <- function(evaled_forms, norm_factors){
   evaled_forms %*% norm_factors
 }
 
@@ -26,11 +25,12 @@ ll <- function(par, namesToOptimise, pd, singleValue = FALSE) {
   if (singleValue)
     pattern <- lapply(pattern, '[[', 1)
   par[namesToOptimise] <- NULL
+  evalCall <- as.call(c(cbind, pd$formulas))
   norms <- getNorms(pd, par$normFactors)
-  function(x, counts) {
-    par[namesToOptimise] <- relist(x, pattern)
-    evaledForms <- lapply(pd$formulas, eval, par)
-    means <- sample_means(evaledForms, pd$formulaIndexes, norms)
+  function(x, counts, p=par) {
+    p[namesToOptimise] <- relist(x, pattern)
+    evaledForms <- eval(evalCall, p)
+    means <- sample_means(evaledForms, norms)
     -sum(stats::dnbinom(counts, mu = means, size = par$size, log = TRUE))
   }
 }
