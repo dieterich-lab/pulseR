@@ -15,23 +15,26 @@ substitute_q <- function(x, env)
 }
 
 # get matrix for samples
-sample_means <- function(evaled_forms, form_indexes, norm_factors){
-  evaled_forms <- do.call(cbind, evaled_forms)
+sample_means <- function(evaled_forms, norm_factors){
   evaled_forms %*% norm_factors
 }
 
 # universal likehood
-ll <- function(par, namesToOptimise, pd, singleValue = FALSE) {
+ll <- function(par, namesToOptimise, pd, byOne=FALSE) {
   pattern <- par[namesToOptimise]
-  if (singleValue)
-    pattern <- lapply(pattern, '[[', 1)
+  if (byOne)
+    pattern <- lapply(pattern, `[[`, 1)
   par[namesToOptimise] <- NULL
+  evalCall <- as.call(c(cbind, pd$formulas))
   norms <- getNorms(pd, par$normFactors)
-  function(x, counts) {
-    par[namesToOptimise] <- relist(x, pattern)
-    evaledForms <- lapply(pd$formulas, eval, par)
-    means <- sample_means(evaledForms, pd$formulaIndexes, norms)
-    -sum(stats::dnbinom(counts, mu = means, size = par$size, log = TRUE))
+  function(x, counts, fixedPars = par) {
+    #if (byOne)
+    #  fixedPars[namesToOptimise] <- as.list(x)
+    #else 
+      fixedPars[namesToOptimise] <- relist(x, pattern)
+    evaledForms <- eval(evalCall, fixedPars)
+    means <- sample_means(evaledForms, norms)
+    -sum(stats::dnbinom(counts, mu = means, size = fixedPars$size, log = TRUE))
   }
 }
 
@@ -53,10 +56,10 @@ getNorms <- function(pd, normFactors = NULL) {
 
 # likelihood for norm factors
 llnormFactors <- function(par, pd) {
-  evaledForms <- lapply(pd$formulas, eval, envir = par)
+  evaledForms <- eval(as.call(c(cbind, pd$formulas)), par)
   function(x, counts) {
     norms <- getNorms(pd, c(1,x))
-    means <- sample_means(evaledForms, pd$formulaIndexes, norms)
+    means <- sample_means(evaledForms, norms)
     -sum(stats::dnbinom(counts, mu = means, size = par$size, log = TRUE))
   }
 }
@@ -64,9 +67,9 @@ llnormFactors <- function(par, pd) {
 totalll <- function(par, pd) {
   function(x, counts) {
     x <- relist(x, par)
-    evaledForms <- lapply(pd$formulas, eval, envir = x)
+    evaledForms <- eval(as.call(c(cbind, pd$formulas)), par)
     norms <- getNorms(pd, c(1, x$normFactors))
-    means <- sample_means(evaledForms, pd$formulaIndexes, norms)
+    means <- sample_means(evaledForms,  norms)
     - sum(stats::dnbinom( counts,mu = means, size = x$size, log = TRUE))
   }
 }

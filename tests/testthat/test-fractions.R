@@ -7,7 +7,7 @@ nReplicates <- 3
 nTime <- 3
 
 
-formulas <- MeanFormulas(A = a, B =  a * b^time, C = a * (1 - b^time))
+formulas <- MeanFormulas(A = a * p, B =  a * b^time, C = a * (1 - b^time))
 
 
 formulaIndexes <- list(
@@ -38,7 +38,8 @@ fractions[grep("A", fractions)] <- "total"
 
 par <- list(size = 1e2)
 par <-  c(par, list(
-  a = (1:nGenes) * 1e5, b = runif( nGenes,.1,1)))
+  a = runif(nGenes, 1, 1e5), b = runif( nGenes,.1,.91)))
+par$p <- runif(nGenes, 1, 2)
 par$size <- 100000
 
 allNormFactors <- multiplyList(normFactors, fractions)
@@ -79,6 +80,7 @@ err <- function(x,y){
 }
 
 test_that("gene params fitting works (together)", {
+  skip("skip long test")
   par2 <- par
   toOptimise <- c("a", "b")
   par2[toOptimise] <- opts$lb[toOptimise]
@@ -90,7 +92,11 @@ test_that("gene params fitting works (separately)", {
   par2 <- par
   toOptimise <- c("a", "b")
   par2[toOptimise] <- opts$lb[toOptimise]
-  res <- pulseR:::fitParamsSeparately(pd, par, toOptimise, opts)
+  res <- pulseR:::fitParamsSeparately(pd = pd,
+                                 par = par,
+                                 knownNames = "p",
+                                 namesToOptimise = c("a", "b"), 
+                                 opts = opts)
   expect_lt(max(err(res, par)), .1)
 })
 
