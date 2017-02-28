@@ -201,11 +201,11 @@ generateTestDataFrom <- function(formulas,
   known <- addKnownToFormulas(formulas, formulaIndexes, conditions)
   formulas <- known$formulas
   indexes <- known$formulaIndexes
-  evaled <- lapply(formulas, eval, env=par) 
+  evaled <- do.call(cbind, lapply(formulas, eval, env=par))
   pd <- list(formulas = formulas, formulaIndexes = indexes,
              depthNormalisation = normFactors)
   norms <- getNorms(pd)
-  means <- sample_means(evaled, indexes, norms)
+  means <- sample_means(evaled, norms)
   counts <- matrix(rnbinom(length(means), mu = means, size = par$size),
          ncol = length(conditions[,1]))
   counts

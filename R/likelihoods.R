@@ -31,7 +31,7 @@ ll <- function(par, namesToOptimise, pd, singleValue = FALSE) {
     p[namesToOptimise] <- relist(x, pattern)
     evaledForms <- eval(evalCall, p)
     means <- sample_means(evaledForms, norms)
-    -sum(stats::dnbinom(counts, mu = means, size = par$size, log = TRUE))
+    -sum(stats::dnbinom(counts, mu = means, size = p$size, log = TRUE))
   }
 }
 
@@ -53,10 +53,10 @@ getNorms <- function(pd, normFactors = NULL) {
 
 # likelihood for norm factors
 llnormFactors <- function(par, pd) {
-  evaledForms <- lapply(pd$formulas, eval, envir = par)
+  evaledForms <- eval(as.call(c(cbind, pd$formulas)), par)
   function(x, counts) {
     norms <- getNorms(pd, c(1,x))
-    means <- sample_means(evaledForms, pd$formulaIndexes, norms)
+    means <- sample_means(evaledForms, norms)
     -sum(stats::dnbinom(counts, mu = means, size = par$size, log = TRUE))
   }
 }
@@ -64,9 +64,9 @@ llnormFactors <- function(par, pd) {
 totalll <- function(par, pd) {
   function(x, counts) {
     x <- relist(x, par)
-    evaledForms <- lapply(pd$formulas, eval, envir = x)
+    evaledForms <- eval(as.call(c(cbind, pd$formulas)), par)
     norms <- getNorms(pd, c(1, x$normFactors))
-    means <- sample_means(evaledForms, pd$formulaIndexes, norms)
+    means <- sample_means(evaledForms,  norms)
     - sum(stats::dnbinom( counts,mu = means, size = x$size, log = TRUE))
   }
 }
