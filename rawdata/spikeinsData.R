@@ -5,10 +5,6 @@ nGenes <- 10
 nReplicates <- 3
 nTime <- 3
 
-options <- setBoundaries(
-  params = list(a = c(1, 1e10), b = c(.01, 1)),
-  shared = list(alpha = c(.10, 100)))
-
 formulas <- MeanFormulas(
   A = a,
   B =  a * b ^ time,
@@ -73,3 +69,12 @@ spikeLists <- list(
 counts <- rbind(counts, spikes)
 spikeins <- list(refGroup = refGroup,
                  spikeLists = spikeLists)
+pulseRSpikeinsData <- list(
+  formulas = formulas,
+  counts = counts,
+  conditions = conditions,
+  spikeins = spikeins,
+  formulaIndexes = formulaIndexes,
+  par = par
+)
+devtools::use_data(pulseRSpikeinsData, overwrite = TRUE)
