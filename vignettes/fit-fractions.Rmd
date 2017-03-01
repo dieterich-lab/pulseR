@@ -21,61 +21,32 @@ set.seed(258)
 
 Let us have a labelling experiment with several time points
 ```{r}
-replicateNum <- 3
-time <- c(4,8,12)
-geneNum <- 100
-
+attach(pulseRFractionData)
 ```
+
 
 ```{r echo=TRUE}
-formulas <- MeanFormulas(
-  total = mu,
-  lab   = mu * (1 - exp(-d * time))
-)
+formulas <- MeanFormulas(A = a * p,
+                         B =  a * b ^ time,
+                         C = a * (1 - b ^ time))
 ```
 
-We create a condition matrix with two columns: the first is the condition of 
-samples ("total" or "lab"), the second is the time point.
-```{r echo=TRUE}
-conditions <- expand.grid(condition = names(formulas), time = time)
-conditions <- conditions[rep(seq_along(conditions$time),
-                             each = replicateNum),]
-rownames(conditions) <- paste0("sample_", seq_along(conditions$condition))
-head(conditions)
-```
+Here is the condistion matrix for our data set:
 
-### Generate artificial data
-
-This section is just for reproducibility, you can easily proceed to the next one.
-
-Create the parameters for `r geneNum` genes:
 ```{r}
-truePar <- list(size = 1e2)
-truePar$params <- data.frame(mu = 10 ^ runif(geneNum, 0, 5),
-                         d = -log(runif(geneNum, .1, .9)) / 12)
-rownames(truePar$params) <- paste0("gene_", 1:geneNum)
-
-fractions <- formula(~ time + condition)
-fraction_names <- levels(codeFractions(conditions, fractions))
-truePar$fraction_factors <- seq_along(fraction_names)
+conditions
 ```
 
-Sample read counts from the negative binomial distribution:
-```{r}
-counts <- generateTestDataFrom(formulas, 
-                               truePar,
-                               conditions,
-                               fractions)
-```
 
 ## Create `PulseData` object
 ```{r}
 pd <- PulseData(
-    count_data = counts,
-    conditions = conditions,
-    formulas   = formulas,
-    fractions  = ~condition+time)
-
+  counts = counts,
+  conditions = conditions,
+  formulas = formulas,
+  formulaIndexes = formulaIndexes,
+  groups = fractions
+)
 ```
 It is important to understand, how the data are normalised.
 To reduce parameter number, we use the same normalisation as in DESeq package
@@ -87,9 +58,11 @@ amounts of RNA, estimated by the model.
 Now we set options for fitting. It is important to provide boundaries for the
 optimal parameter search:
 ```{r}
-opts <- setBoundaries(params = list(mu = c(.5,1e6),
-                                    d = c(1e-8,1)),
-                      fraction_factors = c(.1,10))
+opts <- setBoundaries(list(
+  a = c(.1, 1e6),
+  b = c(.01, .99),
+  normFactors = c(.1, 50)
+))
 ```
 For other possible parameters please see "set" functions in the package
 documentation (`setBoundaries, setTolerance, setFittingOptions`).  
@@ -102,8 +75,8 @@ There are two options for how to set the parameters:
 - to sample random numbers within the given boundaries 
 - manual values by the user
 ```{r}
-par <- initParameters(pulseData = pd,
-                      options = opts)
+par <- list(p = pulseRFractionData$par$p)
+par <- initParameters(par, c("a", "b"), pulseData = pd, options = opts)
 ```
 
 ```{r}
@@ -121,7 +94,6 @@ less than specified in `options$tolerance`.
 The function `fitModel` accept the PulseData object, initial guess for the 
 parameters values and fitting options.
 ```{r cache=TRUE}
-opts$cores <- 2
 
 opts <- setTolerance(params = 1e-3,
                      fraction_factors = 1e-2,
