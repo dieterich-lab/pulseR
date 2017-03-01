@@ -118,6 +118,13 @@ normaliseWithSpikeIns <- function(pd, refGroup, spikeLists){
 }
 
 
+#' Performs sequencing depth normalisation using the DESeq procedure.
+#'
+#' @param pd a \code{\link{PulseData}} object 
+#' @param groups a vector for splitting objects to groups
+#'
+#' @return a vector with the coefficient for every sample
+#'
 normaliseNoSpikeins <- function(pd, groups){
   factors <- double(length(groups))
   for (g in unique(groups)){
