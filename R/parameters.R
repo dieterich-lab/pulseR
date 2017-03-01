@@ -196,7 +196,7 @@ sampleParams <- function(lb, ub, paramName) {
 #'
 initParameters <- function(par, geneParams, pulseData, options) {
   validateOptions(options)
-  nGenes <- dim(pd$counts)[1]
+  nGenes <- dim(pulseData$counts)[1]
   for (g in geneParams) {
     if (is.null(par[[g]])) {
       par[[g]] <-  runif(nGenes, options$lb[[g]], options$ub[[g]])
@@ -212,7 +212,7 @@ initParameters <- function(par, geneParams, pulseData, options) {
   }
   if (!is.null(pulseData$interSampleCoeffs)) {
     if (is.null(par$normFactors))
-      par$normFactors <- pd$interSampleCoeffs
+      par$normFactors <- pulseData$interSampleCoeffs
   }
   stopIfNotInRanges(par, options)
   par
