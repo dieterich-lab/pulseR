@@ -81,17 +81,11 @@ totalll <- function(par, pd) {
 #' @export
 #'
 predictExpression <- function(pulseData, par) {
-  norm_factors <- getNormFactors(pulseData, par)
-  means <- getMeans(formulas =  pulseData$formulas, par = par)
-  mean_indexes <- sapply(pulseData$conditions, match, names(pulseData$formulas))
-  lambdas <- t(t(means[, mean_indexes]) * norm_factors)
-  llog <- stats::dnbinom(
-    x = pulseData$count_data,
-    mu = lambdas,
-    log = TRUE,
-    size = par$size
-  )
-  list(predictions = lambdas, llog = llog)
+  evaledForms <- eval(as.call(c(cbind, pulseData$formulas)), par)
+  norms <- getNorms(pulseData, par$normFactors)
+  means <- sample_means(evaledForms, norms)
+  llog <- stats::dnbinom(counts, mu = means, size = par$size, log = TRUE)
+  list(predictions = means, llog = llog)
 }
 
 log2screen <- function(options, ...) {
