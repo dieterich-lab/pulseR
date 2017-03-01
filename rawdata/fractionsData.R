@@ -48,7 +48,8 @@ counts <- generateTestDataFrom(
 
 pulseRFractionData <- list(formulas = formulas,
      counts = counts,
+     conditions = conditions,
      fractions = fractions,
      formulaIndexes = formulaIndexes,
      par = par)
-devtools::use_data(pulseRFractionData)
+devtools::use_data(pulseRFractionData, overwrite = TRUE)
