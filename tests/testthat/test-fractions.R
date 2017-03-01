@@ -56,9 +56,6 @@ pd <- PulseData(
 )
 
 
-#getNormIndex <- function(formulaIndexes, 
-                
-
 opts <- list()
 opts$lb <- list(a=.1, b=.01)
 opts$lb <- pulseR:::.b(opts$lb, par)
@@ -69,7 +66,7 @@ opts$ub$size <- 1e6
 
 opts$lb$normFactors <- pulseR:::assignList(normFactors, .01)
 opts$ub$normFactors <- pulseR:::assignList(normFactors, 20)
-opts <- setTolerance(.01,shared = .01,fraction_factors = .01,options = opts)
+opts <- setTolerance(.01,shared = .01, normFactors = .01,options = opts)
 
 opts$verbose <- "silent"
 par$normFactors <- normFactors 

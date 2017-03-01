@@ -4,7 +4,7 @@
 \alias{fitParamsSeparately}
 \title{Fit parameters with separate likelihood functions}
 \usage{
-fitParamsSeparately(pd, par, namesToOptimise, opts)
+fitParamsSeparately(pd, par, knownNames, namesToOptimise, opts)
 }
 \arguments{
 \item{pd}{the \code{\link{PulseData}} object}

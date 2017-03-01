@@ -6,9 +6,11 @@ nGenes <- 10
 nReplicates <- 3
 nTime <- 3
 
-options <- setBoundaries(
-  params = list(a = c(1, 1e10), b = c(.01, 1)),
-  shared = list(alpha = c(.10, 100)))
+options <- setBoundaries(list(
+  a = c(1, 1e10),
+  b = c(.01, 1),
+  alpha = c(.10, 100)
+))
 
 formulas <- MeanFormulas(
   A = a,

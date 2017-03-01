@@ -7,7 +7,7 @@
   tolerance = list(
     params = 1e-3,
     shared = 1e-2,
-    fraction_factors = 1e-3
+    normFactors = 1e-3
   ),
   verbose = "silent",
   cores = 1,
@@ -114,7 +114,7 @@ setBoundaries <- function(b, options = .defaultParams) {
 #'
 #' @param params a threshold for gene-specific parameter boundaries
 #' @param shared a threshold for shared parameters boundaries
-#' @param fraction_factors  a threshold for the fraction factors
+#' @param normFactors a threshold for the fraction factors
 #' 
 #' @param options an options object to use as a basis for a new parameter set
 #'
@@ -129,7 +129,7 @@ setBoundaries <- function(b, options = .defaultParams) {
 #'
 setTolerance <- function(params = .01,
                          shared = .01,
-                         fraction_factors = .01,
+                         normFactors = .01,
                          options = .defaultParams) {
   if (!is.list(options))
     stop("Options must be a list")
