@@ -45,3 +45,10 @@ allNormFactors <- multiplyList(normFactors, fractions)
 
 counts <- generateTestDataFrom(
   formulas, formulaIndexes, allNormFactors, par, conditions)
+
+pulseRFractionData <- list(formulas = formulas,
+     counts = counts,
+     fractions = fractions,
+     formulaIndexes = formulaIndexes,
+     par = par)
+devtools::use_data(pulseRFractionData)
