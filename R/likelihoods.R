@@ -84,7 +84,8 @@ predictExpression <- function(pulseData, par) {
   evaledForms <- eval(as.call(c(cbind, pulseData$formulas)), par)
   norms <- getNorms(pulseData, par$normFactors)
   means <- sample_means(evaledForms, norms)
-  llog <- stats::dnbinom(counts, mu = means, size = par$size, log = TRUE)
+  llog <- stats::dnbinom(
+    pulseData$counts, mu = means, size = par$size, log = TRUE)
   list(predictions = means, llog = llog)
 }
 
