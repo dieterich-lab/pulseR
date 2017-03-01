@@ -92,17 +92,6 @@ getMaxRelDifference <- function(x,y) max(abs(1 - unlist(x)/unlist(y)))
 #' @return a list with the fitted parameters in the same form as
 #' the initial guess `par`
 #'     
-#' @details 
-#'    In the initial guess \code{par},
-#'    the following list items need to be provided:
-#'    \itemize{
-#'    \item{params: }{list of gene-specific parameters}
-#'    \item{shared: }{list of shared parameters}
-#'    \item{fraction_factors (if relevant): }{a vector of fraction factors
-#'    in the order of \code{levels(pulseDatad$fractions)}} 
-#'    \item{size (optional): }{an initial guess for the size parameter of the
-#'    negative binomial distribution, see \code{dnbinom}}
-#'    }
 #' @export
 #'
 #' @examples 
@@ -127,7 +116,7 @@ fitModel <- function(pulseData, par, options){
   fraction_rel_err <- ifelse(is.null(par$normFactors), 0, Inf)
   while (rel_err > options$tolerance$params ||
          shared_rel_err > options$tolerance$shared ||
-         fraction_rel_err > options$tolerance$fraction_factors) {
+         fraction_rel_err > options$tolerance$normFactors) {
     # Fit shared params
     if (length(sharedParams) > 0) {
       res <- fitParams(

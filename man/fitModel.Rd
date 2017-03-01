@@ -20,18 +20,6 @@ the initial guess `par`
 \description{
 Fit the model by MLE
 }
-\details{
-In the initial guess \code{par},
-   the following list items need to be provided:
-   \itemize{
-   \item{params: }{list of gene-specific parameters}
-   \item{shared: }{list of shared parameters}
-   \item{fraction_factors (if relevant): }{a vector of fraction factors
-   in the order of \code{levels(pulseDatad$fractions)}} 
-   \item{size (optional): }{an initial guess for the size parameter of the
-   negative binomial distribution, see \code{dnbinom}}
-   }
-}
 \examples{
 \dontrun{
 fitResult <- fitModel(pd, par)

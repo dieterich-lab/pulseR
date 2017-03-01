@@ -4,20 +4,9 @@
 \alias{setBoundaries}
 \title{Set optimization boundaries for the model parameters.}
 \usage{
-setBoundaries(params = NULL, shared = NULL, fraction_factors = NULL,
-  size = NULL, options = .defaultParams)
+setBoundaries(b, options = .defaultParams)
 }
 \arguments{
-\item{params}{a list of gene-specific parameter boundaries}
-
-\item{shared}{a list of shared parameters boundaries}
-
-\item{fraction_factors}{the  lower and the upper boundaries 
-for the fraction factors}
-
-\item{size}{the lower and the upper boundaries for the size parameter for
-\code{\link{dnbinom}}.}
-
 \item{options}{an options object to use as a basis for a new parameter set}
 }
 \value{
