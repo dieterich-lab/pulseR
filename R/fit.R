@@ -1,4 +1,5 @@
 
+
 #' Fit parameters given the initial values and the parameter names
 #'
 #' @param pd the \code{\link{PulseData}} object
@@ -10,6 +11,8 @@
 #' @export
 #'
 fitParams <- function(pd, par, namesToOptimise, opts) {
+  opts <- normaliseBoundaries(opts, par, pd)
+  # garantee that boundaries are in the same order as the params
   lb <- unlist(opts$lb[namesToOptimise])
   ub <- unlist(opts$ub[namesToOptimise])
   objective <- ll(par = par, namesToOptimise = namesToOptimise, pd = pd)
@@ -33,6 +36,8 @@ fitParams <- function(pd, par, namesToOptimise, opts) {
 #' @export
 #'
 fitParamsSeparately <- function(pd, par, knownNames, namesToOptimise, opts) {
+  opts <- normaliseBoundaries(opts, par, pd)
+  # garantee that boundaries are in the same order as the params
   lb <- as.data.frame(opts$lb[namesToOptimise])
   ub <- as.data.frame(opts$ub[namesToOptimise])
   p <- data.frame(par[namesToOptimise])
@@ -107,10 +112,15 @@ getMaxRelDifference <- function(x,y) max(abs(1 - unlist(x)/unlist(y)))
 fitModel <- function(pulseData, par, options){
   known <- setdiff(names(par), names(options$lb))
   toFit <- setdiff(names(par), c("size", "normFactors", known))
+  options <- normaliseBoundaries(
+    options, par[setdiff(names(par), known)], pulseData)
   len <- vapply(par, length, integer(1))
   sharedParams <- toFit[len[toFit] == 1] 
   geneParams <- toFit[len[toFit] > 1]
   knownGenePars <- names(len[known] > 1)
+  if (!is.null(pulseData$interSampleCoeffs) && is.null(par$normFactors)) {
+    par$normFactors <- assignList(pd$interSampleCoeffs, 1)
+  }
   log2screen(options, cat("\n"))
   rel_err <- Inf
   shared_rel_err <- ifelse(length(sharedParams) == 0, 0, Inf)

@@ -1,12 +1,3 @@
-# extend boundaries to param length
-.b <- function(b, par) {
-  for (p in names(b)) {
-    if (length(b[[p]]) == 1)
-      b[[p]] <- rep(b[[p]], length(par[[p]]))
-  }
-  b
-}
-
 #from pryr package
 substitute_q <- function(x, env)
 {

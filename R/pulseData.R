@@ -31,7 +31,7 @@ PulseData <- function(counts,
   known <- addKnownToFormulas(formulas, formulaIndexes, conditions)
   e$conditions <- conditions
   e$rawFormulas <- known$formulas
-  e$formulas <- known$formulaslapply(known$formulas,
+  e$formulas <- lapply(known$formulas,
                      compiler::compile,
                      options = list(suppressAll = TRUE))
   e$formulaIndexes <- known$formulaIndexes
@@ -176,9 +176,9 @@ addKnownToFormulas <- function(forms, formulaIndexes, conditions) {
 makeGroups <- function(pd, normGroups) {
   normCoeffs <- pd$formulaIndexes[match(unique(normGroups), normGroups)]
   names(normCoeffs) <- unique(normGroups)
-  normCoeffs <-
-    relist(seq_along(unlist(normCoeffs)), normCoeffs)
+  normCoeffs <- relist(seq_along(unlist(normCoeffs)), normCoeffs)
   normCoeffIndexes <- multiplyList(normCoeffs, normGroups)
+  normCoeffs <- assignList(normCoeffs, 1)
   list(normCoeffs = normCoeffs,
        normCoeffIndexes = normCoeffIndexes)
 }
