@@ -20,6 +20,7 @@ set.seed(258)
 ### The experiment description
 
 Let us have a labelling experiment with several time points
+
 ```{r}
 attach(pulseRFractionData)
 ```
@@ -39,6 +40,7 @@ conditions
 
 
 ## Create `PulseData` object
+
 ```{r}
 pd <- PulseData(
   counts = counts,
@@ -48,6 +50,7 @@ pd <- PulseData(
   groups = fractions
 )
 ```
+
 It is important to understand, how the data are normalised.
 To reduce parameter number, we use the same normalisation as in DESeq package
 for samples from the *same fraction*.
@@ -57,6 +60,7 @@ amounts of RNA, estimated by the model.
 ### Fitting options
 Now we set options for fitting. It is important to provide boundaries for the
 optimal parameter search:
+
 ```{r}
 opts <- setBoundaries(list(
   a = c(.1, 1e6),
@@ -64,6 +68,7 @@ opts <- setBoundaries(list(
   normFactors = c(.1, 50)
 ))
 ```
+
 For other possible parameters please see "set" functions in the package
 documentation (`setBoundaries, setTolerance, setFittingOptions`).  
 
@@ -74,6 +79,7 @@ There are two options for how to set the parameters:
 
 - to sample random numbers within the given boundaries 
 - manual values by the user
+
 ```{r}
 par <- list(p = pulseRFractionData$par$p)
 par <- initParameters(par, c("a", "b"), pulseData = pd, options = opts)
@@ -93,8 +99,8 @@ less than specified in `options$tolerance`.
 
 The function `fitModel` accept the PulseData object, initial guess for the 
 parameters values and fitting options.
-```{r cache=TRUE}
 
+```{r cache=TRUE}
 opts <- setTolerance(params = 1e-3,
                      fraction_factors = 1e-2,
                      options = opts)
@@ -104,7 +110,15 @@ result <- fitModel(pd, par, opts)
 ```{r}
 pr <- predictExpression(pd, result)
 
-plot(pr$predictions, pd$count_data, pch=16, cex=.3, log='xy')
+plot(
+  x = as.vector(pr$predictions),
+  y = as.vector(pd$counts),
+  pch = 16,
+  cex = .3,
+  log = 'xy',
+  xlab = "fitted",
+  ylab = "experiment"
+  )
 ```
 
 
