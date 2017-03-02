@@ -108,7 +108,7 @@ fitModel <- function(pulseData, par, options){
   geneParams <- toFit[len[toFit] > 1]
   knownGenePars <- names(len[known] > 1)
   if (!is.null(pulseData$interSampleCoeffs) && is.null(par$normFactors)) {
-    par$normFactors <- assignList(pd$interSampleCoeffs, 1)
+    par$normFactors <- assignList(pulseData$interSampleCoeffs, 1)
   }
   log2screen(options, cat("\n"))
   rel_err <- Inf
