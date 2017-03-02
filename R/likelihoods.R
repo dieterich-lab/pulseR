@@ -95,7 +95,11 @@ log2screen <- function(options, ...) {
 }
 
 
-evaluateLikelihood <- function(pulseData, par ) {
-  objective <- ll_dispersion(pulseData, par)
-  objective(par$size)
+evaluateLikelihood <- function(pulseData, par) {
+  evaledForms <- eval(as.call(c(cbind, pulseData$formulas)), par)
+  norms <- getNorms(pulseData, par$normFactors)
+  means <- sample_means(evaledForms, norms)
+  llog <- stats::dnbinom(
+    pulseData$counts, mu = means, size = par$size, log = TRUE)
+  sum(llog)
 }
