@@ -7,7 +7,8 @@ Author: Alexey Uvarovskii <alexey.mipt@gmail.com>
 Maintainer: Alexey Uvarovskii <alexey.mipt@gmail.com>
 Imports:
     stats,
-    parallel
+    parallel,
+    methods
 Suggests:
     testthat,
     knitr,

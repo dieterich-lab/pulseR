@@ -61,7 +61,7 @@ PulseData <- function(counts,
 }
 
 assignList <- function(l, x){
- relist(rep(x, length(unlist(l))), l) 
+ utils::relist(rep(x, length(unlist(l))), l) 
 }
 
 
@@ -90,7 +90,7 @@ deseq <- function(x, loggeomeans) {
   if (any(finitePositive)) {
     res <- exp(median((log(x) - loggeomeans)[finitePositive], na.rm = TRUE))
   } else {
-    print(count_data[1:6, ])
+    print(head(x))
     stop("Can't normalise accross a condition.
          Too many zero expressed genes. ")
   }

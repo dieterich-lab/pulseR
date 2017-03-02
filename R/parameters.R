@@ -21,7 +21,7 @@
     if (length(b[[p]]) == 1) 
       b[[p]] <- rep(b[[p]], length(unlist(par[[p]])))
       if (is.list(par[[p]])) 
-        b[[p]] <- relist(b[[p]], par[[p]])
+        b[[p]] <- utils::relist(b[[p]], par[[p]])
   }
   b
 }
@@ -233,8 +233,8 @@ stopIfNotInRanges <- function(args, options) {
       stop("Error: Argument 'size' is not within the specified range\n")
     args$size <- runif(1, options$lb$size, options$ub$size)
   }
-  options$lb <- .b(options$lb, par)
-  options$ub <- .b(options$ub, par)
+  options$lb <- .b(options$lb, args)
+  options$ub <- .b(options$ub, args)
   is.inRange <- function(x, lb, ub) {
                  all(unlist(x) >= unlist(lb)) &&
                  all(unlist(x) <= unlist(ub))
