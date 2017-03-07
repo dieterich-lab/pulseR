@@ -32,9 +32,28 @@ addNormFactorsBoundaries <- function(options, pd){
   options
 }
 
+normaliseNormFactorBoundaries <- function(options, pd){
+  f <- function(x) {
+    if (is.list(x)) {
+      # if a user specified a list on the basis of the conditions
+      if (length(x) == length(unique(pd$conditions[, 1]))) {
+        x <- multiplyList(x, pd$conditions[, 1])
+      }
+    }
+    # if only a scalar
+    if (is.vector(x) && length(x) == 1) {
+      x <- assignList(pd$interSampleCoeffs, x)
+    }
+    x
+  }
+  options$lb$normFactors <- f(options$lb$normFactors)
+  options$ub$normFactors <- f(options$ub$normFactors)
+  options
+}
+
 normaliseBoundaries <- function(options, par, pd){
-  if (!is.null(pd$interSampleCoeffs))
-    options <- addNormFactorsBoundaries(options, pd)
+  if (!is.null(pd$interSampleCoeffs))  
+    options <- normaliseNormFactorBoundaries(options, pd)
   toExtend <- setdiff(names(options$lb), "normFactors")
   options$lb[toExtend] <- .b(options$lb[toExtend], par[toExtend])
   options$ub[toExtend] <- .b(options$ub[toExtend], par[toExtend])
@@ -92,7 +111,7 @@ checkThresholds <- function(options){
 #' @examples
 #' setBoundaries(params = list(a = c(1,2), b = c(10, 20)))
 #'
-setBoundaries <- function(b, options = .defaultParams) {
+setBoundaries <- function(b, normFactors=c(.01,10), options = .defaultParams) {
   if (!is.list(options))
     stop("Options must be a list")
   options <- addDefault(options)
@@ -106,6 +125,8 @@ setBoundaries <- function(b, options = .defaultParams) {
         options$lb[[p]] <- b[[p]][1]
         options$ub[[p]] <- b[[p]][2]
   }
+  options$lb$normFactors <- normFactors[[1]]
+  options$ub$normFactors <- normFactors[[2]]
   options
 }
 
