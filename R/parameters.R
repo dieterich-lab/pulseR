@@ -232,8 +232,16 @@ initParameters <- function(par, geneParams, pulseData, options) {
     par[[p]] <- runif(1, options$lb[[p]], options$ub[[p]])
   }
   if (!is.null(pulseData$interSampleCoeffs)) {
-    if (is.null(par$normFactors))
-      par$normFactors <- pulseData$interSampleCoeffs
+    if (is.null(par$normFactors)) {
+      o <- normaliseNormFactorBoundaries(options, pulseData)
+      par$normFactors <- lapply(seq_along(o$lb$normFactors),
+             function(i) {
+               x <- o$lb$normFactors[[i]]
+               x[1] <- runif(1, o$lb$normFactors[[i]][1],
+                             o$ub$normFactors[[i]][1])
+               x
+             })
+    }
   }
   stopIfNotInRanges(par, options)
   par
