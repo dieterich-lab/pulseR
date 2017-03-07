@@ -40,8 +40,7 @@ normFactors <- list(
 allNormFactors <- multiplyList(normFactors, conditions[,1])
 
 par <- list(size = 1e2)
-par <-  c(par, list(
-  a = (1:nGenes) * 1e5, b = runif( nGenes,.1,1)))
+par <-  c(par, list(a = runif(nGenes,1,1e5), b = runif( nGenes,.1,.9)))
 par$alpha <- 5
 par$size <- 100000
 
@@ -104,6 +103,7 @@ err <- function(x,y){
 }
 
 test_that("gene params fitting works (together)", {
+  skip("don't check long fitting")
   par2 <- par
   toOptimise <- c("a", "b")
   par2[toOptimise] <- opts$lb[toOptimise]
@@ -127,7 +127,7 @@ test_that("shared params fitting works (separately)", {
   res <- pulseR:::fitParams(pd, par, toOptimise, opts)
   expect_lt(max(err(res, par)), .1)
 })
-
+system.time(
 test_that("all together fitting works", {
   par2 <- par
   for (p in c("a", "b")) {
@@ -141,4 +141,4 @@ test_that("all together fitting works", {
   par$size <- NULL
   expect_lt(max(1-unlist(res)/unlist(par)), .1)
 })
-  
+) 
