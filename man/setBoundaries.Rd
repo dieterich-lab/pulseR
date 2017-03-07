@@ -4,7 +4,7 @@
 \alias{setBoundaries}
 \title{Set optimization boundaries for the model parameters.}
 \usage{
-setBoundaries(b, options = .defaultParams)
+setBoundaries(b, normFactors = c(0.01, 10), options = .defaultParams)
 }
 \arguments{
 \item{options}{an options object to use as a basis for a new parameter set}
