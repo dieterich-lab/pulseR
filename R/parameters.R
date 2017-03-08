@@ -239,8 +239,9 @@ initParameters <- function(par, geneParams, pulseData, options) {
       par$normFactors <- lapply(seq_along(options$lb$normFactors),
              function(i) {
                x <- options$lb$normFactors[[i]]
-               x[1] <- runif(1, options$lb$normFactors[[i]][1],
-                             options$ub$normFactors[[i]][1])
+               #x[1] <- runif(1, options$lb$normFactors[[i]][1],
+               #              options$ub$normFactors[[i]][1])
+               x[1] <- 1
                x
              })
     }
