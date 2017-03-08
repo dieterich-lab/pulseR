@@ -49,6 +49,7 @@ PulseData <- function(counts,
       groups <- seq_along(conditions[,1])
     if (is(groups, "formula"))
       groups <- interaction(conditions[, all.vars(groups)])
+    e$groups <- groups
     g <- makeGroups(e, groups)
     e$interSampleCoeffs <- g$normCoeffs
     e$interSampleIndexes <- g$normCoeffIndexes
