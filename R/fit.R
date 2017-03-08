@@ -73,7 +73,7 @@ fitNormFactors <- function(pd, par, opts) {
     x,
     objective,
     method = "L-BFGS-B",
-    control = list(parscale = x),
+    control = list(parscale = (lb+ub)/2),
     lower = lb,
     upper = ub,
     counts = pd$counts
@@ -81,7 +81,10 @@ fitNormFactors <- function(pd, par, opts) {
   relist(c(1,x), par$normFactors)
 }
 
-getMaxRelDifference <- function(x,y) max(abs(1 - unlist(x)/unlist(y)))
+getMaxRelDifference <- function(x, y, eps)
+{
+  max(abs(1 - unlist(x) / (unlist(y))), na.rm = TRUE)
+}
 
 #' Fit the model by MLE
 #'
