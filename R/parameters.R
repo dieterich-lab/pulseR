@@ -37,7 +37,8 @@ normaliseNormFactorBoundaries <- function(options, pd){
     if (is.list(x)) {
       # if a user specified a list on the basis of the conditions
       if (length(x) == length(unique(pd$conditions[, 1]))) {
-        x <- multiplyList(x, pd$conditions[, 1])
+        conditionIds <- match(names(pd$interSampleCoeffs), pd$groups)
+        x <- multiplyList(x, pd$conditions[conditionIds, 1])
       }
     }
     # if only a scalar
@@ -234,12 +235,12 @@ initParameters <- function(par, geneParams, pulseData, options) {
   }
   if (!is.null(pulseData$interSampleCoeffs)) {
     if (is.null(par$normFactors)) {
-      o <- normaliseNormFactorBoundaries(options, pulseData)
-      par$normFactors <- lapply(seq_along(o$lb$normFactors),
+      options <- normaliseNormFactorBoundaries(options, pulseData)
+      par$normFactors <- lapply(seq_along(options$lb$normFactors),
              function(i) {
-               x <- o$lb$normFactors[[i]]
-               x[1] <- runif(1, o$lb$normFactors[[i]][1],
-                             o$ub$normFactors[[i]][1])
+               x <- options$lb$normFactors[[i]]
+               x[1] <- runif(1, options$lb$normFactors[[i]][1],
+                             options$ub$normFactors[[i]][1])
                x
              })
     }
