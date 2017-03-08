@@ -226,6 +226,7 @@ initParameters <- function(par, geneParams, pulseData, options) {
         par[[g]] <- rep(par[[g]], nGenes)
     }
   }
+  # init other non-gene parameters if they are not in par
   notSet <- setdiff(names(options$lb), c("normFactors", names(par)))
   notSet <- notSet[!notSet %in% geneParams]
   for (p in notSet) {
