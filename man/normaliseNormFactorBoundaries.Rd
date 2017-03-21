@@ -19,6 +19,8 @@ normaliseNormFactorBoundaries(options, pd)
 an updated options list
 }
 \description{
-The following cases are considered:
--
+The following cases for options${lb,ub}$normFactors are considered:
+  - the structure is the same with the `interSampleCoeffs`
+  - the length equals the number of unique conditions 
+  - only a single scalar value is provided.
 }
