@@ -86,6 +86,17 @@ normaliseBoundaries <- function(options, par, pd){
 }
 
 
+#' Add default options if unset.
+#'
+#' @param options an options list
+#'
+#' @return an updated options list with the default records added for
+#' unspecified fields
+#' @export
+#'
+#' @examples
+#' opts <- addDefault(list())
+#' 
 addDefault <- function(options) {
   nonSpecified <- setdiff(names(.defaultParams), names(options))
   options[nonSpecified] <- .defaultParams[nonSpecified]
