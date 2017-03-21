@@ -15,6 +15,31 @@
 #'
 #' @return an object of class "PulseData"
 #' @export
+#' 
+#' @example 
+#' 
+#' formulaIndexes <- list(
+#'   total_fraction = 'total',
+#'   flow_through   = c('unlabelled', 'labelled'),
+#'   pull_down      = c('labelled', 'unlabelled'))
+#'   
+#' # spike-ins set up:
+#' 
+#' refGroup <- "total_fraction"
+#' 
+#' labelled <- c("spike1", "spike2") 
+#' unlabelled <- c("spike3", "spike4") 
+#' 
+#' spikeLists <- list(
+#' #  total samples are normalised using all spike-ins
+#'   total_fraction = list(c(unlabelled, labelled)),
+#' # for every item in formulaIndexes we have a set of spike-ins:   
+#'   flow_through   = list(unlabelled, labelled),
+#'   pull_down      = list(labelled, unlabelled))
+#'   
+#' # argument for the function: 
+#' spikeins <- list(refGroup = refGroup,
+#'                  spikeLists = spikeLists)
 #'
 PulseData <- function(counts,
                       conditions,
@@ -28,16 +53,21 @@ PulseData <- function(counts,
   class(e) <- "PulseData"
   e$user_conditions <- conditions
   e$counts <- as.matrix(counts)
+  # generate partially evaluated formulas for every condition
+  # and create new formula indexes for every of this conditions
   known <- addKnownToFormulas(formulas, formulaIndexes, conditions)
   e$conditions <- conditions
   e$rawFormulas <- known$formulas
+  # the compiled formulas are used during likelihood calculation
   e$formulas <- lapply(known$formulas,
                      compiler::compile,
                      options = list(suppressAll = TRUE))
   e$formulaIndexes <- known$formulaIndexes
   e$user_formulas <- formulas
+  # create a skeleton for the sequencing depth normalisation coefficients
   e$depthNormalisation <- assignList(e$formulaIndexes, 1)
   if (!is.null(spikeins)) {
+    # normalise to spike-ins and remove them from the count table
     e$depthNormalisation <- normaliseWithSpikeIns(
       e, spikeins$refGroup, spikeins$spikeLists)
     refSpikes <- unlist(spikeins$spikeLists[[spikeins$refGroup]])
@@ -51,7 +81,7 @@ PulseData <- function(counts,
       groups <- interaction(conditions[, all.vars(groups)])
     e$groups <- groups
     g <- makeGroups(e, groups)
-    e$interSampleCoeffs <- g$normCoeffs
+    e$interSampleCoeffs  <- g$normCoeffs
     e$interSampleIndexes <- g$normCoeffIndexes
     deseqFactors <- normaliseNoSpikeins(e, groups)
     for (i in seq_along(e$depthNormalisation)) {
