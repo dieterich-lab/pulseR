@@ -119,6 +119,16 @@ validateOptions <- function(options){
   NULL
 }
 
+
+#' Tests tolerance thersholds for correctness
+#'
+#' Throws an error in case wrong format or value are provided.
+#' 
+#' @param options an options list
+#'
+#' @return NULL
+#'
+#' @examples
 checkThresholds <- function(options){
   if (is.null(options$tolerance))
     stop("No tolerance is specified")
@@ -133,6 +143,7 @@ checkThresholds <- function(options){
                     }, logical(1))
   if (!all(isValid))
     stop("Tolerance must be a single positive number")
+  NULL
 }
 
 
