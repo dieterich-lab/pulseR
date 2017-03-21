@@ -68,7 +68,10 @@ assignList <- function(l, x){
 
 #' @export
 print.PulseData <- function(x,...){
-  cat("PulseData object")
+  cat("PulseData object \n")
+  cat(paste0(dim(x$counts)[1], " genes X ", 
+             dim(x$counts)[2], " samples "))
+ print(table(conditions[,1]))
 }
 
 #' Calculate normalisation factors for columns in a matrix
