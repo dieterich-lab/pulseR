@@ -15,16 +15,6 @@
   ub = list(size = 1e10)
 )
 
-# extend boundaries to the parameter length
-.b <- function(b, par) {
-  for (p in names(b)) {
-    if (length(b[[p]]) == 1) 
-      b[[p]] <- rep(b[[p]], length(unlist(par[[p]])))
-      if (is.list(par[[p]])) 
-        b[[p]] <- utils::relist(b[[p]], par[[p]])
-  }
-  b
-}
 
 #' Shape boundaries for the normalisation factors
 #'  
@@ -62,6 +52,30 @@ normaliseNormFactorBoundaries <- function(options, pd){
   options
 }
 
+# Helper for normaliseBoundaries
+# extend boundaries to the parameter length
+.b <- function(b, par) {
+  for (p in names(b)) {
+    if (length(b[[p]]) == 1) 
+      b[[p]] <- rep(b[[p]], length(unlist(par[[p]])))
+      if (is.list(par[[p]])) 
+        b[[p]] <- utils::relist(b[[p]], par[[p]])
+  }
+  b
+}
+
+#' Shape boundaries for the parameters in formulas 
+#'
+#' If a single scalar value is provided, its boundaries are
+#' assumed to be the same for all genes/isoforms, hence
+#' a vector of gene number size will be returned.
+#' 
+#' @param options the options list
+#' @param par the parameters list
+#' @param pd the \code{\link{PulseData}} object
+#'
+#' @return an updated options list
+#'
 normaliseBoundaries <- function(options, par, pd){
   if (!is.null(pd$interSampleCoeffs))  
     options <- normaliseNormFactorBoundaries(options, pd)
