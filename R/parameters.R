@@ -362,5 +362,7 @@ guessMeans <- function(pulseData,
       exp(mean(log(x + .01)))
   )
   totals <- pulseData$user_conditions[,1] == totalLabel
-  apply(pulseData$count_data, 1, fun)
+  if (!any(totals))
+    stop(paste0("Error: no samples from the condition ", totalLabel, "."))
+  apply(pulseData$count_data[ ,totals], 1, fun)
 }
