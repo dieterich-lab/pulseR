@@ -2,7 +2,6 @@ context("Parameters set up")
 
 test_that("setting options work", {
   expect_error(setFittingOptions(verbose = "x"))
-  expect_error(setFittingOptions(cores = -1))
   expect_equal(setFittingOptions(options = list()), pulseR:::.defaultParams)
   
 })
