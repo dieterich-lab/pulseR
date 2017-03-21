@@ -253,7 +253,6 @@ setTolerance <- function(params = .01,
 #'
 #' @param verbose if "verbose" relative changes of parameters 
 #' between two fitting iterations are printed
-#' @param cores \code{integer}, natural number
 #' @param options an option object
 #'
 #' @return an option object with modified specified parameters.
@@ -261,7 +260,6 @@ setTolerance <- function(params = .01,
 #'
 setFittingOptions <- function(
     verbose = c("silent", "verbose"),
-    cores = 1,
     options = .defaultParams
     ){
   if (!missing(verbose))

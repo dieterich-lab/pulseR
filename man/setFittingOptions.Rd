@@ -4,13 +4,12 @@
 \alias{setFittingOptions}
 \title{Specify fitting options}
 \usage{
-setFittingOptions(verbose = c("silent", "verbose"), cores = 1, options)
+setFittingOptions(verbose = c("silent", "verbose"),
+  options = .defaultParams)
 }
 \arguments{
 \item{verbose}{if "verbose" relative changes of parameters 
 between two fitting iterations are printed}
-
-\item{cores}{\code{integer}, natural number}
 
 \item{options}{an option object}
 }
