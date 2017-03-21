@@ -262,10 +262,8 @@ setTolerance <- function(params = .01,
 setFittingOptions <- function(
     verbose = c("silent", "verbose"),
     cores = 1,
-    options
+    options = .defaultParams
     ){
-  if (missing(options))
-    options <- .defaultParams
   if (!missing(verbose))
     match.arg(verbose)
   args <- as.list(match.call())[-1]
