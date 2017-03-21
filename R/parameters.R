@@ -278,19 +278,6 @@ setFittingOptions <- function(
   options
 }
 
-
-sampleParams <- function(lb, ub, paramName) {
-  n <- max(length(lb), length(ub))
-  result <- runif(n, lb, ub)
-  if (is.null(names(lb)) && is.null(names(ub)))
-    stop(paste("Please provide names for the boundaries in ", paramName))
-  if (!is.null(names(lb)))
-    names(result) <- names(lb)
-  else
-    names(result) <-  names(ub)
-  result
-}
-
 #' Initialize first guess for the parameters 
 #'
 #' @param par a list with parameter values
