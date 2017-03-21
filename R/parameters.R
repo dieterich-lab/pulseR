@@ -103,12 +103,20 @@ addDefault <- function(options) {
   options
 }
 
-validateOptions <- function(o){
-  if (!is.list(o))
+#' Check options for sanity
+#'
+#' Throws an error if incorrect values are supplied.
+#' 
+#' @param options an options list
+#'
+#' @return NULL
+#' @export
+#'
+validateOptions <- function(options){
+  if (!is.list(options))
     stop("Options must be a list")
-  if (is.null(o$cores) || o$cores < 1)
-    stop("Please specify correct number of cores")
-  checkThresholds(o)
+  checkThresholds(options)
+  NULL
 }
 
 checkThresholds <- function(options){
