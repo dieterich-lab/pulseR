@@ -4,9 +4,13 @@
 \alias{setBoundaries}
 \title{Set optimization boundaries for the model parameters.}
 \usage{
-setBoundaries(b, normFactors = c(0.01, 10), options = .defaultParams)
+setBoundaries(boundaries, normFactors = c(0.01, 10),
+  options = .defaultParams)
 }
 \arguments{
+\item{boundaries}{a named list of lower and  upper boundaries 
+for the parameters which are used in the formulas.}
+
 \item{options}{an options object to use as a basis for a new parameter set}
 }
 \value{
@@ -17,9 +21,13 @@ Set optimization boundaries for the model parameters.
 }
 \details{
 If no options object is provided, the default values are used.
-Boundaries for parameters are provided as a named list of vectors of
-the length 2, see example.
-
+The elements in the boundaries list are either 
+- a list of two vectors
+  (the lower and upper boundaries for every gene/isoform respectively).
+  If a vector is of length 1, equal boundary values will be assumed for 
+  all genes (e.g. for the lower boundary);
+- a vector of two scalars.
+   
 The normFactors elements (two, for the lower and the upper 
 boundaries) can be:
   - a list with the structure is the same with the `interSampleCoeffs` in 
