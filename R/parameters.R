@@ -362,7 +362,6 @@ stopIfNotInRanges <- function(args, options) {
 #' @param fun a function used to estimate the expression level. 
 #' Possible variants are mean, median and adjusted geometric mean (i.e.
 #' $exp(mean(log(x + .5)))$.
-#' 
 #'
 #' @return a vector of expression level estimations for every gene
 #' 
@@ -376,10 +375,9 @@ guessMeans <- function(pulseData,
   fun <- match.arg(fun)
   fun <- switch(
     fun,
-    mean = mean,
-    median = median,
-    geomean = function(x)
-      exp(mean(log(x + .01)))
+    mean    = mean,
+    median  = median,
+    geomean = function(x) exp(mean(log(x + .01)))
   )
   totals <- pulseData$user_conditions[,1] == totalLabel
   if (!any(totals))
