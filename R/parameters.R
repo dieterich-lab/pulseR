@@ -145,16 +145,22 @@ checkThresholds <- function(options){
 
 #' Set optimization boundaries for the model parameters.
 #'
-#' @param b
+#' @param boundaries a named list of lower and  upper boundaries 
+#' for the parameters which are used in the formulas.
+#'  
 #' @params normFactors either a vector of length 2 or
 #' a list of two lists (lower, upper boundaries).
 #' @param options an options object to use as a basis for a new parameter set
 #'
 #' @return   an options object with the new parameter values
 #' @details If no options object is provided, the default values are used.
-#' Boundaries for parameters are provided as a named list of vectors of
-#' the length 2, see example.
-#' 
+#' The elements in the boundaries list are either 
+#' - a list of two vectors
+#'   (the lower and upper boundaries for every gene/isoform respectively).
+#'   If a vector is of length 1, equal boundary values will be assumed for 
+#'   all genes (e.g. for the lower boundary);
+#' - a vector of two scalars.
+#'    
 #' The normFactors elements (two, for the lower and the upper 
 #' boundaries) can be:
 #'   - a list with the structure is the same with the `interSampleCoeffs` in 
@@ -192,17 +198,19 @@ checkThresholds <- function(options){
 #'   list(mu = c(1, 1e6), d = c(1, 2)),
 #'   normFactors = list(lbNormFactors, ubNormFactors))
 #'   
-setBoundaries <- function(b, normFactors=c(.01,10), options = .defaultParams) {
+setBoundaries <- function(boundaries,
+                          normFactors=c(.01,10), 
+                          options = .defaultParams) {
   if (!is.list(options))
     stop("Options must be a list")
-  lapply(names(b), function(x) {
-    if (length(b[[x]]) != 2)
+  lapply(names(boundaries), function(x) {
+    if (length(boundaries[[x]]) != 2)
       stop(paste0("Boundaries for the parameters ", x, " have a wrong format."))
   })
   options <- addDefault(options)
-  for (p in names(b)) {
-        options$lb[[p]] <- b[[p]][1]
-        options$ub[[p]] <- b[[p]][2]
+  for (p in names(boundaries)) {
+        options$lb[[p]] <- boundaries[[p]][1]
+        options$ub[[p]] <- boundaries[[p]][2]
   }
   options$lb$normFactors <- normFactors[[1]]
   options$ub$normFactors <- normFactors[[2]]
