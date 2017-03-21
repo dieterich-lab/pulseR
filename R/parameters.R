@@ -127,6 +127,7 @@ validateOptions <- function(options){
 checkThresholds <- function(options){
   if (is.null(options$tolerance))
     stop("No tolerance is specified")
+  # must be a positive single scalar
   isValid <- vapply(names(options$tolerance),
                     function(p) {
                       if (is.vector(options$tolerance[[p]])   &&
