@@ -1,8 +1,4 @@
 
-# default params
-# - tolerance
-# - boundaries
-# - 
 .defaultParams <-  list(
   tolerance = list(
     params = 1e-3,
@@ -10,7 +6,6 @@
     normFactors = 1e-3
   ),
   verbose = "silent",
-  cores = 1,
   lb = list(size = 10),
   ub = list(size = 1e10)
 )
