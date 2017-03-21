@@ -16,11 +16,43 @@ an options object with the new parameter values
 Set optimization boundaries for the model parameters.
 }
 \details{
-If no options object is provided, the default value is used.
-Boundaries are provided as a named list of vectors or lists with 
+If no options object is provided, the default values are used.
+Boundaries for parameters are provided as a named list of vectors of
 the length 2, see example.
+
+The normFactors elements (two, for the lower and the upper 
+boundaries) can be:
+  - a list with the structure is the same with the `interSampleCoeffs` in 
+    the \code{\link{PulseData}} object used in the analysis;
+  - a list with the length equals the number of unique conditions;
+    the structure is the same as `formulaIndexes` object used for
+    the \code{\link{PulseData}} object creation;
+  - a single scalar value.
 }
 \examples{
-setBoundaries(params = list(a = c(1,2), b = c(10, 20)))
-
+# the simple way:
+setBoundaries(list(a = c(1,2), b = c(10, 20)), 
+              normFactors = c(.1,10))
+              
+# the hard way:
+# this are the formula indexes (see PulseData function documentation)
+formulaIndexes <- list(
+  total_fraction = 'total',
+  pull_down      = c('labelled', 'unlabelled'),
+  flow_through   = c('unlabelled', 'labelled')
+)
+# the lower and upper boundaries must have the same structure:
+lbNormFactors <- list(
+  total_fraction = 1,
+  pull_down      = c(.1,.010),
+  flow_through   = c(.1,.010))
+ubNormFactors <- list(
+  total_fraction = 1,
+  pull_down      = c(10, 2),
+  flow_through   = c(10, 2))
+# we need to provide them as a list  
+opts <- setBoundaries(
+  list(mu = c(1, 1e6), d = c(1, 2)),
+  normFactors = list(lbNormFactors, ubNormFactors))
+  
 }

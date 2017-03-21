@@ -146,27 +146,60 @@ checkThresholds <- function(options){
 #' Set optimization boundaries for the model parameters.
 #'
 #' @param b
+#' @params normFactors either a vector of length 2 or
+#' a list of two lists (lower, upper boundaries).
 #' @param options an options object to use as a basis for a new parameter set
 #'
 #' @return   an options object with the new parameter values
-#' @details If no options object is provided, the default value is used.
-#' Boundaries are provided as a named list of vectors or lists with 
+#' @details If no options object is provided, the default values are used.
+#' Boundaries for parameters are provided as a named list of vectors of
 #' the length 2, see example.
+#' 
+#' The normFactors elements (two, for the lower and the upper 
+#' boundaries) can be:
+#'   - a list with the structure is the same with the `interSampleCoeffs` in 
+#'     the \code{\link{PulseData}} object used in the analysis;
+#'   - a list with the length equals the number of unique conditions;
+#'     the structure is the same as `formulaIndexes` object used for
+#'     the \code{\link{PulseData}} object creation;
+#'   - a single scalar value.
+#' 
 #' @export
 #' 
 #' @examples
-#' setBoundaries(params = list(a = c(1,2), b = c(10, 20)))
-#'
+#' # the simple way:
+#' setBoundaries(list(a = c(1,2), b = c(10, 20)), 
+#'               normFactors = c(.1,10))
+#'               
+#' # the hard way:
+#' # this are the formula indexes (see PulseData function documentation)
+#' formulaIndexes <- list(
+#'   total_fraction = 'total',
+#'   pull_down      = c('labelled', 'unlabelled'),
+#'   flow_through   = c('unlabelled', 'labelled')
+#' )
+#' # the lower and upper boundaries must have the same structure:
+#' lbNormFactors <- list(
+#'   total_fraction = 1,
+#'   pull_down      = c(.1,.010),
+#'   flow_through   = c(.1,.010))
+#' ubNormFactors <- list(
+#'   total_fraction = 1,
+#'   pull_down      = c(10, 2),
+#'   flow_through   = c(10, 2))
+#' # we need to provide them as a list  
+#' opts <- setBoundaries(
+#'   list(mu = c(1, 1e6), d = c(1, 2)),
+#'   normFactors = list(lbNormFactors, ubNormFactors))
+#'   
 setBoundaries <- function(b, normFactors=c(.01,10), options = .defaultParams) {
   if (!is.list(options))
     stop("Options must be a list")
+  lapply(names(b), function(x) {
+    if (length(b[[x]]) != 2)
+      stop(paste0("Boundaries for the parameters ", x, " have a wrong format."))
+  })
   options <- addDefault(options)
-  .getBoundaryValue <- function(x, i) {
-    x <- unlist(x)
-    if (length(x) != 2)
-      stop("Boundaries must have length of 2")
-    x[i]
-  }
   for (p in names(b)) {
         options$lb[[p]] <- b[[p]][1]
         options$ub[[p]] <- b[[p]][2]
