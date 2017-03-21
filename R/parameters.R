@@ -123,7 +123,6 @@ validateOptions <- function(options){
 #'
 #' @return NULL
 #'
-#' @examples
 checkThresholds <- function(options){
   if (is.null(options$tolerance))
     stop("No tolerance is specified")
@@ -148,7 +147,7 @@ checkThresholds <- function(options){
 #' @param boundaries a named list of lower and  upper boundaries 
 #' for the parameters which are used in the formulas.
 #'  
-#' @params normFactors either a vector of length 2 or
+#' @param normFactors either a vector of length 2 or
 #' a list of two lists (lower, upper boundaries).
 #' @param options an options object to use as a basis for a new parameter set
 #'

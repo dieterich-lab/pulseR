@@ -11,6 +11,9 @@ setBoundaries(boundaries, normFactors = c(0.01, 10),
 \item{boundaries}{a named list of lower and  upper boundaries 
 for the parameters which are used in the formulas.}
 
+\item{normFactors}{either a vector of length 2 or
+a list of two lists (lower, upper boundaries).}
+
 \item{options}{an options object to use as a basis for a new parameter set}
 }
 \value{
