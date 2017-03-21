@@ -15,7 +15,7 @@
   ub = list(size = 1e10)
 )
 
-# extend boundaries to param length
+# extend boundaries to the parameter length
 .b <- function(b, par) {
   for (p in names(b)) {
     if (length(b[[p]]) == 1) 
@@ -26,12 +26,22 @@
   b
 }
 
-addNormFactorsBoundaries <- function(options, pd){
-  options$lb$normFactors <- pulseR:::assignList(pd$interSampleCoeffs, .01)
-  options$ub$normFactors <- pulseR:::assignList(pd$interSampleCoeffs, 20)
-  options
-}
-
+#' Shape boundaries for the normalisation factors
+#'  
+#' Create lower and upper boundaries with the same structure as
+#' the list of normalisation coefficients `interSamplCoeffs` in
+#' the \code{\link{PulseData}} object.
+#'
+#' The following cases for options${lb,ub}$normFactors are considered:
+#'   - the structure is the same with the `interSampleCoeffs`
+#'   - the length equals the number of unique conditions 
+#'   - only a single scalar value is provided.
+#' 
+#' @param options the options list
+#' @param pd  the \code{\link{PulseData}} object
+#'
+#' @return an updated options list
+#'
 normaliseNormFactorBoundaries <- function(options, pd){
   f <- function(x) {
     if (is.list(x)) {
