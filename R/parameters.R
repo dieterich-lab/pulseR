@@ -85,11 +85,6 @@ normaliseBoundaries <- function(options, par, pd){
   options
 }
 
-correctLength <- function(options, par){
- options$lb <- .b(options$lb, par)
- options$ub <- .b(options$ub, par)
- options
-}
 
 addDefault <- function(options) {
   nonSpecified <- setdiff(names(.defaultParams), names(options))
