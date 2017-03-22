@@ -5,11 +5,16 @@
 #' @param conditions a data.frame;
 #'   the first column corresponds to the conditions given in \code{formulas}.
 #' @param formulas a list, created by \code{\link{MeanFormulas}}
-#' @param formulaIndexes list of lists; defines indexes of formulas 
+#' @param formulaIndexes a list of lists; defines indexes of formulas 
 #' used for calculation of the expected read number
-#' @param spikeins 
-#' @param fractions a formula or a vector, e.g. ~ condition + time (if spike-ins are
-#' not provided). The vector length must be the same as the sample number.
+#' @param spikeins NULL (default) or a list of two items:
+#'   - refGroups, a character, which defines the group which should be
+#'     treated as a reference for normalisation
+#'   - spikeLists, a list of character vectors with the spike-ins names and
+#'     the same structure as `formulaIndexes`.
+#' @param fractions NULL (default) or a formula or a vector,
+#'  e.g. ~ condition + time (if spike-ins are not provided). 
+#' The vector length must be the same as the sample number.
 #' the names used in the \code{fractions} defines different fractions,
 #' which should have distinct coefficients for mean expression fitting.
 #'
@@ -18,6 +23,8 @@
 #' 
 #' @examples 
 #' 
+#' # Spike-ins definition for object creation
+#'  
 #' formulaIndexes <- list(
 #'   total_fraction = 'total',
 #'   flow_through   = c('unlabelled', 'labelled'),

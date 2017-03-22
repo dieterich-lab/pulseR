@@ -15,13 +15,20 @@ the first column corresponds to the conditions given in \code{formulas}.}
 
 \item{formulas}{a list, created by \code{\link{MeanFormulas}}}
 
-\item{formulaIndexes}{list of lists; defines indexes of formulas
+\item{formulaIndexes}{a list of lists; defines indexes of formulas
 used for calculation of the expected read number}
 
-\item{spikeins}{}
+\item{spikeins}{NULL (default) or a list of two items:
+\itemize{
+\item refGroups, a character, which defines the group which should be
+treated as a reference for normalisation
+\item spikeLists, a list of character vectors with the spike-ins names and
+the same structure as \code{formulaIndexes}.
+}}
 
-\item{fractions}{a formula or a vector, e.g. ~ condition + time (if spike-ins are
-not provided). The vector length must be the same as the sample number.
+\item{fractions}{NULL (default) or a formula or a vector,
+e.g. ~ condition + time (if spike-ins are not provided).
+The vector length must be the same as the sample number.
 the names used in the \code{fractions} defines different fractions,
 which should have distinct coefficients for mean expression fitting.}
 }
@@ -33,6 +40,8 @@ Create an object for pulse-change count data
 }
 \examples{
 
+# Spike-ins definition for object creation
+ 
 formulaIndexes <- list(
   total_fraction = 'total',
   flow_through   = c('unlabelled', 'labelled'),
