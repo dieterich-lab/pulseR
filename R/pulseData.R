@@ -185,15 +185,28 @@ findDeseqFactorsForFractions <- function(count_data, conditions) {
     unlist(deseqFactors)[colnames(count_data)]
 }
 
-# evaluate formulas in the environment of known params from the conditions
-# Returns list( [evaluated formulas], [conditions as vector])
-
-addKnownToFormulas <- function(forms, formulaIndexes, conditions) {
+#' Evaluate formulas in the environment of known params from the conditions
+#'
+#' @param formulas a named list with unevaluated expressions
+#'  for expression levels 
+#'  (e.g. describing amounts of "labelled", "total" etc. RNA)
+#' @param formulaIndexes a list describing which formulas to use for
+#' mean read number calculation for fractions defined by the names of list items
+#' @param conditions a data.frame with the first column corresponding to 
+#' names in formulasIndexes (e.g. "total", "pull_down")
+#'
+#' @return a list with two items:
+#'  - list of partially evaluated formulas
+#'  - a vector of conditions 
+#' @export
+#'
+#' @examples
+addKnownToFormulas <- function(formulas, formulaIndexes, conditions) {
   uc <- unique(conditions)
   newIndexes <- list()
   newForms <- list()
   for (i in seq_along(uc[, 1])) {
-    f <- forms[formulaIndexes[[as.character(uc[i, 1])]]]
+    f <- formulas[formulaIndexes[[as.character(uc[i, 1])]]]
     newNames <- as.character(
       interaction(c(list(names(f)), uc[i, -1])))
     res <- lapply(f, substitute_q, env = as.list(uc[i, ]))
