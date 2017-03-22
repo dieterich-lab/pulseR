@@ -8,7 +8,8 @@ Maintainer: Alexey Uvarovskii <alexey.mipt@gmail.com>
 Imports:
     stats,
     parallel,
-    methods
+    methods,
+    utils
 Suggests:
     testthat,
     knitr,

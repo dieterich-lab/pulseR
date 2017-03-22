@@ -156,7 +156,7 @@ llnormFactors <- function(par, pd) {
 #'   The created function returns a logarithm of the likelihood function
 #'   calculated on the basis of the negative binomial distribution for the
 #'   provided counts, normalisation factors and  parameters.
-#'
+#' @import utils methods
 #' @export
 #'
 totalll <- function(par, pd) {
