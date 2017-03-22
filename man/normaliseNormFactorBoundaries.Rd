@@ -21,8 +21,11 @@ an updated options list
 \description{
 The following cases for options${lb,ub}$normFactors are considered:
 \itemize{
-\item the structure is the same with the \code{interSampleCoeffs}
-\item the length equals the number of unique conditions
+\item the structure is the same with \code{pd$interSampleCoeffs}
+\item the length equals the number of unique conditions,
+then the list is multiplied according to the condition data.frame
+in order to generate a list with the same structure as
+\code{pd$interSampleCoeffs}
 \item only a single scalar value is provided.
 }
 }

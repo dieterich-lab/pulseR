@@ -18,8 +18,11 @@
 #' the \code{\link{PulseData}} object.
 #'
 #' The following cases for options${lb,ub}$normFactors are considered:
-#'   - the structure is the same with the `interSampleCoeffs`
-#'   - the length equals the number of unique conditions 
+#'   - the structure is the same with `pd$interSampleCoeffs`
+#'   - the length equals the number of unique conditions,
+#'     then the list is multiplied according to the condition data.frame
+#'     in order to generate a list with the same structure as 
+#'     `pd$interSampleCoeffs`
 #'   - only a single scalar value is provided.
 #' 
 #' @param options the options list
