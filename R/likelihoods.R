@@ -165,7 +165,7 @@ totalll <- function(par, pd) {
     evaledForms <- eval(as.call(c(cbind, pd$formulas)), par)
     norms <- getNorms(pd, c(1, x$normFactors))
     means <- sample_means(evaledForms,  norms)
-    - sum(stats::dnbinom( counts,mu = means, size = x$size, log = TRUE))
+    -sum(stats::dnbinom( counts, mu = means, size = x$size, log = TRUE))
   }
 }
 
