@@ -207,7 +207,7 @@ addKnownToFormulas <- function(forms, formulaIndexes, conditions) {
   list(formulas = newForms, formulaIndexes = newIndexes)
 }
 
-#' Construct coefficients list and their indexes according to the grouping rule
+#' Constructs coefficients list and their indexes according to the grouping rule
 #' 
 #' It is assumed that all samples in a group belong to the same condition, 
 #' i.e. the same equations are used to estimate expression levels.
