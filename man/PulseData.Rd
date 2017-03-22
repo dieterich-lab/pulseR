@@ -26,7 +26,7 @@ treated as a reference for normalisation
 the same structure as \code{formulaIndexes}.
 }}
 
-\item{fractions}{NULL (default) or a formula or a vector,
+\item{groups}{NULL (default) or a formula or a vector,
 e.g. ~ condition + time (if spike-ins are not provided).
 The vector length must be the same as the sample number.
 the names used in the \code{fractions} defines different fractions,

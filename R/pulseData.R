@@ -12,12 +12,12 @@
 #'     treated as a reference for normalisation
 #'   - spikeLists, a list of character vectors with the spike-ins names and
 #'     the same structure as `formulaIndexes`.
-#' @param fractions NULL (default) or a formula or a vector,
+#' @param groups NULL (default) or a formula or a vector,
 #'  e.g. ~ condition + time (if spike-ins are not provided). 
 #' The vector length must be the same as the sample number.
 #' the names used in the \code{fractions} defines different fractions,
 #' which should have distinct coefficients for mean expression fitting.
-#'
+#' 
 #' @return an object of class "PulseData"
 #' @export
 #' 
