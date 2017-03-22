@@ -31,10 +31,11 @@ number of rows must be equal the number of genes.
 \item fixedPars is a list with the rest of parameters which are needed for
 likelihood calculation. By default, the ones provided in the \code{par}
 argument to \code{ll} function are used.
+}
+
 The created function returns a logarithm of the likelihood value
 calculated on the basis of the negative binomial distribution for the
 provided counts and parameters.
-}
 }
 \description{
 Creates a likelihood function for given parameter names

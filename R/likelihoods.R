@@ -43,6 +43,7 @@ sample_means <- function(evaled_forms, norm_factors){
 #'   - fixedPars is a list with the rest of parameters which are needed for
 #'     likelihood calculation. By default, the ones provided in the `par`
 #'     argument to `ll` function are used.
+#'     
 #'  The created function returns a logarithm of the likelihood value
 #'  calculated on the basis of the negative binomial distribution for the
 #'  provided counts and parameters.
