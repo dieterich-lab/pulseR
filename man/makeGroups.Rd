@@ -2,7 +2,7 @@
 % Please edit documentation in R/pulseData.R
 \name{makeGroups}
 \alias{makeGroups}
-\title{Construct coefficients list and their indexes according to the grouping rule}
+\title{Constructs coefficients list and their indexes according to the grouping rule}
 \usage{
 makeGroups(pd, normGroups)
 }
