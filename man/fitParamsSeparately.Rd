@@ -4,20 +4,27 @@
 \alias{fitParamsSeparately}
 \title{Fit parameters with separate likelihood functions}
 \usage{
-fitParamsSeparately(pd, par, knownNames, namesToOptimise, opts)
+fitParamsSeparately(pd, par, knownNames, namesToOptimise, options)
 }
 \arguments{
 \item{pd}{the \code{\link{PulseData}} object}
 
 \item{par}{the parameter named list}
 
-\item{namesToOptimise}{a vector of names}
+\item{knownNames}{a vectors of names of the gene-specific parameters, which
+are assumed to be fixed during optimisation.}
 
-\item{opts}{a list with optimisation options}
+\item{namesToOptimise}{a vector of names of parameters, which values
+need be optimised}
+
+\item{options}{a list with optimisation options. For details, see
+\link{setTolerance}, \link{setFittingOptions}.}
 }
 \value{
 a list with fitted parameters
 }
 \description{
-Fit parameters with separate likelihood functions
+The same as \link{fitParams}, but performs optimisation for gene-specific
+parameters only. Every set of parameters is fitted individually for
+every gene.
 }

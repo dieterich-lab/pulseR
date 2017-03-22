@@ -4,11 +4,13 @@
 \alias{evaluateLikelihood}
 \title{Computes logarithm of the likelihood function}
 \usage{
-evaluateLikelihood(pulseData, par)
+evaluateLikelihood(par, pd)
 }
 \arguments{
 \item{par}{a named list with parameter values (including the size parameter
 for the negative binomial distribution, see \code{\link{dnbinom}})}
+
+\item{pd}{a \code{\link{PulseData}} object}
 }
 \value{
 a logarithm of the likelihood for given parameters and counts values.

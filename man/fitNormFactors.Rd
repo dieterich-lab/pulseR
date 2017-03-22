@@ -4,7 +4,18 @@
 \alias{fitNormFactors}
 \title{Fit fraction normalisation coefficients}
 \usage{
-fitNormFactors(pd, par, opts)
+fitNormFactors(pd, par, options)
+}
+\arguments{
+\item{pd}{the \code{\link{PulseData}} object}
+
+\item{par}{the parameter named list}
+
+\item{options}{a list with optimisation options. For details, see
+\link{setTolerance}, \link{setFittingOptions}.}
+}
+\value{
+a list of normalisation factors
 }
 \description{
 Fit fraction normalisation coefficients

@@ -4,17 +4,19 @@
 #'
 #' @param pd the \code{\link{PulseData}} object
 #' @param par the parameter named list
-#' @param namesToOptimise a vector of names
-#' @param opts a list with optimisation options
+#' @param namesToOptimise a vector of names of parameters, which values 
+#'   need be optimised
+#' @param options a list with optimisation options. For details, see
+#' \link{setTolerance}, \link{setFittingOptions}.
 #'
 #' @return a list with fitted parameters
 #' @export
 #'
-fitParams <- function(pd, par, namesToOptimise, opts) {
-  opts <- normaliseBoundaries(opts, par, pd)
+fitParams <- function(pd, par, namesToOptimise, options) {
+  options <- normaliseBoundaries(options, par, pd)
   # garantee that boundaries are in the same order as the params
-  lb <- unlist(opts$lb[namesToOptimise])
-  ub <- unlist(opts$ub[namesToOptimise])
+  lb <- unlist(options$lb[namesToOptimise])
+  ub <- unlist(options$ub[namesToOptimise])
   objective <- ll(par = par, namesToOptimise = namesToOptimise, pd = pd)
   x <- unlist(par[namesToOptimise])
   x <- stats::optim(
@@ -31,15 +33,21 @@ fitParams <- function(pd, par, namesToOptimise, opts) {
 
 #' Fit parameters with separate likelihood functions
 #'
+#' The same as \link{fitParams}, but performs optimisation for gene-specific
+#' parameters only. Every set of parameters is fitted individually for
+#' every gene.
+#' 
 #' @inheritParams fitParams
+#' @param knownNames a vectors of names of the gene-specific parameters, which 
+#' are assumed to be fixed during optimisation.
 #' @return a list with fitted parameters
 #' @export
 #'
-fitParamsSeparately <- function(pd, par, knownNames, namesToOptimise, opts) {
-  opts <- normaliseBoundaries(opts, par, pd)
+fitParamsSeparately <- function(pd, par, knownNames, namesToOptimise, options) {
+  options <- normaliseBoundaries(options, par, pd)
   # garantee that boundaries are in the same order as the params
-  lb <- as.data.frame(opts$lb[namesToOptimise])
-  ub <- as.data.frame(opts$ub[namesToOptimise])
+  lb <- as.data.frame(options$lb[namesToOptimise])
+  ub <- as.data.frame(options$ub[namesToOptimise])
   p <- data.frame(par[namesToOptimise])
   objective <- ll(par, namesToOptimise, pd, byOne = TRUE)
   par[namesToOptimise] <- NULL
@@ -62,11 +70,16 @@ fitParamsSeparately <- function(pd, par, knownNames, namesToOptimise, opts) {
 
 
 #' Fit fraction normalisation coefficients
-#'
+#' 
+#' @inheritParams fitParams
+#' 
 #' @importFrom  stats optimise
-fitNormFactors <- function(pd, par, opts) {
-  lb <- unlist(opts$lb$normFactors)[-1]
-  ub <- unlist(opts$ub$normFactors)[-1]
+#' @return a list of normalisation factors
+#' @export
+#' 
+fitNormFactors <- function(pd, par, options) {
+  lb <- unlist(options$lb$normFactors)[-1]
+  ub <- unlist(options$ub$normFactors)[-1]
   objective <- llnormFactors(par = par, pd = pd)
   x <- unlist(par$normFactors)[-1]
   x <- stats::optim(
@@ -81,7 +94,7 @@ fitNormFactors <- function(pd, par, opts) {
   relist(c(1,x), par$normFactors)
 }
 
-getMaxRelDifference <- function(x, y, eps)
+getMaxRelDifference <- function(x, y)
 {
   max(abs(1 - unlist(x) / (unlist(y))), na.rm = TRUE)
 }
@@ -126,7 +139,7 @@ fitModel <- function(pulseData, par, options){
         pd = pulseData,
         par = par,
         namesToOptimise = sharedParams,
-        opts = options
+        options = options
       )
       shared_rel_err <- getMaxRelDifference(res, par[sharedParams])
       par[sharedParams] <- res
@@ -137,7 +150,7 @@ fitModel <- function(pulseData, par, options){
       par = par,
       namesToOptimise = geneParams,
       knownNames = knownGenePars,
-      opts = options
+      options = options
     )
     rel_err <- getMaxRelDifference(res, par[geneParams])
     par[geneParams] <- res
@@ -150,7 +163,7 @@ fitModel <- function(pulseData, par, options){
       pd = pulseData,
       par = par,
       namesToOptimise = "size",
-      opts = options
+      options = options
     )
     str <- format(c(rel_err, shared_rel_err, fraction_rel_err),
                   digits = 2,
@@ -170,7 +183,7 @@ fitModel <- function(pulseData, par, options){
     par = par,
     namesToOptimise = geneParams,
     knownNames = knownGenePars,
-    opts = options
+    options = options
   )
   par[geneParams] <- res
   par

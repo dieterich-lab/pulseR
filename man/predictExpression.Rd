@@ -4,12 +4,12 @@
 \alias{predictExpression}
 \title{Calculates mean read number estimations}
 \usage{
-predictExpression(pulseData, par)
+predictExpression(par, pd)
 }
 \arguments{
-\item{pulseData}{a \link{PulseData} object.}
-
 \item{par}{estimated parameters from \link{fitModel}}
+
+\item{pd}{a \link{PulseData} object.}
 }
 \value{
 a named list:
