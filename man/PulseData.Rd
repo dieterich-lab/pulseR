@@ -31,3 +31,29 @@ an object of class "PulseData"
 \description{
 Create an object for pulse-change count data
 }
+\examples{
+
+formulaIndexes <- list(
+  total_fraction = 'total',
+  flow_through   = c('unlabelled', 'labelled'),
+  pull_down      = c('labelled', 'unlabelled'))
+  
+# spike-ins set up:
+
+refGroup <- "total_fraction"
+
+labelled <- c("spike1", "spike2") 
+unlabelled <- c("spike3", "spike4") 
+
+spikeLists <- list(
+#  total samples are normalised using all spike-ins
+  total_fraction = list(c(unlabelled, labelled)),
+# for every item in formulaIndexes we have a set of spike-ins:   
+  flow_through   = list(unlabelled, labelled),
+  pull_down      = list(labelled, unlabelled))
+  
+# argument for the function: 
+spikeins <- list(refGroup = refGroup,
+                 spikeLists = spikeLists)
+
+}

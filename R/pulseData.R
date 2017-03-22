@@ -127,17 +127,28 @@ deseq <- function(x, loggeomeans) {
   res
 }
 
+#' Estimate DESeq normalisation factors using spike-ins counts
+#'
+#' @param pd a \code{\link{PulseData}} object
+#' @param refGroup a character name of a sample groups to use as a reference.
+#' The name must be present in the spikeLists names list
+#' @param spikeLists a named list with the same structure as formulaIndexes
+#'
+#' @return a list of lists of the normalisation coefficients for every sample
+#'
 normaliseWithSpikeIns <- function(pd, refGroup, spikeLists){
   refSpikes <- unlist(spikeLists[[refGroup]])
+  # Subset only spike-ins contained in the reference 
   spikeCounts <- pd$counts[refSpikes,]
   spikeLists <- lapply(spikeLists,
                        function(l) {
                          lapply(l, function(spikes)
                            spikes == refSpikes)
                        })
-                       
+  # create DESeq reference virtual sample (geo-means of counts) 
+  # and compute DESeq factors using spike-ins common with the reference
   superSample <- rowMeans(
-    log(pd$counts[refSpikes, pd$conditions$condition == refGroup]))
+    log(pd$counts[refSpikes, pd$conditions[,1] == refGroup]))
   lapply(seq_along(pd$conditions[, 1]),
          function(i) {
            sampleSpikes <- spikeLists[[as.character(pd$conditions[i, 1])]]
@@ -280,6 +291,8 @@ makeGroups <- function(pd, normGroups) {
        normCoeffIndexes = normCoeffIndexes)
 }
 
+# Returns a list of the same structure as nameList
+# with the names substituted by their index in the nameVector
 names2numbers <- function(nameLists, nameVector){
   lapply(nameLists, match, nameVector)
 }
