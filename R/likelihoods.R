@@ -201,6 +201,12 @@ log2screen <- function(options, ...) {
 }
 
 
+#' Computes logarithm of the likelihood function 
+#'
+#' @inheritParams  ll
+#' @return a logarithm of the likelihood for given parameters and counts values.
+#' @export
+#'
 evaluateLikelihood <- function(pulseData, par) {
   evaledForms <- eval(as.call(c(cbind, pulseData$formulas)), par)
   norms <- getNorms(pulseData, par$normFactors)
