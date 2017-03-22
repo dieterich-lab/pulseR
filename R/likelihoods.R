@@ -76,10 +76,27 @@ ll <- function(par, namesToOptimise, pd, byOne=FALSE) {
   eval(f)
 }
 
+#' Constructs a matrix of normalisation coefficients
+#'
+#' @param pd \code{\link{PulseData}} object
+#' @param normFactors a list of normalisation factors if inter-fraction
+#' normalisation is used (i.e. no spike-ins are provided). 
+#' If NULL (default), only sequencing depth normalisation is used
+#' on the basis of spike-ins counts. The structure of `normFactors` must be
+#' same as of `pd$interSampleCoeffs`.
+#'
+#' @return a matrix of normalisation coefficients to use during calculation of 
+#' mean read number in samples. The row number equals number of 
+#' different formulas used in estimation of means 
+#' (i.e. the same as in `pd$rawFormulas`). The columns correspond to the samples
+#' in the count matrix of the PulseData object `pd`.
+#'
 getNorms <- function(pd, normFactors = NULL) {
   m <- matrix(0,
            ncol = length(pd$formulaIndexes),
            nrow = length(pd$formulas))
+  # create indexes for location of normalisation coefficients for every
+  # sample in the normalisation matrix
   indexes <- do.call(rbind,lapply(seq_along(pd$formulaIndexes),
          function(i){
            cbind(pd$formulaIndexes[[i]],i)
