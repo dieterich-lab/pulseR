@@ -5,7 +5,25 @@ substitute_q <- function(x, env)
   eval(call)
 }
 
-# get matrix for samples
+#' Get matrix for samples
+#' 
+#' Means are defined as a linear combination of the formulas, and
+#' we use matrix representation of this relations via norm_factors matrix.
+#' 
+#' For example, if there are pull-down and flow-through fractions, 
+#' which have 10% contamination by each other, and their mean read numbers
+#' are 10 and 20 respectevily, the computation may look like
+#'         |.9 .1|
+#' |10 20|x|     |
+#'         |.1 .9|
+#' for one pull-down and one flow-through samples.
+#' 
+#' @param evaled_forms a numeric vector of formulas evaluated for every
+#' condition
+#' @param norm_factors a matrix n x k, where k is the number of samples
+#'
+#' @return a vector of length equal to the sample number
+#'
 sample_means <- function(evaled_forms, norm_factors){
   evaled_forms %*% norm_factors
 }
