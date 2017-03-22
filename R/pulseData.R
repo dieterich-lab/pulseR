@@ -294,6 +294,29 @@ multiplyList <- function(source, pattern) {
   res
 }
 
-shrinkList <- function(l){
- l[unique(names(l))] 
+
+#' Leave only one item per name 
+#' 
+#' If the same name is used for several items (e.g. "total"),
+#' only first item is left in the result.
+#'
+#' @param list a list to process
+#' 
+#' @return a shorter list
+#' @export
+#'
+#' @examples
+#' l <- list(
+#'   total   = 1,
+#'   total   = 1,
+#'   unlabel = c(4,5))
+#' shrinkList(l)
+#' $total
+#' # [1] 1
+#' # 
+#' # $unlabel
+#' # [1] 4 5
+#' 
+shrinkList <- function(list){
+ list[unique(names(list))] 
 }
