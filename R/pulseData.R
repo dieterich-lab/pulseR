@@ -91,10 +91,6 @@ PulseData <- function(counts,
   e
 }
 
-assignList <- function(l, x){
- utils::relist(rep(x, length(unlist(l))), l) 
-}
-
 
 #' @export
 print.PulseData <- function(x,...){
@@ -382,4 +378,8 @@ multiplyList <- function(source, pattern) {
 #' 
 shrinkList <- function(list){
  list[unique(names(list))] 
+}
+
+assignList <- function(l, x){
+ utils::relist(rep(x, length(unlist(l))), l) 
 }
