@@ -109,7 +109,26 @@ getNorms <- function(pd, normFactors = NULL) {
   m
 }
 
-# likelihood for norm factors
+#' Create a likelihood function for optimisation of normalisation factors
+#' 
+#' The first element of the normalisation factors is assumed to be fixed 
+#' and equal 1. The rest of normalisation factors (i.e. without the first one)
+#' are assumed as variable parameters for the likelihood function.
+#'  
+#' @inheritParams ll
+#'
+#' @return a function with the following arguments:
+#'   - x, a numeric vector which correspods to the records in 
+#'     `pd$interSampleCoeffs`, but without the first element, i.e.
+#'     `unlist(pd$interSampleCoeffs)[-1]`
+#'   - counts, a numeric matrix with read counts for every gene/isoform and 
+#'     for every sample
+#'     
+#'   The created function returns a logarithm of the likelihood function
+#'   calculated on the basis of the negative binomial distribution for the
+#'   provided counts, normalisation factors and  parameters.
+#'
+#' @export
 llnormFactors <- function(par, pd) {
   evaledForms <- eval(as.call(c(cbind, pd$formulas)), par)
   function(x, counts) {
