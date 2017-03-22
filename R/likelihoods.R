@@ -172,7 +172,7 @@ totalll <- function(par, pd) {
 #' Calculates mean read number estimations 
 #'
 #' @param par estimated parameters from \link{fitModel}
-#' @param pulseData a \link{PulseData} object.
+#' @param pd a \link{PulseData} object.
 #'
 #' @return a named list:
 #'   - preditions, a matrix of the same dimension as of the raw counts 
@@ -186,12 +186,12 @@ totalll <- function(par, pd) {
 #' pr <- predictExpression(pd, res)
 #' plot(y = pr$predictions, x = pd$counts, xlab = "raw", ylab = "fitted")
 #' }
-predictExpression <- function(pulseData, par) {
-  evaledForms <- eval(as.call(c(cbind, pulseData$formulas)), par)
-  norms <- getNorms(pulseData, par$normFactors)
+predictExpression <- function(par, pd) {
+  evaledForms <- eval(as.call(c(cbind, pd$formulas)), par)
+  norms <- getNorms(pd, par$normFactors)
   means <- sample_means(evaledForms, norms)
   llog <- stats::dnbinom(
-    pulseData$counts, mu = means, size = par$size, log = TRUE)
+    pd$counts, mu = means, size = par$size, log = TRUE)
   list(predictions = means, llog = llog)
 }
 
@@ -204,14 +204,15 @@ log2screen <- function(options, ...) {
 #' Computes logarithm of the likelihood function 
 #'
 #' @inheritParams  ll
+#' 
 #' @return a logarithm of the likelihood for given parameters and counts values.
 #' @export
 #'
-evaluateLikelihood <- function(pulseData, par) {
-  evaledForms <- eval(as.call(c(cbind, pulseData$formulas)), par)
-  norms <- getNorms(pulseData, par$normFactors)
+evaluateLikelihood <- function(par, pd) {
+  evaledForms <- eval(as.call(c(cbind, pd$formulas)), par)
+  norms <- getNorms(pd, par$normFactors)
   means <- sample_means(evaledForms, norms)
   llog <- stats::dnbinom(
-    pulseData$counts, mu = means, size = par$size, log = TRUE)
+    pd$counts, mu = means, size = par$size, log = TRUE)
   sum(llog)
 }
