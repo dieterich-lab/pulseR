@@ -231,7 +231,7 @@ makeGroups <- function(pd, normGroups) {
   # all the normalisation coefficients are numbered according 
   # to their appearance in the flatten list `unlist(normCoeffs)`
   normCoeffs <- relist(seq_along(unlist(normCoeffs)), normCoeffs)
-  # normCoeffIndexes contain items for every sample
+  # normCoeffIndexes contains items for every sample
   normCoeffIndexes <- multiplyList(normCoeffs, normGroups)
   normCoeffs <- assignList(normCoeffs, 1)
   list(normCoeffs       = normCoeffs,
