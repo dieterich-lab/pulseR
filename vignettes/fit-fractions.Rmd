@@ -108,7 +108,7 @@ result <- fitModel(pd, initPars, opts)
 ```
 
 ```{r}
-pr <- predictExpression(pd, result)
+pr <- predictExpression(result, pd)
 
 plot(
   x = as.vector(pr$predictions),
