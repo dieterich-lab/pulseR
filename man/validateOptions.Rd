@@ -2,7 +2,7 @@
 % Please edit documentation in R/parameters.R
 \name{validateOptions}
 \alias{validateOptions}
-\title{Check options for sanity}
+\title{Check options for sanity.}
 \usage{
 validateOptions(options)
 }

@@ -2,7 +2,7 @@
 % Please edit documentation in R/parameters.R
 \name{normaliseBoundaries}
 \alias{normaliseBoundaries}
-\title{Shape boundaries for the parameters in formulas}
+\title{Shape boundaries for the parameters in formulas.}
 \usage{
 normaliseBoundaries(options, par, pd)
 }

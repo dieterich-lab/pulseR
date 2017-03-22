@@ -9,6 +9,10 @@ initParameters(par, geneParams, pulseData, options)
 \arguments{
 \item{par}{a list with parameter values}
 
+\item{geneParams}{a vector of names of the gene-specific parameters.
+For this parameters, the output length is equal the number of genes, i.e.
+an individual parameter value is generated for every gene.}
+
 \item{pulseData}{a \code{\link{PulseData}} object}
 
 \item{options}{an options object}

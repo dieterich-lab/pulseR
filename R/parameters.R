@@ -62,8 +62,9 @@ normaliseNormFactorBoundaries <- function(options, pd){
   b
 }
 
-#' Shape boundaries for the parameters in formulas 
-#'
+#' Shape boundaries for the parameters in formulas. 
+#' 
+#' 
 #' If a single scalar value is provided, its boundaries are
 #' assumed to be the same for all genes/isoforms, hence
 #' a vector of gene number size will be returned.
@@ -101,7 +102,7 @@ addDefault <- function(options) {
   options
 }
 
-#' Check options for sanity
+#' Check options for sanity.
 #'
 #' Throws an error if incorrect values are supplied.
 #' 
@@ -279,6 +280,9 @@ setFittingOptions <- function(
 #' Initialize first guess for the parameters 
 #'
 #' @param par a list with parameter values
+#' @param geneParams a vector of names of the gene-specific parameters.
+#'   For this parameters, the output length is equal the number of genes, i.e.
+#'   an individual parameter value is generated for every gene.
 #' @param pulseData a \code{\link{PulseData}} object 
 #' @param options an options object
 #' 
