@@ -139,6 +139,26 @@ llnormFactors <- function(par, pd) {
   }
 }
 
+#' Create a likelihood function 
+#' 
+#' @inheritParams ll
+#'
+#' @return a function with the following arguments:
+#'   - x, a numeric vector which correspods to the records in 
+#'     `par` argument. The first element of the normFactors, if
+#'     `par$normFactors` is not `NULL`, is excluded, because it is assumed
+#'      to be fixed to 1. Other parameters are the same as in `par`.
+#'      The structure of `x` is identical to `unlist(par)`, if the first
+#'      element of `par$normFactors` is removed.
+#'   - counts, a numeric matrix with read counts for every gene/isoform and 
+#'     for every sample
+#'     
+#'   The created function returns a logarithm of the likelihood function
+#'   calculated on the basis of the negative binomial distribution for the
+#'   provided counts, normalisation factors and  parameters.
+#'
+#' @export
+#'
 totalll <- function(par, pd) {
   function(x, counts) {
     x <- relist(x, par)
