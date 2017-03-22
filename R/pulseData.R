@@ -75,6 +75,9 @@ PulseData <- function(counts,
       refSpikes <- which(rownames(e$counts) %in% refSpikes)
     e$counts <- e$counts[-refSpikes,]
   } else {
+    # if no groups are provided every sample is treated individually
+    # this leads to deseq depth normalisation factors of 1
+    # and estimation of normalisation factors by MLE
     if (is.null(groups))
       groups <- seq_along(conditions[,1])
     if (is(groups, "formula"))
