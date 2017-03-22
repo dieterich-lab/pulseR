@@ -28,14 +28,45 @@ sample_means <- function(evaled_forms, norm_factors){
   evaled_forms %*% norm_factors
 }
 
-# universal likehood
+#' Creates a likelihood function for given parameter names
+#'
+#' @param par a named list with parameter values (including the size parameter
+#'  for the negative binomial distribution, see \code{\link{dnbinom}})
+#' @param namesToOptimise names of not fixed parameters
+#' @param pd a \code{\link{PulseData}} object
+#' @param byOne logical. If TRUE, the created function works on the level of
+#' a single gene/isoform. In this case, every gene-specific parameter is
+#' representd by a single scalar value. Otherwise, gene-specific parameters
+#' are represented by vectors of the length equal to gene number.
+#'
+#' @return a function with the folowing arguments:
+#'   - x, a numeric vector of variable parameters, which is used to 
+#'     calculate the likelihood function. The order of parameters is as in 
+#'     unlist(par)
+#'   - counts, a numeric matrix, or, if byOne is TRUE, a numeric vector with
+#'     read counts for every sample. If byOne is FALSE (default),
+#'     number of rows must be equal the number of genes.
+#'   - fixedPars is a list with the rest of parameters which are needed for
+#'     likelihood calculation. By default, the ones provided in the `par`
+#'     argument to `ll` function are used.
+#'  The created function returns a logarithm of the likelihood value
+#'  calculated on the basis of the negative binomial distribution for the
+#'  provided counts and parameters.
+#' @export
+#'
 ll <- function(par, namesToOptimise, pd, byOne=FALSE) {
+  # we use relist-unlist idiom in the likelihood implementation
+  # pattern is needed for recontruction of the correct parameter list
+  # from the flatten vector of parameters, which is used by 
+  # optimisation function
   pattern <- par[namesToOptimise]
+  # leave only first parameter values if creating a gene-specific likelihood
   if (byOne)
     pattern <- lapply(pattern, `[[`, 1)
   par[namesToOptimise] <- NULL
   evalCall <- as.call(c(cbind, pd$formulas))
   norms <- getNorms(pd, par$normFactors)
+  # for better performance, we don't relist in gene-specific likelihood
   if (!byOne)
     getPars <- quote(relist(x, pattern))
   else 
