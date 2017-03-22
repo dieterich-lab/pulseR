@@ -3,9 +3,9 @@
 \name{normaliseNormFactorBoundaries}
 \alias{normaliseNormFactorBoundaries}
 \title{Shape boundaries for the normalisation factors
- 
+
 Create lower and upper boundaries with the same structure as
-the list of normalisation coefficients `interSamplCoeffs` in
+the list of normalisation coefficients \code{interSamplCoeffs} in
 the \code{\link{PulseData}} object.}
 \usage{
 normaliseNormFactorBoundaries(options, pd)
@@ -20,7 +20,9 @@ an updated options list
 }
 \description{
 The following cases for options${lb,ub}$normFactors are considered:
-  - the structure is the same with the `interSampleCoeffs`
-  - the length equals the number of unique conditions 
-  - only a single scalar value is provided.
+\itemize{
+\item the structure is the same with the \code{interSampleCoeffs}
+\item the length equals the number of unique conditions
+\item only a single scalar value is provided.
+}
 }

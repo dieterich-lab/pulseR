@@ -13,7 +13,7 @@ for estimation of mean read number.}
 }
 \value{
 list with keys corresponding to condition names and values as
-  unevaluated call objects
+unevaluated call objects
 }
 \description{
 Create list of formulas for expected read numbers

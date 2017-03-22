@@ -15,7 +15,7 @@ fitModel(pulseData, par, options)
 }
 \value{
 a list with the fitted parameters in the same form as
-the initial guess `par`
+the initial guess \code{par}
 }
 \description{
 Fit the model by MLE

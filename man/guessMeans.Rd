@@ -13,7 +13,7 @@ guessMeans(pulseData, totalLabel = "total", fun = c("mean", "geomean",
 \item{totalLabel}{a character, the name of the factor level in the
 condition matrix, which correspond to the total fraction ("total" by default).}
 
-\item{fun}{a function used to estimate the expression level. 
+\item{fun}{a function used to estimate the expression level.
 Possible variants are mean, median and adjusted geometric mean (i.e.
 $exp(mean(log(x + .5)))$.}
 }

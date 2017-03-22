@@ -8,7 +8,7 @@ setFittingOptions(verbose = c("silent", "verbose"),
   options = .defaultParams)
 }
 \arguments{
-\item{verbose}{if "verbose" relative changes of parameters 
+\item{verbose}{if "verbose" relative changes of parameters
 between two fitting iterations are printed}
 
 \item{options}{an option object}

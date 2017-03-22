@@ -10,8 +10,8 @@ findDeseqFactorsSingle(count_data)
 \item{count_data}{a matrix; columns correspond to samples.}
 }
 \value{
-a vector of doubles with normalisation factors ordered as columns in 
-  the \code{count_data}
+a vector of doubles with normalisation factors ordered as columns in
+the \code{count_data}
 }
 \description{
 Calculate normalisation factors for columns in a matrix

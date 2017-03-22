@@ -14,5 +14,6 @@ Suggests:
     knitr,
     rmarkdown
 RoxygenNote: 6.0.0
+Roxygen: list(markdown = TRUE)
 VignetteBuilder: knitr
 LazyData: true

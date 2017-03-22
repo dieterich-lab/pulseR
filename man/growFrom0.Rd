@@ -18,7 +18,7 @@ growFrom0(mu, d, t)
 an expression to calculate the RNA level.
 }
 \description{
-All the arguments must be characters or language objects 
+All the arguments must be characters or language objects
 (expression, call or name).
 }
 \examples{

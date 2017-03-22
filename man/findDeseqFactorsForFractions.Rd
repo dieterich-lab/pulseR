@@ -7,14 +7,14 @@
 findDeseqFactorsForFractions(count_data, conditions)
 }
 \arguments{
-\item{count_data}{integer matrix, colnames correspond to samples 
+\item{count_data}{integer matrix, colnames correspond to samples
 (rownames in \code{conditions})}
 
 \item{conditions}{factors to split samples for normalisation}
 }
 \value{
-vector of double; normalisation factors in the same order as 
-  columns in the \code{count_data}
+vector of double; normalisation factors in the same order as
+columns in the \code{count_data}
 }
 \description{
 Calculate normalisation factors

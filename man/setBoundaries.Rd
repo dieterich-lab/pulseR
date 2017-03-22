@@ -8,7 +8,7 @@ setBoundaries(boundaries, normFactors = c(0.01, 10),
   options = .defaultParams)
 }
 \arguments{
-\item{boundaries}{a named list of lower and  upper boundaries 
+\item{boundaries}{a named list of lower and  upper boundaries
 for the parameters which are used in the formulas.}
 
 \item{normFactors}{either a vector of length 2 or
@@ -24,21 +24,25 @@ Set optimization boundaries for the model parameters.
 }
 \details{
 If no options object is provided, the default values are used.
-The elements in the boundaries list are either 
-- a list of two vectors
-  (the lower and upper boundaries for every gene/isoform respectively).
-  If a vector is of length 1, equal boundary values will be assumed for 
-  all genes (e.g. for the lower boundary);
-- a vector of two scalars.
-   
-The normFactors elements (two, for the lower and the upper 
+The elements in the boundaries list are either
+\itemize{
+\item a list of two vectors
+(the lower and upper boundaries for every gene/isoform respectively).
+If a vector is of length 1, equal boundary values will be assumed for
+all genes (e.g. for the lower boundary);
+\item a vector of two scalars.
+}
+
+The normFactors elements (two, for the lower and the upper
 boundaries) can be:
-  - a list with the structure is the same with the `interSampleCoeffs` in 
-    the \code{\link{PulseData}} object used in the analysis;
-  - a list with the length equals the number of unique conditions;
-    the structure is the same as `formulaIndexes` object used for
-    the \code{\link{PulseData}} object creation;
-  - a single scalar value.
+\itemize{
+\item a list with the structure is the same with the \code{interSampleCoeffs} in
+the \code{\link{PulseData}} object used in the analysis;
+\item a list with the length equals the number of unique conditions;
+the structure is the same as \code{formulaIndexes} object used for
+the \code{\link{PulseData}} object creation;
+\item a single scalar value.
+}
 }
 \examples{
 # the simple way:

@@ -15,7 +15,7 @@ the first column corresponds to the conditions given in \code{formulas}.}
 
 \item{formulas}{a list, created by \code{\link{MeanFormulas}}}
 
-\item{formulaIndexes}{list of lists; defines indexes of formulas 
+\item{formulaIndexes}{list of lists; defines indexes of formulas
 used for calculation of the expected read number}
 
 \item{spikeins}{}

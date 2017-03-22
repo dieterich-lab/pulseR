@@ -2,7 +2,7 @@
 % Please edit documentation in R/parameters.R
 \name{setTolerance}
 \alias{setTolerance}
-\title{Set the stopping criteria in a form of the relative 
+\title{Set the stopping criteria in a form of the relative
 changes during fitting iterations.}
 \usage{
 setTolerance(params = 0.01, shared = 0.01, normFactors = 0.01,
@@ -21,13 +21,13 @@ setTolerance(params = 0.01, shared = 0.01, normFactors = 0.01,
 an options object with the new parameter values
 }
 \description{
-Set the stopping criteria in a form of the relative 
+Set the stopping criteria in a form of the relative
 changes during fitting iterations.
 }
 \details{
 If no options object is provided, the default options are used
 as a base.
-A threshold  represents the relative changes in parameter values 
+A threshold  represents the relative changes in parameter values
 between two subsequent fitting iterations.
 }
 \examples{

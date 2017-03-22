@@ -9,17 +9,17 @@ makeGroups(pd, normGroups)
 \arguments{
 \item{pd}{a \code{\link{PulseData}} object}
 
-\item{normGroups}{a vector defining a rule for splitting the samples in `pd`}
+\item{normGroups}{a vector defining a rule for splitting the samples in \code{pd}}
 }
 \value{
 a named list with items "normCoeffs" and "normCoeffIndexes".
 normCoeffs is the list to store the values of the normalisation coefficients
-for every group. 
-normCoeffIndexes stores indexes of coefficients from unlist(normCoeffs) 
+for every group.
+normCoeffIndexes stores indexes of coefficients from unlist(normCoeffs)
 sample-wise, i.e. length(normCoeffIndexes) is the number of samples.
 }
 \description{
-It is assumed that all samples in a group belong to the same condition, 
+It is assumed that all samples in a group belong to the same condition,
 i.e. the same equations are used to estimate expression levels.
 However, they may correspond to different time points etc.
 }

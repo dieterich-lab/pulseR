@@ -13,8 +13,10 @@ predictExpression(pulseData, par)
 }
 \value{
 a named list:
-  - preditions, a matrix of the same dimension as of the raw counts 
-  - llog, a matrix with logarithms of likelihood for the given raw counts.
+\itemize{
+\item preditions, a matrix of the same dimension as of the raw counts
+\item llog, a matrix with logarithms of likelihood for the given raw counts.
+}
 }
 \description{
 Calculates mean read number estimations
