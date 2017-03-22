@@ -83,19 +83,19 @@ pd <- PulseData(
   spikeins = spikeins
 )
 
-opts <- list()
-opts$lb <- list(a=.1, b=.01)
-opts$lb <- pulseR:::.b(opts$lb, par)
-opts$ub <- list(a=1e7, b=.99)
-opts$ub <- pulseR:::.b(opts$ub, par)
-opts$lb$alpha <- .1
-opts$ub$alpha <- 100
-opts$lb$size <- 1
-opts$ub$size <- 1e6
+options <- list()
+options$lb <- list(a=.1, b=.01)
+options$lb <- pulseR:::.b(options$lb, par)
+options$ub <- list(a=1e7, b=.99)
+options$ub <- pulseR:::.b(options$ub, par)
+options$lb$alpha <- .1
+options$ub$alpha <- 100
+options$lb$size <- 1
+options$ub$size <- 1e6
 
-opts <- setTolerance(.01, shared = .01, options = opts)
+options <- setTolerance(.01, shared = .01, options = options)
 
-opts$verbose <- "silent"
+options$verbose <- "silent"
 
 err <- function(x,y){
   vapply(intersect(names(x), names(y)), function(nx)
@@ -106,25 +106,25 @@ test_that("gene params fitting works (together)", {
   skip("don't check long fitting")
   par2 <- par
   toOptimise <- c("a", "b")
-  par2[toOptimise] <- opts$lb[toOptimise]
-  res <- pulseR:::fitParams(pd, par, toOptimise, opts)
+  par2[toOptimise] <- options$lb[toOptimise]
+  res <- pulseR:::fitParams(pd, par, toOptimise, options)
   expect_lt(max(err(res, par)), .1)
 })
 
 test_that("gene params fitting works (separately)", {
   par2 <- par
   toOptimise <- c("a", "b")
-  par2[toOptimise] <- opts$lb[toOptimise]
+  par2[toOptimise] <- options$lb[toOptimise]
   res <- pulseR:::fitParamsSeparately(
-    pd, par, toOptimise, knownNames = "p", opts)
+    pd, par, toOptimise, knownNames = "p", options)
   expect_lt(max(err(res, par)), .1)
 })
 
 test_that("shared params fitting works (separately)", {
   par2 <- par
   toOptimise <- c("alpha")
-  par2[toOptimise] <- opts$lb[toOptimise]
-  res <- pulseR:::fitParams(pd, par, toOptimise, opts)
+  par2[toOptimise] <- options$lb[toOptimise]
+  res <- pulseR:::fitParams(pd, par, toOptimise, options)
   expect_lt(max(err(res, par)), .1)
 })
 system.time(
@@ -132,11 +132,11 @@ test_that("all together fitting works", {
   par2 <- par
   for (p in c("a", "b")) {
     par2[[p]] <-
-      runif(length(par[[p]]), opts$lb[[p]], opts$ub[[p]])
+      runif(length(par[[p]]), options$lb[[p]], options$ub[[p]])
   }
   par2$alpha <- .1
-  opts$verbose <- "verbose"
-  res <- pulseR:::fitModel(pd, par2, opts)
+  options$verbose <- "verbose"
+  res <- pulseR:::fitModel(pd, par2, options)
   res$size <- NULL
   par$size <- NULL
   expect_lt(max(1-unlist(res)/unlist(par)), .1)
