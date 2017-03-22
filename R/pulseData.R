@@ -186,6 +186,13 @@ findDeseqFactorsForFractions <- function(count_data, conditions) {
 }
 
 #' Evaluate formulas in the environment of known params from the conditions
+#' 
+#' If, for example, a labelled fraction is estimated at several time points
+#' (0hr, 2hr, 4hr), correspondinf partially evaluated formulas will be
+#' created. In this case, a time variable (e.g. "t") will be substituted by
+#' its values from the corresponding column in the conditions data.frame.
+#' Hence several partially evaluated formulas will be created for every
+#' combination of variable values described in the conditions data.frame.
 #'
 #' @param formulas a named list with unevaluated expressions
 #'  for expression levels 
@@ -197,10 +204,32 @@ findDeseqFactorsForFractions <- function(count_data, conditions) {
 #'
 #' @return a list with two items:
 #'  - list of partially evaluated formulas
-#'  - a vector of conditions 
+#'  - a vector of conditions generated from combination of columns 
 #' @export
 #'
 #' @examples
+#' 
+#' formulas <- MeanFormulas(total = m, label = m * exp(-d*t))
+#' formulaIndexes <- list(
+#'   total = 'total',
+#'   pull_down = 'label'
+#' )
+#' conditions <- data.frame(
+#'   type = c('total', 'pull_down', 'pull_down'),
+#'   t = c(0, 1, 5)
+#' )
+#' result <- addKnownToFormulas(formulas, formulaIndexes, conditions)
+#' str(result)
+#' # List of 2
+#' # $ formulas      :List of 3
+#' # ..$ total.0: symbol m
+#' # ..$ label.1: language m * exp(-d * 1)
+#' # ..$ label.5: language m * exp(-d * 5)
+#' # $ formulaIndexes:List of 3
+#' # ..$ total.0    : int 1
+#' # ..$ pull_down.1: int 2
+#' # ..$ pull_down.5: int 3
+#'
 addKnownToFormulas <- function(formulas, formulaIndexes, conditions) {
   uc <- unique(conditions)
   newIndexes <- list()
