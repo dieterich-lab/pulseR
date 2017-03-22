@@ -332,7 +332,7 @@ multiplyList <- function(source, pattern) {
 #'   total   = 1,
 #'   unlabel = c(4,5))
 #' shrinkList(l)
-#' $total
+#' # $total
 #' # [1] 1
 #' # 
 #' # $unlabel
