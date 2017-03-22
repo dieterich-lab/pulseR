@@ -101,12 +101,21 @@ getMaxRelDifference <- function(x, y)
 
 #' Fit the model by MLE
 #'
-#' @param pulseData PulseData object
-#' @param par initial guess for parameters as a \code{list}.  
-#' @param options \code{list} of options
+#' @param pulseData a \link{PulseData} object
+#' @param par a list with an initial parameters values.
+#'   Gene-specific parameters must be set as vectors of the length equal to 
+#'   the gene number. \link{initParameters} may simplify the process of initial
+#'   values randomisation.
+#'   
+#'   The list must include `size` parameter for the negative binomial 
+#'   distribution and a list with the normalisation factors, if 
+#'   no spike-ins are used in the experiment.
+#'   
+#' @param options a list of options. For more details, see \link{setBoundaries},
+#'   \link{setTolerance}, \link{setFittingOptions}
 #'
 #' @return a list with the fitted parameters in the same form as
-#' the initial guess `par`
+#' the initial guess `par` list
 #'     
 #' @export
 #'
