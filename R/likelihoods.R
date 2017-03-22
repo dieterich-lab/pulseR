@@ -9,14 +9,8 @@ substitute_q <- function(x, env)
 #' 
 #' Means are defined as a linear combination of the formulas, and
 #' we use matrix representation of this relations via norm_factors matrix.
-#' 
-#' For example, if there are pull-down and flow-through fractions, 
-#' which have 10% contamination by each other, and their mean read numbers
-#' are 10 and 20 respectevily, the computation may look like
-#'         |.9 .1|
-#' |10 20|x|     |
-#'         |.1 .9|
-#' for one pull-down and one flow-through samples.
+#' By multiplying evaluated formulas vector by norm_factors matrix, 
+#' we compute a weighted sum of the formulas. 
 #' 
 #' @param evaled_forms a numeric vector of formulas evaluated for every
 #' condition
