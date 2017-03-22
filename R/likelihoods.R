@@ -79,7 +79,7 @@ totalll <- function(par, pd) {
 #'   - llog, a matrix with logarithms of likelihood for the given raw counts.
 #' @export
 #'
-#' @example 
+#' @examples 
 #' \dontrun{
 #' # Plot expected values vs the raw counts.
 #' # Let res is the return of fitModel and pd is a PulseData object

@@ -26,7 +26,7 @@ a list with two items:
 }
 \description{
 If, for example, a labelled fraction is estimated at several time points
-(0hr, 2hr, 4hr), correspondinf partially evaluated formulas will be
+(0hr, 2hr, 4hr), corresponding partially evaluated formulas will be
 created. In this case, a time variable (e.g. "t") will be substituted by
 its values from the corresponding column in the conditions data.frame.
 Hence several partially evaluated formulas will be created for every

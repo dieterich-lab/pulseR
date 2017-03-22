@@ -21,3 +21,11 @@ a named list:
 \description{
 Calculates mean read number estimations
 }
+\examples{
+\dontrun{
+# Plot expected values vs the raw counts.
+# Let res is the return of fitModel and pd is a PulseData object
+pr <- predictExpression(pd, res)
+plot(y = pr$predictions, x = pd$counts, xlab = "raw", ylab = "fitted")
+}
+}

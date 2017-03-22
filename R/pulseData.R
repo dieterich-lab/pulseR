@@ -16,7 +16,7 @@
 #' @return an object of class "PulseData"
 #' @export
 #' 
-#' @example 
+#' @examples 
 #' 
 #' formulaIndexes <- list(
 #'   total_fraction = 'total',
