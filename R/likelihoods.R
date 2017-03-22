@@ -69,17 +69,23 @@ totalll <- function(par, pd) {
   }
 }
 
-#' Calculate expected read numbers for the raw data 
+#' Calculates mean read number estimations 
 #'
 #' @param par estimated parameters from \link{fitModel}
 #' @param pulseData a \link{PulseData} object.
 #'
-#' @return a list(preditions=,llog=), where
-#'   predictions is a matrix of the same dimension 
-#'   as the raw counts in pulseData$count_data;
-#'   llog is a matrix with logarithms of likelihood for the given raw counts.
+#' @return a named list:
+#'   - preditions, a matrix of the same dimension as of the raw counts 
+#'   - llog, a matrix with logarithms of likelihood for the given raw counts.
 #' @export
 #'
+#' @example 
+#' \dontrun{
+#' # Plot expected values vs the raw counts.
+#' # Let res is the return of fitModel and pd is a PulseData object
+#' pr <- predictExpression(pd, res)
+#' plot(y = pr$predictions, x = pd$counts, xlab = "raw", ylab = "fitted")
+#' }
 predictExpression <- function(pulseData, par) {
   evaledForms <- eval(as.call(c(cbind, pulseData$formulas)), par)
   norms <- getNorms(pulseData, par$normFactors)

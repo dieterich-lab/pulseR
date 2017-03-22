@@ -2,7 +2,7 @@
 % Please edit documentation in R/likelihoods.R
 \name{predictExpression}
 \alias{predictExpression}
-\title{Calculate expected read numbers for the raw data}
+\title{Calculates mean read number estimations}
 \usage{
 predictExpression(pulseData, par)
 }
@@ -12,11 +12,10 @@ predictExpression(pulseData, par)
 \item{par}{estimated parameters from \link{fitModel}}
 }
 \value{
-a list(preditions=,llog=), where
-  predictions is a matrix of the same dimension 
-  as the raw counts in pulseData$count_data;
-  llog is a matrix with logarithms of likelihood for the given raw counts.
+a named list:
+  - preditions, a matrix of the same dimension as of the raw counts 
+  - llog, a matrix with logarithms of likelihood for the given raw counts.
 }
 \description{
-Calculate expected read numbers for the raw data
+Calculates mean read number estimations
 }
