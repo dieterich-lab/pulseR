@@ -184,7 +184,7 @@ findDeseqFactorsForFractions <- function(count_data, conditions) {
 #' Evaluate formulas in the environment of known params from the conditions
 #' 
 #' If, for example, a labelled fraction is estimated at several time points
-#' (0hr, 2hr, 4hr), correspondinf partially evaluated formulas will be
+#' (0hr, 2hr, 4hr), corresponding partially evaluated formulas will be
 #' created. In this case, a time variable (e.g. "t") will be substituted by
 #' its values from the corresponding column in the conditions data.frame.
 #' Hence several partially evaluated formulas will be created for every
@@ -231,15 +231,19 @@ addKnownToFormulas <- function(formulas, formulaIndexes, conditions) {
   newIndexes <- list()
   newForms <- list()
   for (i in seq_along(uc[, 1])) {
+    # take formulas for the current condition i
     f <- formulas[formulaIndexes[[as.character(uc[i, 1])]]]
+    # a combined formula name is a concatenation with the i-th row values 
     newNames <- as.character(
       interaction(c(list(names(f)), uc[i, -1])))
+    # partial evaluation in the environment of the i-th row values
     res <- lapply(f, substitute_q, env = as.list(uc[i, ]))
     names(res) <- newNames
     newForms[names(res)] <- res
     newIndexes[[i]] <- newNames
   }
   names(newIndexes) <- interaction(uc)
+  # indexes must be provided for every sample
   newIndexes <- multiplyList(newIndexes, interaction(conditions))
   newIndexes <- names2numbers(newIndexes, names(newForms))
   list(formulas = newForms, formulaIndexes = newIndexes)
