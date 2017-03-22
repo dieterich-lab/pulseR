@@ -207,13 +207,34 @@ addKnownToFormulas <- function(forms, formulaIndexes, conditions) {
   list(formulas = newForms, formulaIndexes = newIndexes)
 }
 
+#' Construct coefficients list and their indexes according to the grouping rule
+#' 
+#' It is assumed that all samples in a group belong to the same condition, 
+#' i.e. the same equations are used to estimate expression levels.
+#' However, they may correspond to different time points etc.
+#' 
+#' The returned normalisation coefficients are assign to 1.
+#'
+#' @param pd a \code{\link{PulseData}} object
+#' @param normGroups a vector defining a rule for splitting the samples in `pd`
+#'
+#' @return a named list with items "normCoeffs" and "normCoeffIndexes".
+#' normCoeffs is the list to store the values of the normalisation coefficients
+#' for every group. 
+#' normCoeffIndexes stores indexes of coefficients from unlist(normCoeffs) 
+#' sample-wise, i.e. length(normCoeffIndexes) is the number of samples.
+#'
 makeGroups <- function(pd, normGroups) {
+  # generate a list of normalisation coefficients with a proper structure
   normCoeffs <- pd$formulaIndexes[match(unique(normGroups), normGroups)]
   names(normCoeffs) <- unique(normGroups)
+  # all the normalisation coefficients are numbered according 
+  # to their appearance in the flatten list `unlist(normCoeffs)`
   normCoeffs <- relist(seq_along(unlist(normCoeffs)), normCoeffs)
+  # normCoeffIndexes contain items for every sample
   normCoeffIndexes <- multiplyList(normCoeffs, normGroups)
   normCoeffs <- assignList(normCoeffs, 1)
-  list(normCoeffs = normCoeffs,
+  list(normCoeffs       = normCoeffs,
        normCoeffIndexes = normCoeffIndexes)
 }
 
