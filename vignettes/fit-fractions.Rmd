@@ -6,7 +6,7 @@ output:
   html_vignette: default
 vignette: >
   %\VignetteIndexEntry{workflow}
-  \VignetteEncoding{UTF-8}
+  %\VignetteEncoding{UTF-8}
   %\VignetteEngine{knitr::rmarkdown}
 ---
 
