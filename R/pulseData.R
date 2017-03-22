@@ -161,9 +161,9 @@ normaliseWithSpikeIns <- function(pd, refGroup, spikeLists){
 #'
 normaliseNoSpikeins <- function(pd, groups){
   factors <- double(length(groups))
-  for (g in unique(groups)){
-    factors[groups == g] <-
-      findDeseqFactorsSingle(pd$counts[, groups == g, drop = FALSE])
+  for (g in unique(groups)) {
+    factors[groups == g] <- findDeseqFactorsSingle(
+      pd$counts[, groups == g, drop = FALSE])
   }
   factors
 }
