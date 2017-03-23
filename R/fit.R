@@ -86,7 +86,7 @@ fitNormFactors <- function(pd, par, options) {
     x,
     objective,
     method = "L-BFGS-B",
-    control = list(parscale = (lb+ub)/2),
+    control = list(parscale = (lb + ub) / 2), 
     lower = lb,
     upper = ub,
     counts = pd$counts
