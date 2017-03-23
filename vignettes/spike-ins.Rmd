@@ -132,7 +132,7 @@ opts <- setTolerance(params = 1e-3,
 result <- fitModel(pd, initPars, opts)
 ```
 
-```{r eval=FALSE}
+```{r}
 pr <- predictExpression(result, pd)
 
 plot(
@@ -143,7 +143,7 @@ plot(
   log = 'xy',
   xlab = "fitted",
   ylab = "experiment"
-  )
+)
 ```
 
 
