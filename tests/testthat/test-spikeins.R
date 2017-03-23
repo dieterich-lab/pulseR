@@ -84,9 +84,9 @@ pd <- PulseData(
 )
 
 options <- list()
-options$lb <- list(a=.1, b=.01)
+options$lb <- list(a = .1, b = .01)
 options$lb <- pulseR:::.b(options$lb, par)
-options$ub <- list(a=1e7, b=.99)
+options$ub <- list(a = 1e7, b = .99)
 options$ub <- pulseR:::.b(options$ub, par)
 options$lb$alpha <- .1
 options$ub$alpha <- 100
@@ -139,6 +139,6 @@ test_that("all together fitting works", {
   res <- pulseR:::fitModel(pd, par2, options)
   res$size <- NULL
   par$size <- NULL
-  expect_lt(max(1-unlist(res)/unlist(par)), .1)
+  expect_lt(max(1 - unlist(res) / unlist(par)), .1)
 })
 ) 

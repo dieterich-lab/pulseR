@@ -331,7 +331,7 @@ generateTestDataFrom <- function(formulas,
   known <- addKnownToFormulas(formulas, formulaIndexes, conditions)
   formulas <- known$formulas
   indexes <- known$formulaIndexes
-  evaled <- do.call(cbind, lapply(formulas, eval, env=par))
+  evaled <- do.call(cbind, lapply(formulas, eval, env = par))
   pd <- list(formulas = formulas, formulaIndexes = indexes,
              depthNormalisation = normFactors)
   norms <- getNorms(pd)
