@@ -10,14 +10,14 @@ formulas <- MeanFormulas(A = a * p, B =  a * b^time, C = a * (1 - b^time))
 
 
 formulaIndexes <- list(
-  A_samp = 'A',
-  B_samp = c('B', 'A'),
-  C_samp = c('C'))
+  A_fraction = 'A',
+  B_fraction = c('B', 'A'),
+  C_fraction = c('C'))
 
 normFactors <- list(
-  A_samp = c(1),
-  B_samp = c(1, .1),
-  C_samp = 2
+  A_fraction = c(1),
+  B_fraction = c(1, .1),
+  C_fraction = 2
 )
 
 conditions <- data.frame(condition = rep(names(formulaIndexes), each = nTime),
@@ -55,4 +55,4 @@ pulseRFractionData <- list(
   normFactors = normFactors,
   par = par
 )
-devtools::use_data(pulseRFractionData, overwrite = TRUE)
+devtools::use_data(pulseRFractionData, pkg = "pkg", overwrite = TRUE)

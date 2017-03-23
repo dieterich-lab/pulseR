@@ -11,9 +11,9 @@ formulas <- MeanFormulas(
   C = alpha * a * (1 - b ^ time))
 
 formulaIndexes <- list(
-  A_samp = 'A',
-  B_samp = c('B', 'C'),
-  C_samp = c('B', 'C'))
+  A_fraction = 'A',
+  B_fraction = c('B', 'C'),
+  C_fraction = c('B', 'C'))
 
 
 conditions <- data.frame(condition = rep(names(formulaIndexes), each = nTime),
@@ -27,9 +27,9 @@ normFactors <- relist(seq_along(unlist(normFactors)), normFactors)
 
 allNormFactors <- multiplyList(normFactors, names(known$formulaIndexes))
 normFactors <- list(
-  A_samp = 1,
-  B_samp = c(2, .1),
-  C_samp = c(.1, 3))
+  A_fraction = 1,
+  B_fraction = c(2, .1),
+  C_fraction = c(.1, 3))
 allNormFactors <- multiplyList(normFactors, conditions[,1])
 
 par <- list(size = 1e2)
@@ -59,12 +59,12 @@ rownames(spikes) <- paste("spikes", seq_len(dim(spikes)[1]))
 BSpikes <- rownames(spikes)[seq_len(numSpikes)]
 CSpikes <- rownames(spikes)[numSpikes + seq_len(numSpikes)]
 
-refGroup <- "A_samp"
+refGroup <- "A_fraction"
 
 spikeLists <- list(
-  A_samp = list(c(BSpikes, CSpikes)),
-  B_samp = list(BSpikes, CSpikes),
-  C_samp = list(BSpikes, CSpikes))
+  A_fraction = list(c(BSpikes, CSpikes)),
+  B_fraction = list(BSpikes, CSpikes),
+  C_fraction = list(BSpikes, CSpikes))
 
 counts <- rbind(counts, spikes)
 spikeins <- list(refGroup = refGroup,
@@ -78,4 +78,4 @@ pulseRSpikeinsData <- list(
   formulaIndexes = formulaIndexes,
   par = par
 )
-devtools::use_data(pulseRSpikeinsData, overwrite = TRUE)
+devtools::use_data(pulseRSpikeinsData, pkg ="pkg", overwrite = TRUE)
