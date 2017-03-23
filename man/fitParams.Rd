@@ -4,16 +4,18 @@
 \alias{fitParams}
 \title{Fit parameters given the initial values and the parameter names}
 \usage{
-fitParams(pd, par, namesToOptimise, opts)
+fitParams(pd, par, namesToOptimise, options)
 }
 \arguments{
 \item{pd}{the \code{\link{PulseData}} object}
 
 \item{par}{the parameter named list}
 
-\item{namesToOptimise}{a vector of names}
+\item{namesToOptimise}{a vector of names of parameters, which values
+need be optimised}
 
-\item{opts}{a list with optimisation options}
+\item{options}{a list with optimisation options. For details, see
+\link{setTolerance}, \link{setFittingOptions}.}
 }
 \value{
 a list with fitted parameters

@@ -7,30 +7,26 @@
 fitModel(pulseData, par, options)
 }
 \arguments{
-\item{pulseData}{PulseData object}
+\item{pulseData}{a \link{PulseData} object}
 
-\item{par}{initial guess for parameters as a \code{list}.}
+\item{par}{a list with an initial parameters values.
+Gene-specific parameters must be set as vectors of the length equal to
+the gene number. \link{initParameters} may simplify the process of initial
+values randomisation.
 
-\item{options}{\code{list} of options}
+The list must include \code{size} parameter for the negative binomial
+distribution and a list with the normalisation factors, if
+no spike-ins are used in the experiment.}
+
+\item{options}{a list of options. For more details, see \link{setBoundaries},
+\link{setTolerance}, \link{setFittingOptions}}
 }
 \value{
 a list with the fitted parameters in the same form as
-the initial guess `par`
+the initial guess \code{par} list
 }
 \description{
 Fit the model by MLE
-}
-\details{
-In the initial guess \code{par},
-   the following list items need to be provided:
-   \itemize{
-   \item{params: }{list of gene-specific parameters}
-   \item{shared: }{list of shared parameters}
-   \item{fraction_factors (if relevant): }{a vector of fraction factors
-   in the order of \code{levels(pulseDatad$fractions)}} 
-   \item{size (optional): }{an initial guess for the size parameter of the
-   negative binomial distribution, see \code{dnbinom}}
-   }
 }
 \examples{
 \dontrun{

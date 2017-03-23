@@ -4,19 +4,15 @@
 \alias{setBoundaries}
 \title{Set optimization boundaries for the model parameters.}
 \usage{
-setBoundaries(params = NULL, shared = NULL, fraction_factors = NULL,
-  size = NULL, options = .defaultParams)
+setBoundaries(boundaries, normFactors = c(0.01, 10),
+  options = .defaultParams)
 }
 \arguments{
-\item{params}{a list of gene-specific parameter boundaries}
+\item{boundaries}{a named list of lower and  upper boundaries
+for the parameters which are used in the formulas.}
 
-\item{shared}{a list of shared parameters boundaries}
-
-\item{fraction_factors}{the  lower and the upper boundaries 
-for the fraction factors}
-
-\item{size}{the lower and the upper boundaries for the size parameter for
-\code{\link{dnbinom}}.}
+\item{normFactors}{either a vector of length 2 or
+a list of two lists (lower, upper boundaries).}
 
 \item{options}{an options object to use as a basis for a new parameter set}
 }
@@ -27,11 +23,51 @@ an options object with the new parameter values
 Set optimization boundaries for the model parameters.
 }
 \details{
-If no options object is provided, the default value is used.
-Boundaries are provided as a named list of vectors or lists with 
-the length 2, see example.
+If no options object is provided, the default values are used.
+The elements in the boundaries list are either
+\itemize{
+\item a list of two vectors
+(the lower and upper boundaries for every gene/isoform respectively).
+If a vector is of length 1, equal boundary values will be assumed for
+all genes (e.g. for the lower boundary);
+\item a vector of two scalars.
+}
+
+The normFactors elements (two, for the lower and the upper
+boundaries) can be:
+\itemize{
+\item a list with the structure is the same with the \code{interSampleCoeffs} in
+the \code{\link{PulseData}} object used in the analysis;
+\item a list with the length equals the number of unique conditions;
+the structure is the same as \code{formulaIndexes} object used for
+the \code{\link{PulseData}} object creation;
+\item a single scalar value.
+}
 }
 \examples{
-setBoundaries(params = list(a = c(1,2), b = c(10, 20)))
-
+# the simple way:
+setBoundaries(list(a = c(1,2), b = c(10, 20)), 
+              normFactors = c(.1,10))
+              
+# the hard way:
+# this are the formula indexes (see PulseData function documentation)
+formulaIndexes <- list(
+  total_fraction = 'total',
+  pull_down      = c('labelled', 'unlabelled'),
+  flow_through   = c('unlabelled', 'labelled')
+)
+# the lower and upper boundaries must have the same structure:
+lbNormFactors <- list(
+  total_fraction = 1,
+  pull_down      = c(.1,.010),
+  flow_through   = c(.1,.010))
+ubNormFactors <- list(
+  total_fraction = 1,
+  pull_down      = c(10, 2),
+  flow_through   = c(10, 2))
+# we need to provide them as a list  
+opts <- setBoundaries(
+  list(mu = c(1, 1e6), d = c(1, 2)),
+  normFactors = list(lbNormFactors, ubNormFactors))
+  
 }

@@ -20,7 +20,7 @@ an expression for the calculation of the RNA level after time
 \verb{t}.
 }
 \description{
-All the arguments must be characters or language objects 
+All the arguments must be characters or language objects
 (expression, call or name).
 }
 \examples{

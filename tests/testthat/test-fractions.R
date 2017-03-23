@@ -56,22 +56,19 @@ pd <- PulseData(
 )
 
 
-#getNormIndex <- function(formulaIndexes, 
-                
+options <- list()
+options$lb <- list(a = .1, b = .01)
+options$lb <- pulseR:::.b(options$lb, par)
+options$ub <- list(a = 1e7, b = .99)
+options$ub <- pulseR:::.b(options$ub, par)
+options$lb$size <- 1
+options$ub$size <- 1e6
 
-opts <- list()
-opts$lb <- list(a=.1, b=.01)
-opts$lb <- pulseR:::.b(opts$lb, par)
-opts$ub <- list(a=1e7, b=.99)
-opts$ub <- pulseR:::.b(opts$ub, par)
-opts$lb$size <- 1
-opts$ub$size <- 1e6
+options$lb$normFactors <- pulseR:::assignList(normFactors, .01)
+options$ub$normFactors <- pulseR:::assignList(normFactors, 20)
+options <- setTolerance(.01,shared = .01, normFactors = .01,options = options)
 
-opts$lb$normFactors <- pulseR:::assignList(normFactors, .01)
-opts$ub$normFactors <- pulseR:::assignList(normFactors, 20)
-opts <- setTolerance(.01,shared = .01,fraction_factors = .01,options = opts)
-
-opts$verbose <- "silent"
+options$verbose <- "silent"
 par$normFactors <- normFactors 
 
 err <- function(x,y){
@@ -83,28 +80,28 @@ test_that("gene params fitting works (together)", {
   skip("skip long test")
   par2 <- par
   toOptimise <- c("a", "b")
-  par2[toOptimise] <- opts$lb[toOptimise]
-  res <- pulseR:::fitParams(pd, par, toOptimise, opts)
+  par2[toOptimise] <- options$lb[toOptimise]
+  res <- pulseR:::fitParams(pd, par, toOptimise, options)
   expect_lt(max(err(res, par)), .1)
 })
 
 test_that("gene params fitting works (separately)", {
   par2 <- par
   toOptimise <- c("a", "b")
-  par2[toOptimise] <- opts$lb[toOptimise]
+  par2[toOptimise] <- options$lb[toOptimise]
   res <- pulseR:::fitParamsSeparately(pd = pd,
                                  par = par,
                                  knownNames = "p",
                                  namesToOptimise = c("a", "b"), 
-                                 opts = opts)
+                                 options = options)
   expect_lt(max(err(res, par)), .1)
 })
 
 test_that("norm factors fitting works", {
   par2 <- par
   par2$normFactors <- pulseR:::assignList(par2$normFactors, 2)
-  res <- pulseR:::fitNormFactors(pd, par2, opts)
-  expect_lt(max(1-unlist(res)/unlist(par$normFactors)), .1)
+  res <- pulseR:::fitNormFactors(pd, par2, options)
+  expect_lt(max(1 - unlist(res) / unlist(par$normFactors)), .1)
 })
 
 
@@ -112,12 +109,12 @@ test_that("all together fitting works", {
   par2 <- par
   for (p in c("a", "b")) {
     par2[[p]] <-
-      runif(length(par[[p]]), opts$lb[[p]], opts$ub[[p]])
+      runif(length(par[[p]]), options$lb[[p]], options$ub[[p]])
   }
-  opts$verbose <- "verbose"
-  res <- pulseR:::fitModel(pd, par2, opts)
+  options$verbose <- "verbose"
+  res <- pulseR:::fitModel(pd, par2, options)
   res$size <- NULL
   par$size <- NULL
-  expect_lt(max(1-unlist(res)/unlist(par)), .1)
+  expect_lt(max(1 - unlist(res) / unlist(par)), .1)
 })
   

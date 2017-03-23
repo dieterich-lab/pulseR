@@ -16,7 +16,7 @@ MeanFormulas <- function(...) {
   eval(substitute(alist(...)))
 }
 
-#' Generate a new formula for the mean read number
+#' Generate a new formula as a mixture of two
 #' 
 #' If the condition A can be contaminated with reads from the condition B,
 #' its expected mean read number will be \eqn{(1-p)r_a + p r_b}, where
@@ -183,7 +183,7 @@ degrade_ <- function(x, d, t) {
 #' # mu_new - (mu_new - mu_0) * exp(-degradation_rate * t_labelling)
 grow <- function(x, mu, d, t) {
   args <- as.list(match.call()[-1])
-  args <- lapply(args, eval, env=parent.frame())
+  args <- lapply(args, eval, env = parent.frame())
   args <- lapply(args, toLanguage)
   args$x <- quote(x)
   do.call(grow_, args) 
@@ -205,7 +205,7 @@ grow <- function(x, mu, d, t) {
 #' 
 growFrom0 <- function(mu, d, t) {
   args <- as.list(match.call()[-1])
-  args <- lapply(args, eval, env=parent.frame())
+  args <- lapply(args, eval, env = parent.frame())
   args <- lapply(args, toLanguage)
   do.call(grow_, args) 
 }
@@ -233,8 +233,3 @@ grow_ <- function(x, mu, d, t) {
   }
 }
 
-
-`%$%` <- function(lhs, rhs){
-  parent <- parent.frame()
-  env <- new.env(parent = parent)  
-}

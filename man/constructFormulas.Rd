@@ -2,7 +2,7 @@
 % Please edit documentation in R/formulas.R
 \name{constructFormulas}
 \alias{constructFormulas}
-\title{Evaluate formulas according to parameters, given in 
+\title{Evaluate formulas according to parameters, given in
 the condition \code{data.frame}}
 \usage{
 constructFormulas(formulas, conditions)
@@ -20,6 +20,6 @@ list; formulas with substituted parameters according to the values
 in the \code{conditions} data.frame
 }
 \description{
-Evaluate formulas according to parameters, given in 
+Evaluate formulas according to parameters, given in
 the condition \code{data.frame}
 }

@@ -1,98 +1,136 @@
 
-# default params
-# - tolerance
-# - boundaries
-# - 
 .defaultParams <-  list(
   tolerance = list(
     params = 1e-3,
     shared = 1e-2,
-    fraction_factors = 1e-3
+    normFactors = 1e-3
   ),
   verbose = "silent",
-  cores = 1,
   lb = list(size = 10),
   ub = list(size = 1e10)
 )
 
+
+#' Shape boundaries for the normalisation factors
+#'  
+#' Create lower and upper boundaries with the same structure as
+#' the list of normalisation coefficients `interSamplCoeffs` in
+#' the \code{\link{PulseData}} object.
+#'
+#' The following cases for options${lb,ub}$normFactors are considered:
+#'   - the structure is the same with `pd$interSampleCoeffs`
+#'   - the length equals the number of unique conditions,
+#'     then the list is multiplied according to the condition data.frame
+#'     in order to generate a list with the same structure as 
+#'     `pd$interSampleCoeffs`
+#'   - only a single scalar value is provided.
+#' 
+#' @param options the options list
+#' @param pd  the \code{\link{PulseData}} object
+#'
+#' @return an updated options list
+#'
+normaliseNormFactorBoundaries <- function(options, pd){
+  f <- function(x) {
+    if (is.list(x)) {
+      # if a user specified a list on the basis of the conditions
+      if (length(x) == length(unique(pd$conditions[, 1]))) {
+        conditionIds <- match(names(pd$interSampleCoeffs), pd$groups)
+        x <- multiplyList(x, pd$conditions[conditionIds, 1])
+      }
+    }
+    # if only a scalar
+    if (is.vector(x) && length(x) == 1) {
+      x <- assignList(pd$interSampleCoeffs, x)
+    }
+    x
+  }
+  options$lb$normFactors <- f(options$lb$normFactors)
+  options$ub$normFactors <- f(options$ub$normFactors)
+  options
+}
+
+# Helper for normaliseBoundaries
+# extend boundaries to the parameter length
+.b <- function(b, par) {
+  for (p in names(b)) {
+    if (length(b[[p]]) == 1) 
+      b[[p]] <- rep(b[[p]], length(unlist(par[[p]])))
+      if (is.list(par[[p]])) 
+        b[[p]] <- utils::relist(b[[p]], par[[p]])
+  }
+  b
+}
+
+#' Shape boundaries for the parameters in formulas. 
+#' 
+#' 
+#' If a single scalar value is provided, its boundaries are
+#' assumed to be the same for all genes/isoforms, hence
+#' a vector of gene number size will be returned.
+#' 
+#' @param options the options list
+#' @param par the parameters list
+#' @param pd the \code{\link{PulseData}} object
+#'
+#' @return an updated options list
+#'
+normaliseBoundaries <- function(options, par, pd){
+  if (!is.null(pd$interSampleCoeffs))  
+    options <- normaliseNormFactorBoundaries(options, pd)
+  toExtend <- setdiff(names(options$lb), "normFactors")
+  options$lb[toExtend] <- .b(options$lb[toExtend], par[toExtend])
+  options$ub[toExtend] <- .b(options$ub[toExtend], par[toExtend])
+  options
+}
+
+
+#' Add default options if unset.
+#'
+#' @param options an options list
+#'
+#' @return an updated options list with the default records added for
+#' unspecified fields
+#' @export
+#'
+#' @examples
+#' opts <- addDefault(list())
+#' 
 addDefault <- function(options) {
   nonSpecified <- setdiff(names(.defaultParams), names(options))
   options[nonSpecified] <- .defaultParams[nonSpecified]
   options
 }
 
-setKnownGeneSpecific <- function(known, par){
-  par$known <- known
-  par
-}
-
-plist <- function(params = NULL,
-                  shared = NULL,
-                  fraction_factors = NULL,
-                  size = NULL) {
-  list(
-    params = params,
-    shared = shared,
-    fraction_factors = fraction_factors,
-    size = size
-  )
-}
-
-
-validateOptions <- function(o){
-  if (!is.list(o))
+#' Check options for sanity.
+#'
+#' Throws an error if incorrect values are supplied.
+#' 
+#' @param options an options list
+#'
+#' @return NULL
+#' @export
+#'
+validateOptions <- function(options){
+  if (!is.list(options))
     stop("Options must be a list")
-  if (is.null(o$cores) || o$cores < 1)
-    stop("Please specify correct number of cores")
-  checkThresholds(o)
-  checkBoundaries(o)
-}
-
-# aligns lb and ub only if they are named
-# skip "size" parameter
-alignBoundaries <- function(options){
-  stopifnot(all(sort(names(options$lb)) == sort(names(options$ub))))
-  param_names <- names(options$lb)
-  param_names <- param_names[param_names != "size"]
-  for (p in param_names) {
-    lnames <- names(options$lb[[p]])
-    unames <- names(options$ub[[p]])
-    if (!is.null(lnames) && !is.null(unames)) {
-      options$ub[[p]] <- options$ub[[p]][lnames]
-    } else
-      if (xor(is.null(lnames), is.null(unames)))
-        stop(paste("One of boundaries is not named in ", p))
-  }
-  options
+  checkThresholds(options)
+  NULL
 }
 
 
-checkBoundaries <- function(options) {
-  lnames <- names(options$lb)
-  unames <- names(options$ub)
-  missingBoundaries <- setdiff(union(lnames, unames), intersect(lnames, unames))
-  if (length(missingBoundaries) > 0)
-    stop(paste("Please specify missing boundaries for \n", missingBoundaries))
-  hasEqualLength <- vapply(lnames,
-                           function(p) {
-                             length(options$lb[[p]]) == length(options$ub[[p]])
-                           }, logical(1))
-  if (!(all(hasEqualLength)))
-    stop(paste("Length of upper and lower boundaries are not equal for ",
-               lnames[!hasEqualLength]))
-  correctValues <- vapply(lnames,
-                          function(p) {
-                            all(options$lb[[p]] < options$ub[[p]])
-                          }, logical(1))
-  if (!all(correctValues))
-    stop(paste( "Lower boundaries values are not less than the upper ones in ",
-      lnames[!correctValues]))
-  alignBoundaries(options)
-}
-
+#' Tests tolerance thersholds for correctness
+#'
+#' Throws an error in case wrong format or value are provided.
+#' 
+#' @param options an options list
+#'
+#' @return NULL
+#'
 checkThresholds <- function(options){
   if (is.null(options$tolerance))
     stop("No tolerance is specified")
+  # must be a positive single scalar
   isValid <- vapply(names(options$tolerance),
                     function(p) {
                       if (is.vector(options$tolerance[[p]])   &&
@@ -104,80 +142,81 @@ checkThresholds <- function(options){
                     }, logical(1))
   if (!all(isValid))
     stop("Tolerance must be a single positive number")
+  NULL
 }
 
-checkPlist <- function(plist) {
-  if (is.null(plist))
-    stop("parameter list must be not NULL")
-  if (!is.list(plist))
-    stop("parameter list must be a list")
-  if (length(plist) > 0) {
-    listNames <- c("params", "shared", "size", "fraction_factor")
-    n <- setdiff(names(plist), listNames)
-    if (is.null(n) || length(n) > 0)
-      stop(paste(
-        "parameter list can have only the following named items: \n",
-        paste(listNames, collapse = ", ")
-      ))
-  }
-}
 
 #' Set optimization boundaries for the model parameters.
 #'
-#' @param params a list of gene-specific parameter boundaries
-#' @param shared a list of shared parameters boundaries
-#' @param fraction_factors the  lower and the upper boundaries 
-#'        for the fraction factors
-#' @param size the lower and the upper boundaries for the size parameter for
-#' \code{\link{dnbinom}}.
+#' @param boundaries a named list of lower and  upper boundaries 
+#' for the parameters which are used in the formulas.
+#'  
+#' @param normFactors either a vector of length 2 or
+#' a list of two lists (lower, upper boundaries).
 #' @param options an options object to use as a basis for a new parameter set
 #'
 #' @return   an options object with the new parameter values
-#' @details If no options object is provided, the default value is used.
-#' Boundaries are provided as a named list of vectors or lists with 
-#' the length 2, see example.
+#' @details If no options object is provided, the default values are used.
+#' The elements in the boundaries list are either 
+#' - a list of two vectors
+#'   (the lower and upper boundaries for every gene/isoform respectively).
+#'   If a vector is of length 1, equal boundary values will be assumed for 
+#'   all genes (e.g. for the lower boundary);
+#' - a vector of two scalars.
+#'    
+#' The normFactors elements (two, for the lower and the upper 
+#' boundaries) can be:
+#'   - a list with the structure is the same with the `interSampleCoeffs` in 
+#'     the \code{\link{PulseData}} object used in the analysis;
+#'   - a list with the length equals the number of unique conditions;
+#'     the structure is the same as `formulaIndexes` object used for
+#'     the \code{\link{PulseData}} object creation;
+#'   - a single scalar value.
+#' 
 #' @export
 #' 
 #' @examples
-#' setBoundaries(params = list(a = c(1,2), b = c(10, 20)))
-#'
-setBoundaries <- function(params = NULL,
-                          shared = NULL,
-                          fraction_factors = NULL,
-                          size = NULL,
+#' # the simple way:
+#' setBoundaries(list(a = c(1,2), b = c(10, 20)), 
+#'               normFactors = c(.1,10))
+#'               
+#' # the hard way:
+#' # this are the formula indexes (see PulseData function documentation)
+#' formulaIndexes <- list(
+#'   total_fraction = 'total',
+#'   pull_down      = c('labelled', 'unlabelled'),
+#'   flow_through   = c('unlabelled', 'labelled')
+#' )
+#' # the lower and upper boundaries must have the same structure:
+#' lbNormFactors <- list(
+#'   total_fraction = 1,
+#'   pull_down      = c(.1,.010),
+#'   flow_through   = c(.1,.010))
+#' ubNormFactors <- list(
+#'   total_fraction = 1,
+#'   pull_down      = c(10, 2),
+#'   flow_through   = c(10, 2))
+#' # we need to provide them as a list  
+#' opts <- setBoundaries(
+#'   list(mu = c(1, 1e6), d = c(1, 2)),
+#'   normFactors = list(lbNormFactors, ubNormFactors))
+#'   
+setBoundaries <- function(boundaries,
+                          normFactors=c(.01,10), 
                           options = .defaultParams) {
   if (!is.list(options))
     stop("Options must be a list")
+  lapply(names(boundaries), function(x) {
+    if (length(boundaries[[x]]) != 2)
+      stop(paste0("Boundaries for the parameters ", x, " have a wrong format."))
+  })
   options <- addDefault(options)
-  plist <- as.list(match.call())[-1]
-  plist$options <- NULL
-  plist <- lapply(plist, eval)
-  .getBoundaryValue <- function(x, i) {
-    x <- unlist(x)
-    if (length(x) != 2)
-      stop("Boundaries must have length of 2")
-    x[i]
+  for (p in names(boundaries)) {
+        options$lb[[p]] <- boundaries[[p]][1]
+        options$ub[[p]] <- boundaries[[p]][2]
   }
-  for (type in names(plist)) {
-    if (is.list(plist[[type]])) {
-      # add try
-      options$lb[[type]] <- vapply(plist[[type]],
-                                   .getBoundaryValue,
-                                   i = 1,
-                                   FUN.VALUE = double(1))
-      options$ub[[type]] <- vapply(plist[[type]],
-                                   .getBoundaryValue,
-                                   i = 2,
-                                   FUN.VALUE = double(1))
-    } else {
-      if (is.vector(plist[[type]]) && length(plist[[type]])) {
-        options$lb[[type]] <- plist[[type]][1]
-        options$ub[[type]] <- plist[[type]][2]
-      }
-    }
-  }
-  options <- alignBoundaries(options)
-  checkBoundaries(options)
+  options$lb$normFactors <- normFactors[[1]]
+  options$ub$normFactors <- normFactors[[2]]
   options
 }
 
@@ -186,7 +225,7 @@ setBoundaries <- function(params = NULL,
 #'
 #' @param params a threshold for gene-specific parameter boundaries
 #' @param shared a threshold for shared parameters boundaries
-#' @param fraction_factors  a threshold for the fraction factors
+#' @param normFactors a threshold for the fraction factors
 #' 
 #' @param options an options object to use as a basis for a new parameter set
 #'
@@ -201,7 +240,7 @@ setBoundaries <- function(params = NULL,
 #'
 setTolerance <- function(params = .01,
                          shared = .01,
-                         fraction_factors = .01,
+                         normFactors = .01,
                          options = .defaultParams) {
   if (!is.list(options))
     stop("Options must be a list")
@@ -218,7 +257,6 @@ setTolerance <- function(params = .01,
 #'
 #' @param verbose if "verbose" relative changes of parameters 
 #' between two fitting iterations are printed
-#' @param cores \code{integer}, natural number
 #' @param options an option object
 #'
 #' @return an option object with modified specified parameters.
@@ -226,11 +264,8 @@ setTolerance <- function(params = .01,
 #'
 setFittingOptions <- function(
     verbose = c("silent", "verbose"),
-    cores = 1,
-    options
+    options = .defaultParams
     ){
-  if (missing(options))
-    options <- .defaultParams
   if (!missing(verbose))
     match.arg(verbose)
   args <- as.list(match.call())[-1]
@@ -242,173 +277,53 @@ setFittingOptions <- function(
   options
 }
 
-
-sampleParams <- function(lb, ub, paramName) {
-  n <- max(length(lb), length(ub))
-  result <- runif(n, lb, ub)
-  if (is.null(names(lb)) && is.null(names(ub)))
-    stop(paste("Please provide names for the boundaries in ", paramName))
-  if (!is.null(names(lb)))
-    names(result) <- names(lb)
-  else
-    names(result) <-  names(ub)
-  result
-}
-
 #' Initialize first guess for the parameters 
 #'
+#' @param par a list with parameter values
+#' @param geneParams a vector of names of the gene-specific parameters.
+#'   For this parameters, the output length is equal the number of genes, i.e.
+#'   an individual parameter value is generated for every gene.
 #' @param pulseData a \code{\link{PulseData}} object 
 #' @param options an options object
-#' @param params a data.frame
-#' @param shared a named list
-#' @param fraction_factors a vector
-#' @param size a double; size parameter for the \code{\link{dnbinom}}
 #' 
 #' @importFrom stats runif
 #'
 #' @return  a list to provide to the function \code{\link{fitModel}}.
 #' @export
 #'
-initParameters <- function(pulseData,
-                           options,
-                           params = NULL,
-                           shared = NULL,
-                           fraction_factors = NULL,
-                           size = NULL) {
-  res <- list()
+initParameters <- function(par, geneParams, pulseData, options) {
   validateOptions(options)
-  params <- initGeneParams(options, pulseData, params)
-  fraction_factors <- initFractions(options, pulseData, fraction_factors)
-  shared <- initShared(options, shared)
-  size <- runif(1, options$lb$size, options$ub$size)
-  par <- plist(
-    params = params,
-    shared = shared,
-    fraction_factors = fraction_factors,
-    size = size
-  )
-  validateNames(par, options)
-  stopIfNotInRanges(par[names(options$lb)], options)
+  nGenes <- dim(pulseData$counts)[1]
+  for (g in geneParams) {
+    if (is.null(par[[g]])) {
+      par[[g]] <-  runif(nGenes, options$lb[[g]], options$ub[[g]])
+    } else {
+      if (length(par[[g]]) == 1)
+        par[[g]] <- rep(par[[g]], nGenes)
+    }
+  }
+  # init other non-gene parameters if they are not in par
+  notSet <- setdiff(names(options$lb), c("normFactors", names(par)))
+  notSet <- notSet[!notSet %in% geneParams]
+  for (p in notSet) {
+    par[[p]] <- runif(1, options$lb[[p]], options$ub[[p]])
+  }
+  if (!is.null(pulseData$interSampleCoeffs)) {
+    if (is.null(par$normFactors)) {
+      options <- normaliseNormFactorBoundaries(options, pulseData)
+      par$normFactors <- lapply(seq_along(options$lb$normFactors),
+             function(i) {
+               x <- options$lb$normFactors[[i]]
+               x[1] <- runif(1, options$lb$normFactors[[i]][1],
+                             options$ub$normFactors[[i]][1])
+               x
+             })
+    }
+  }
+  stopIfNotInRanges(par, options)
   par
 }
 
-validateNames <- function(par, options){
-  options$lb$params <- validate(par$params, options$lb$params)
-  options$ub$params <- validate(par$params, options$ub$params)
-  if (!is.null(par$shared)) {
-    options$lb$shared <- validate(par$shared, options$lb$shared)
-    options$ub$shared <- validate(par$shared, options$ub$shared)
-  }
-  options
-}
-
-# if not set - sample
-initFractions <- function(options, pulseData, fraction_factors) {
-  if (is.null(pulseData$fraction))
-    return(NULL)
-  if (is.null(options$lb$fraction_factors) ||
-      is.null(options$ub$fraction_factors)) 
-    stop(
-      paste(
-        "Fractions are set in the PulseData object, ",
-        "but boundaries for the fraction factors are not defined"
-      )
-    )
-  fractionNum <- length(levels(pulseData$fraction))
-  if (!is.null(fraction_factors)) {
-    if (is.vector(fraction_factors) &&
-        length(fraction_factors) == 1) {
-      fraction_factors <- rep(fraction_factors, fractionNum)
-    } else {
-      fraction_factors <- fraction_factors
-    }
-  } else {
-      lb <- .expandBoundary(options$lb$fraction_factors, 
-                            as.character(levels(pulseData$fraction)))
-      ub <- .expandBoundary(options$ub$fraction_factors, 
-                            as.character(levels(pulseData$fraction)))
-      fraction_factors <- sampleParams(lb, ub, "fraction_factors")
-  }
-  fraction_factors
-}
-
-.expandBoundary <- function(b, parNames) {
-  if (length(b) == 1) {
-    b <- rep(b, length(parNames))
-    names(b) <- parNames
-  }
-  b
-}
-
-initShared <- function(options, shared){
-  if (!is.null(shared)) {
-    if (length(shared) != length(options$lb$shared))
-      if (length(shared) == 1)
-        shared <- rep(shared, length(options$lb$shared))
-      else
-        stop("Wrong number of shared parameters specified")
-  } else {
-    if (!is.null(options$lb$shared) && !is.null(options$ub$shared)) {
-      shared <- sampleParams(options$lb$shared, options$ub$shared, "shared") 
-    }
-  }
-  shared
-}
-
-initGeneParams <- function(options, pulseData, params){
-  geneNum <- dim(pulseData$count_data)[1]
-  if (!is.null(params)) {
-    correctLength <- sapply(params, length) %in% c(1, geneNum)
-    if (!all(correctLength))
-      stop(paste(
-        "Length of gene-specific parameters is not correct for: ",
-        paste(names(params)[!correctLength], collapse = ", ")
-      ))
-    result <- data.frame(params)
-    # correct row number
-    if (dim(result)[1] == 1)
-      result <- result[rep(1, geneNum),]
-  } else {
-    result <- replicate(
-      geneNum,
-      sampleParams(options$lb$params, options$ub$params, "params"),
-      simplify = FALSE)
-    result <- do.call(rbind, result)
-  }
-  rownames(result) <- rownames(pulseData$count_data)
-  as.data.frame(result)
-}
-
-# checks  if parameters are named and
-# orders   boundaries appropriately
-# if a a boundary is a double, returns b
-validate <- function(p, b) {
-  if (is.vector(b) && length(b) == 1 && is.null(names(b)))
-    return(b)
-  if (is.null(names(p)))
-    stop("parameters are not named")
-  if (length(p) != length(b))
-    stop(
-      paste(
-        "Number of parameters and the number of boundaries set are",
-        "not equal:\n parameter:",
-        paste0(names(p), collapse = " "),
-        "\n boundaries: ",
-        paste0(names(b), collapse = " ")
-      )
-    )
-  if (is.null(names(b))) {
-    message("Boundaries for the parameters are not named")
-    message("The order is derived from the parameter values:")
-    message(paste(names(p), collapse = "; "))
-    names(b) <- names(p)
-  }
-  b <- b[names(p)]
-  if (anyNA(names(b)))
-    stop(paste("Boundaries for ", names(p)[is.na(names(b))],
-               "are not set"))
-  b
-}
 
 #' Validate list of parameters according to allowed value ranges.
 #'
@@ -418,19 +333,17 @@ validate <- function(p, b) {
 #' @return NULL
 #'
 stopIfNotInRanges <- function(args, options) {
+  args <- args[names(options$lb)]
   if (!is.null(args$size)) {
     if (args$size < options$lb$size || args$size > options$ub$size)
       stop("Error: Argument 'size' is not within the specified range\n")
-    args$size <- NULL
+    args$size <- runif(1, options$lb$size, options$ub$size)
   }
+  options$lb <- .b(options$lb, args)
+  options$ub <- .b(options$ub, args)
   is.inRange <- function(x, lb, ub) {
-    lb <- .expandBoundary(lb, names(x))
-    ub <- .expandBoundary(ub, names(x))
-    all(vapply(names(x),
-               function(par_name) {
-                 all(x[[par_name]] >= lb[[par_name]]) &&
-                 all(x[[par_name]] <= ub[[par_name]])
-               }, logical(1)))
+                 all(unlist(x) >= unlist(lb)) &&
+                 all(unlist(x) <= unlist(ub))
   }
   inRange <- vapply(names(args),
                     function(p) {
@@ -454,7 +367,6 @@ stopIfNotInRanges <- function(args, options) {
 #' @param fun a function used to estimate the expression level. 
 #' Possible variants are mean, median and adjusted geometric mean (i.e.
 #' $exp(mean(log(x + .5)))$.
-#' 
 #'
 #' @return a vector of expression level estimations for every gene
 #' 
@@ -468,11 +380,12 @@ guessMeans <- function(pulseData,
   fun <- match.arg(fun)
   fun <- switch(
     fun,
-    mean = mean,
-    median = median,
-    geomean = function(x)
-      exp(mean(log(x + .01)))
+    mean    = mean,
+    median  = median,
+    geomean = function(x) exp(mean(log(x + .01)))
   )
   totals <- pulseData$user_conditions[,1] == totalLabel
-  apply(pulseData$count_data, 1, fun)
+  if (!any(totals))
+    stop(paste0("Error: no samples from the condition ", totalLabel, "."))
+  apply(pulseData$count_data[ ,totals], 1, fun)
 }

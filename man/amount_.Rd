@@ -13,6 +13,6 @@ amount_(x)
 an expression for the initial RNA level
 }
 \description{
-A non-standard evaluation version of the \code{\link{amount}} 
- function.
+A non-standard evaluation version of the \code{\link{amount}}
+function.
 }

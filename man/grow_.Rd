@@ -19,7 +19,7 @@ grow_(x, mu, d, t)
 an expression for the calculation of the RNA level.
 }
 \description{
-This implement the non-standard evaluation version of the 
+This implement the non-standard evaluation version of the
 \code{\link{grow}} function.
 }
 \examples{

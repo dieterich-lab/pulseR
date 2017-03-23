@@ -9,13 +9,13 @@ generateTestDataFrom(formulas, formulaIndexes, normFactors, par, conditions)
 \arguments{
 \item{formulas}{a list}
 
-\item{formulaIndexes}{list of lists; defines indexes of formulas 
+\item{formulaIndexes}{list of lists; defines indexes of formulas
 used for calculation of the expected read number}
 
 \item{normFactors}{list of vectors; normalisation factors, if
 known}
 
-\item{par}{a list of named parameters; gene-specific parameters 
+\item{par}{a list of named parameters; gene-specific parameters
 are vectors}
 
 \item{conditions}{a condition data.frame}

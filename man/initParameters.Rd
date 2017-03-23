@@ -4,21 +4,18 @@
 \alias{initParameters}
 \title{Initialize first guess for the parameters}
 \usage{
-initParameters(pulseData, options, params = NULL, shared = NULL,
-  fraction_factors = NULL, size = NULL)
+initParameters(par, geneParams, pulseData, options)
 }
 \arguments{
+\item{par}{a list with parameter values}
+
+\item{geneParams}{a vector of names of the gene-specific parameters.
+For this parameters, the output length is equal the number of genes, i.e.
+an individual parameter value is generated for every gene.}
+
 \item{pulseData}{a \code{\link{PulseData}} object}
 
 \item{options}{an options object}
-
-\item{params}{a data.frame}
-
-\item{shared}{a named list}
-
-\item{fraction_factors}{a vector}
-
-\item{size}{a double; size parameter for the \code{\link{dnbinom}}}
 }
 \value{
 a list to provide to the function \code{\link{fitModel}}.
