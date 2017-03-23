@@ -52,19 +52,19 @@ spikes <- lapply(allNormFactors,
            res <- rep(spikeinsMeans, 2) * x
          else
            res <- c(spikeinsMeans * x[1], spikeinsMeans * x[2])
-         res
+         rnbinom(n = length(res), mu = res, size = par$size)
        })
 spikes <- do.call(cbind, spikes)
 rownames(spikes) <- paste("spikes", seq_len(dim(spikes)[1]))
-Bpikes <- rownames(spikes)[seq_len(numSpikes)]
+BSpikes <- rownames(spikes)[seq_len(numSpikes)]
 CSpikes <- rownames(spikes)[numSpikes + seq_len(numSpikes)]
 
 refGroup <- "A_samp"
 
 spikeLists <- list(
-  A_samp = list(c(Bpikes, CSpikes)),
-  B_samp = list(Bpikes, CSpikes),
-  C_samp = list(Bpikes, CSpikes))
+  A_samp = list(c(BSpikes, CSpikes)),
+  B_samp = list(BSpikes, CSpikes),
+  C_samp = list(BSpikes, CSpikes))
 
 counts <- rbind(counts, spikes)
 spikeins <- list(refGroup = refGroup,
@@ -74,6 +74,7 @@ pulseRSpikeinsData <- list(
   counts = counts,
   conditions = conditions,
   spikeins = spikeins,
+  allNormFactors = allNormFactors,
   formulaIndexes = formulaIndexes,
   par = par
 )
