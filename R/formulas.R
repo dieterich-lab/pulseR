@@ -183,7 +183,7 @@ degrade_ <- function(x, d, t) {
 #' # mu_new - (mu_new - mu_0) * exp(-degradation_rate * t_labelling)
 grow <- function(x, mu, d, t) {
   args <- as.list(match.call()[-1])
-  args <- lapply(args, eval, env=parent.frame())
+  args <- lapply(args, eval, env = parent.frame())
   args <- lapply(args, toLanguage)
   args$x <- quote(x)
   do.call(grow_, args) 
@@ -205,7 +205,7 @@ grow <- function(x, mu, d, t) {
 #' 
 growFrom0 <- function(mu, d, t) {
   args <- as.list(match.call()[-1])
-  args <- lapply(args, eval, env=parent.frame())
+  args <- lapply(args, eval, env = parent.frame())
   args <- lapply(args, toLanguage)
   do.call(grow_, args) 
 }
