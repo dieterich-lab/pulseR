@@ -233,8 +233,3 @@ grow_ <- function(x, mu, d, t) {
   }
 }
 
-
-`%$%` <- function(lhs, rhs){
-  parent <- parent.frame()
-  env <- new.env(parent = parent)  
-}
