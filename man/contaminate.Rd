@@ -2,7 +2,7 @@
 % Please edit documentation in R/formulas.R
 \name{contaminate}
 \alias{contaminate}
-\title{Generate a new formula for the mean read number}
+\title{Generate a new formula as a mixture of two}
 \usage{
 contaminate(formulas, target_condition, contaminant_condition, coef_name)
 }

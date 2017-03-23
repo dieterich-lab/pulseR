@@ -16,7 +16,7 @@ MeanFormulas <- function(...) {
   eval(substitute(alist(...)))
 }
 
-#' Generate a new formula for the mean read number
+#' Generate a new formula as a mixture of two
 #' 
 #' If the condition A can be contaminated with reads from the condition B,
 #' its expected mean read number will be \eqn{(1-p)r_a + p r_b}, where
