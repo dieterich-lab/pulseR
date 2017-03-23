@@ -9,7 +9,7 @@ Tools for the analysis of RNA metabolic kinetics from RNAseq data.
 ```r
 install.packages("devtools")
 library(devtools)
-install_github("dieterich-lab/pulseR")
+install_github("dieterich-lab/pulseR", subdir="pkg")
 ```
 
 or download, unpack and run inside the directory
