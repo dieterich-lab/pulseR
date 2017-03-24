@@ -12,7 +12,7 @@ library(devtools)
 install_github("dieterich-lab/pulseR", subdir="pkg")
 ```
 
-or download, unpack and run inside the directory
+or download, unpack and run inside the `pkg` directory
 (change the version accordingly)
 
 ```shell
