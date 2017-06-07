@@ -1,9 +1,12 @@
 
 #' Create an object for pulse-change count data
 #'
-#' @param counts a matrix; column names correspond to sample names
+#' @param counts a matrix; column names correspond to sample names.
+#' The columns in `counts` correspond to the rows in `conditions` argument. 
 #' @param conditions a data.frame;
 #'   the first column corresponds to the conditions given in \code{formulas}.
+#'   The order of rows corresponds to the columns (samples) in the 
+#'   `counts` argument.
 #' @param formulas a list, created by \code{\link{MeanFormulas}}
 #' @param formulaIndexes a list of lists; defines indexes of formulas 
 #' used for calculation of the expected read number
@@ -19,6 +22,13 @@
 #' which should have distinct coefficients for mean expression fitting.
 #' 
 #' @return an object of class "PulseData"
+#' @details 
+#' The `conditions` argument may include additional  columns, which 
+#' provide values for known parameters, such as time. Their name must be the
+#' same as defined in formulas. For example, if a formula is defined as 
+#' `mu * exp(-d * time)` where `time` is the time point of the experiment, 
+#' the condition data.frame must contain a column named `time`.
+#' 
 #' @export
 #' 
 #' @examples 
