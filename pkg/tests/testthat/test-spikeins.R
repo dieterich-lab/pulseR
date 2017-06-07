@@ -103,7 +103,6 @@ err <- function(x,y){
 }
 
 test_that("gene params fitting works (together)", {
-  skip("don't check long fitting")
   par2 <- par
   toOptimise <- c("a", "b")
   par2[toOptimise] <- options$lb[toOptimise]

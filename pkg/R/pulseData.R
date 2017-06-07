@@ -153,7 +153,7 @@ normaliseWithSpikeIns <- function(pd, refGroup, spikeLists){
   spikeLists <- lapply(spikeLists,
                        function(l) {
                          lapply(l, function(spikes)
-                           spikes == refSpikes)
+                           spikes[spikes %in% refSpikes])
                        })
   # create DESeq reference virtual sample (geo-means of counts) 
   # and compute DESeq factors using spike-ins common with the reference
@@ -163,7 +163,7 @@ normaliseWithSpikeIns <- function(pd, refGroup, spikeLists){
          function(i) {
            sampleSpikes <- spikeLists[[as.character(pd$conditions[i, 1])]]
            vapply(sampleSpikes, function(spikes) {
-             deseq(spikeCounts[spikes, i], superSample)
+             deseq(spikeCounts[spikes, i], superSample[spikes])
            }, double(1))
          })
 }

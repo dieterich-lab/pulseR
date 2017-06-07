@@ -1,5 +1,5 @@
 Package: pulseR
-Version: 0.0.1
+Version: 0.0.2
 License: GPL-3
 Title: Analysis of pulse-chase RNAseq data
 Description: Tool to simplify MLE modelling of pulse-chase experiments.
@@ -15,7 +15,7 @@ Suggests:
     rmarkdown
 Depends:
     R (>= 2.10)
-RoxygenNote: 6.0.0
+RoxygenNote: 6.0.1
 Roxygen: list(markdown = TRUE)
 VignetteBuilder: knitr
 LazyData: true
