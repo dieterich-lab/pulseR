@@ -162,7 +162,7 @@ llnormFactors <- function(par, pd) {
 totalll <- function(par, pd) {
   function(x, counts) {
     x <- relist(x, par)
-    evaledForms <- eval(as.call(c(cbind, pd$formulas)), par)
+    evaledForms <- eval(as.call(c(cbind, pd$formulas)), x)
     norms <- getNorms(pd, c(1, x$normFactors))
     means <- sample_means(evaledForms,  norms)
     -sum(stats::dnbinom( counts, mu = means, size = x$size, log = TRUE))
