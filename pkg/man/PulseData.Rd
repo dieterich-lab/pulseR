@@ -8,10 +8,13 @@ PulseData(counts, conditions, formulas, formulaIndexes = NULL,
   spikeins = NULL, groups = NULL)
 }
 \arguments{
-\item{counts}{a matrix; column names correspond to sample names}
+\item{counts}{a matrix; column names correspond to sample names.
+The columns in \code{counts} correspond to the rows in \code{conditions} argument.}
 
 \item{conditions}{a data.frame;
-the first column corresponds to the conditions given in \code{formulas}.}
+the first column corresponds to the conditions given in \code{formulas}.
+The order of rows corresponds to the columns (samples) in the
+\code{counts} argument.}
 
 \item{formulas}{a list, created by \code{\link{MeanFormulas}}}
 
@@ -37,6 +40,13 @@ an object of class "PulseData"
 }
 \description{
 Create an object for pulse-change count data
+}
+\details{
+The \code{conditions} argument may include additional  columns, which
+provide values for known parameters, such as time. Their name must be the
+same as defined in formulas. For example, if a formula is defined as
+\code{mu * exp(-d * time)} where \code{time} is the time point of the experiment,
+the condition data.frame must contain a column named \code{time}.
 }
 \examples{
 
