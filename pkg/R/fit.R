@@ -198,6 +198,9 @@ fitModel <- function(pulseData, par, options){
     options = options
   )
   par[geneParams] <- res
+  if (!is.null(options$resultRDS)) {
+    saveRDS(object = par, file = options$resultRDS)
+  }
   par
 }
 
