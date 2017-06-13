@@ -23,7 +23,7 @@ used for calculation of the expected read number}
 
 \item{spikeins}{NULL (default) or a list of two items:
 \itemize{
-\item refGroups, a character, which defines the group which should be
+\item refGroup, a character, which defines the group which should be
 treated as a reference for normalisation
 \item spikeLists, a list of character vectors with the spike-ins names and
 the same structure as \code{formulaIndexes}.

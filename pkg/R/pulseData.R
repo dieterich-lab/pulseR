@@ -11,7 +11,7 @@
 #' @param formulaIndexes a list of lists; defines indexes of formulas 
 #' used for calculation of the expected read number
 #' @param spikeins NULL (default) or a list of two items:
-#'   - refGroups, a character, which defines the group which should be
+#'   - refGroup, a character, which defines the group which should be
 #'     treated as a reference for normalisation
 #'   - spikeLists, a list of character vectors with the spike-ins names and
 #'     the same structure as `formulaIndexes`.
