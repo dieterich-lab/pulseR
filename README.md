@@ -4,6 +4,7 @@
 
 Tools for the analysis of RNA metabolic kinetics from RNAseq data.
 
+[package documentation](https://dieterich-lab.github.io/pulseR/)
 
 ## Installation
 ```r
