@@ -24,3 +24,7 @@
     Recall(x[[unlist(i[1])]], i[-1])
   }
 }
+
+.getElement2 <- function(x,i) {
+  Reduce(function(z, i) z[[i]], init = x, i)
+}
