@@ -72,9 +72,16 @@ profileOnlyGene <- function(pd,
                             parName,
                             options,
                             interval,
-                            numPoints = 20) {
-  profileParam <-
-    data.frame(x = seq(interval[1], interval[2], length.out = numPoints))
+                            logScale = FALSE,
+                            numPoints = 21) {
+  if (logScale) {
+    profileParam <- exp(data.frame(x = seq(
+      log(interval[1]), log(interval[2]), length.out = numPoints
+    )))
+  } else {
+    profileParam <-
+      data.frame(x = seq(interval[1], interval[2], length.out = numPoints))
+  }
   names(profileParam) <- parName
   knownNames <- .getKnownNames(fit, options)
   namesToOptimise <- setdiff(.getGeneToFitNames(fit, knownNames), parName)
@@ -95,6 +102,7 @@ profileOnlyGene <- function(pd,
                         options,
                         geneIndex) {
   options <- normaliseBoundaries(options, par, pd)
+  optimalValue <- par[[names(profileParam)]][geneIndex]
   # garantee that boundaries are in the same order as the params
   lb <- as.data.frame(options$lb[namesToOptimise])
   ub <- as.data.frame(options$ub[namesToOptimise])
@@ -104,12 +112,16 @@ profileOnlyGene <- function(pd,
   fixedPars <- par
   knownNames <- c(knownNames, names(profileParam))
   fixedPars[knownNames] <- lapply(par[knownNames], `[[`, geneIndex)
+  fixedPars[names(profileParam)] <- optimalValue
+  optimum <-
+    .fitGene(p, geneIndex, objective, lb, ub, fixedPars, pd$counts)$value
   pL <- double(length(profileParam[, 1]))
-  for (i in seq_along(profileParam[, 1])) {
+  for (i in seq_along(pL)) {
     fixedPars[names(profileParam)] <- profileParam[i, , drop = FALSE]
     pL[i] <-
       .fitGene(p, geneIndex, objective, lb, ub, fixedPars, pd$counts)$value
   }
+  pL <- pL - optimum
   profileParam$logL <- pL
   profileParam
 }
@@ -117,7 +129,11 @@ profileOnlyGene <- function(pd,
 fit <- result
 geneIndex <- 10
 parName <- "b"
-interval <- c(.0,.6)
+interval <- c(0.9,1.1) * fit[[parName]][geneIndex]
 
-pl <- profileOnlyGene (pd, fit, geneIndex, parName, options, interval, numPoints = 20) 
+pl <- profileOnlyGene(
+  pd,
+  fit,
+  geneIndex, parName, options, interval, numPoints = 201)
 plot(pl, type="l")
+abline(h = qchisq(.95,1)/2, col=5)
