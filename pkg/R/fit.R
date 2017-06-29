@@ -204,3 +204,8 @@ fitModel <- function(pulseData, par, options){
   par
 }
 
+# if a paramaeter is not mentioned in the boundaries, 
+# it is assumed to be fixed
+.getKnownNames <- function(par, options) {
+  setdiff(names(par), names(options$lb))
+}
