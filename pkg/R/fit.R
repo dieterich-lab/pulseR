@@ -124,10 +124,10 @@ getMaxRelDifference <- function(x, y)
 #' fitResult <- fitModel(pd, par)
 #' }
 fitModel <- function(pulseData, par, options){
-  known <- setdiff(names(par), names(options$lb))
-  toFit <- setdiff(names(par), c("size", "normFactors", known))
+  known <- .getKnownNames(par, options)
   options <- normaliseBoundaries(
     options, par[setdiff(names(par), known)], pulseData)
+  toFit <- setdiff(names(par), c("size", "normFactors", known))
   len <- vapply(par, length, integer(1))
   sharedParams <- toFit[len[toFit] == 1] 
   geneParams <- toFit[len[toFit] > 1]
