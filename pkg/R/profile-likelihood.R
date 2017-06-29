@@ -28,3 +28,96 @@
 .getElement2 <- function(x,i) {
   Reduce(function(z, i) z[[i]], init = x, i)
 }
+
+
+#' Profile likelihood for a single parameter
+#'
+#' @param pd a PulseData object
+#' @param fit a fitting result
+#' @param opts options object 
+#' @param var a list, describing position of the parameter in `fit`
+#' @param interval a vector of two numbers. Defines boundaries for profile
+#' likelihood estimation
+#'
+#' @return a data.frame ["value", "logL"]
+#' @export
+#'
+profile <- function(pd, result, opts, var, interval, N = 20) {
+  x <- seq(interval[1], interval[2], seq.length = N) 
+  logL <- lapply(x, function(value) {
+    .profileOptim(path = var,
+                  value = value,
+                  opts = opts)
+  }) 
+  data.frame(values = values, logL = logL)
+}
+
+if (fixNorms) {
+  p <- fitParamsSeparately(
+    pd = pd,
+    par = par,
+    knownNames = known,
+    namesToOptimise = toFit,
+    options = opts,
+    indexes = geneIndex
+  )
+  
+} else {
+  
+}
+
+profileOnlyGene <- function(pd,
+                            fit,
+                            geneIndex,
+                            parName,
+                            options,
+                            interval,
+                            numPoints = 20) {
+  profileParam <-
+    data.frame(x = seq(interval[1], interval[2], length.out = numPoints))
+  names(profileParam) <- parName
+  knownNames <- .getKnownNames(fit, options)
+  namesToOptimise <- setdiff(.getGeneToFitNames(fit, knownNames), parName)
+  .profileGene(pd,
+               fit,
+               knownNames,
+               namesToOptimise,
+               profileParam,
+               options,
+               geneIndex) 
+}
+
+.profileGene <- function(pd,
+                        par,
+                        knownNames,
+                        namesToOptimise,
+                        profileParam,
+                        options,
+                        geneIndex) {
+  options <- normaliseBoundaries(options, par, pd)
+  # garantee that boundaries are in the same order as the params
+  lb <- as.data.frame(options$lb[namesToOptimise])
+  ub <- as.data.frame(options$ub[namesToOptimise])
+  p <- data.frame(par[namesToOptimise])
+  objective <- ll(par, namesToOptimise, pd, byOne = TRUE)
+  par[namesToOptimise] <- NULL
+  fixedPars <- par
+  knownNames <- c(knownNames, names(profileParam))
+  fixedPars[knownNames] <- lapply(par[knownNames], `[[`, geneIndex)
+  pL <- double(length(profileParam[, 1]))
+  for (i in seq_along(profileParam[, 1])) {
+    fixedPars[names(profileParam)] <- profileParam[i, , drop = FALSE]
+    pL[i] <-
+      .fitGene(p, geneIndex, objective, lb, ub, fixedPars, pd$counts)$value
+  }
+  profileParam$logL <- pL
+  profileParam
+}
+
+fit <- result
+geneIndex <- 10
+parName <- "b"
+interval <- c(.0,.6)
+
+pl <- profileOnlyGene (pd, fit, geneIndex, parName, options, interval, numPoints = 20) 
+plot(pl, type="l")
