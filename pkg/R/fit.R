@@ -40,10 +40,16 @@ fitParams <- function(pd, par, namesToOptimise, options) {
 #' @inheritParams fitParams
 #' @param knownNames a vectors of names of the gene-specific parameters, which 
 #' are assumed to be fixed during optimisation.
+#' @param indexes indexes of genes to fit. By default includes all the genes.
 #' @return a list with fitted parameters
 #' @export
 #'
-fitParamsSeparately <- function(pd, par, knownNames, namesToOptimise, options) {
+fitParamsSeparately <- function(pd,
+                                par,
+                                knownNames,
+                                namesToOptimise,
+                                options, 
+                                indexes = seq_len(dim(pd$counts)[1])) {
   options <- normaliseBoundaries(options, par, pd)
   # garantee that boundaries are in the same order as the params
   lb <- as.data.frame(options$lb[namesToOptimise])
@@ -52,7 +58,7 @@ fitParamsSeparately <- function(pd, par, knownNames, namesToOptimise, options) {
   objective <- ll(par, namesToOptimise, pd, byOne = TRUE)
   par[namesToOptimise] <- NULL
   fixedPars <- par
-  for (i in seq_along(p[, 1])) {
+  for (i in indexes) {
     fixedPars[knownNames] <- lapply(par[knownNames], `[[`, i)
     p[i,] <- .fitGene(p, i, objective, lb, ub, fixedPars, pd$counts)$par
   }
