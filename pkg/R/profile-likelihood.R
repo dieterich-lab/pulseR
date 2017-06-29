@@ -138,7 +138,7 @@ pLfunction <- function(options,
                        namesToOptimise,
                        knownNames) 
  
-  res <- vapply(profileParam[,1], pL)
+  res <- vapply(profileParam[,1], pL, double(1))
   profileParam$logL <- res
   profileParam
 }
