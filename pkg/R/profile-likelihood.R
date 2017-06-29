@@ -94,13 +94,13 @@ profileOnlyGene <- function(pd,
                geneIndex) 
 }
 
-.profileGene <- function(pd,
-                        par,
-                        knownNames,
-                        namesToOptimise,
-                        profileParam,
-                        options,
-                        geneIndex) {
+pLfunction <- function(options,
+                       par,
+                       pd,
+                       profileParam,
+                       geneIndex,
+                       namesToOptimise,
+                       knownNames) {
   options <- normaliseBoundaries(options, par, pd)
   optimalValue <- par[[names(profileParam)]][geneIndex]
   # garantee that boundaries are in the same order as the params
@@ -111,18 +111,35 @@ profileOnlyGene <- function(pd,
   par[namesToOptimise] <- NULL
   fixedPars <- par
   knownNames <- c(knownNames, names(profileParam))
-  fixedPars[knownNames] <- lapply(par[knownNames], `[[`, geneIndex)
+  fixedPars[knownNames] <-
+    lapply(par[knownNames], `[[`, geneIndex)
   fixedPars[names(profileParam)] <- optimalValue
   optimum <-
     .fitGene(p, geneIndex, objective, lb, ub, fixedPars, pd$counts)$value
-  pL <- double(length(profileParam[, 1]))
-  for (i in seq_along(pL)) {
-    fixedPars[names(profileParam)] <- profileParam[i, , drop = FALSE]
-    pL[i] <-
-      .fitGene(p, geneIndex, objective, lb, ub, fixedPars, pd$counts)$value
+  function(x) {
+    fixedPars[names(profileParam)] <- x
+    .fitGene(p, geneIndex, objective, lb, ub, fixedPars, pd$counts)$value - optimum
   }
-  pL <- pL - optimum
-  profileParam$logL <- pL
+}
+
+.profileGene <- function(pd,
+                        par,
+                        knownNames,
+                        namesToOptimise,
+                        profileParam,
+                        options,
+                        geneIndex) {
+  
+ pL <- pLfunction(options,
+                       par,
+                       pd,
+                       profileParam,
+                       geneIndex,
+                       namesToOptimise,
+                       knownNames) 
+ 
+  res <- vapply(profileParam[,1], pL)
+  profileParam$logL <- res
   profileParam
 }
 
