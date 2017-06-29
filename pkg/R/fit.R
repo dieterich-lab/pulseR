@@ -224,3 +224,28 @@ fitModel <- function(pulseData, par, options){
 .getKnownNames <- function(par, options) {
   setdiff(names(par), names(options$lb))
 }
+
+.namesToFit <- function(par, known) {
+  setdiff(names(par), c("size", "normFactors", known))
+}
+
+.getGeneToFitNames <- function(par, known) {
+  toFit <- .namesToFit(par, known)
+  len <- vapply(par, length, integer(1))
+  geneParams <- toFit[len[toFit] > 1]
+  geneParams
+}
+
+.getKnownGeneNames <- function(par, known) {
+  toFit <- .namesToFit(par, known)
+  len <- vapply(par, length, integer(1))
+  knownGenePars <- names(len[known] > 1)
+  knownGenePars
+}
+
+.getSharedNames <- function(par, known) {
+  toFit <- .namesToFit(par, known)
+  len <- vapply(par, length, integer(1))
+  sharedParams <- toFit[len[toFit] == 1] 
+  sharedParams
+}
