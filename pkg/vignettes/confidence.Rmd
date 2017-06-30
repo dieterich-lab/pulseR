@@ -1,0 +1,111 @@
+---
+title: "Profile likelihood"
+author: "Uvarovskii Alexey"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Confidence intervals}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+## Introduction
+
+
+
+## Approximation of confidence intervals using only gene specific data
+
+### What does it mean and when can I use it?
+
+The profile likelihood is estimated by optimising  the whole 
+likelihood function, having fixed a parameter under consideration to a 
+certain value. Parameter values for different genes influence each other via 
+shared parameters, for example, the normalisation factors or variance of the
+negative binomial distribution.
+
+If there are not many genes in the data, that could not be a prolblem.
+However, usually experimentalists doing RNA-seq experiments are interested 
+in measuring parameters of  as many genes as possible, which results in 
+thousands of genes in data tables.  Optimising likelihood function for 
+such cases can take a lot of computation time.
+Hence it can be more efficeint to use approximate fitting by neglecting
+the influence of individual gene parameters on the shared parameters.
+
+### The workflow 
+
+Let us use the model of experiment used in the [vignette](fit-fractions.html)
+for application  of pulseR to spike-ins-free data.
+
+#### Get the model fit
+
+Here we get the data and fit the result:
+
+```{r}
+library(pulseR)
+set.seed(258)
+attach(pulseRFractionData)
+```
+
+```{r cache=TRUE}
+pd <- PulseData(
+  counts = counts,
+  conditions = conditions,
+  formulas = formulas,
+  formulaIndexes = formulaIndexes,
+  groups = fractions
+)
+opts <- setBoundaries(list(
+  a = c(.1, 1e6),
+  b = c(.01, .99),
+  normFactors = c(.1, 50)
+))
+initPars <- list(p = pulseRFractionData$par$p)
+initPars <- initParameters(initPars, c("a", "b"), pulseData = pd, options = opts)
+opts <- setTolerance(params = 1e-3, normFactors = 1e-2, options = opts)
+
+```
+
+```{r eval = FALSE}
+fit <- fitModel(pd, initPars, opts)
+```
+
+```{r include = FALSE, eval = FALSE}
+saveRDS(fit, "fit.rds")
+```
+```{r include = FALSE}
+fit <- readRDS("fit.rds")
+```
+
+
+#### Construct the profile likelihood
+
+```{r}
+geneIndex <- 10
+parName <- "b"
+interval <- c(0.99,1.01) * fit[[parName]][geneIndex]
+pl <- profileOnlyGene(pd, fit, geneIndex, parName, opts, interval, numPoints = 201)
+```
+
+We can see the result using the `plotPL` function:
+
+```{r, fig.height=4, fig.width=5}
+plotPL(pl)
+```
+
+The red line corresponds to the 95% confidence level likelihood threshold.
+The 95%-confidence interval for the $b$ parameter is defined from the 
+crossing points of the threshold line and the profile likelihood curve.
+
+Use the `estimateCI` function in order to estimate this points numerically:
+
+```{r eval=FALSE}
+geneIndexes <- seq_along(fit$b)
+CIs <- estimateCIFixed(pd =pd, fit = fit, geneIndexes = geneIndexes, 
+                       parName = parName, options =  options) 
+```
+
+```{r}
+plot(x = geneIndexes, y=fit$b, ylim = c(.8*min(CIs), 1.2*max(CIs)))
+arrows(geneIndexes, CIs[,1], geneIndexes, CIs[,2], angle = 90, code = 3, length = .05)
+```
+
