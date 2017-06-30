@@ -219,8 +219,13 @@ estimateCIFixed <- function(pd,
 
 .getCI <- function(pL, optimum, confidence, interval) {
   threshold <- qchisq(confidence, 1)/2
-  ciLeft <- uniroot(function(x) pL(x) - threshold, c(interval[1], optimum))$root
-  ciRight <- uniroot(function(x) pL(x) - threshold, c(optimum, interval[2]))$root
-  c(ciLeft, ciRight)
+  objective <- function(x) pL(x) - threshold
+  optimalObjective <- objective(optimum)
+  ci <- c(NA, NA)
+  if (optimalObjective * objective(interval[1]) < 0)
+    ci[1] <- uniroot(objective, c(interval[1], optimum))$root
+  if (optimalObjective * objective(interval[2]) < 0)
+    ci[2] <- uniroot(objective, c(optimum, interval[2]))$root
+  ci
 }
 
