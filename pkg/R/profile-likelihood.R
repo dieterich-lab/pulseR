@@ -40,7 +40,6 @@
 #' likelihood estimation
 #'
 #' @return a data.frame ["value", "logL"]
-#' @export
 #'
 profile <- function(pd, result, opts, var, interval, N = 20) {
   x <- seq(interval[1], interval[2], seq.length = N) 
@@ -52,22 +51,28 @@ profile <- function(pd, result, opts, var, interval, N = 20) {
   data.frame(values = values, logL = logL)
 }
 
-if (fixNorms) {
-  p <- fitParamsSeparately(
-    pd = pd,
-    par = par,
-    knownNames = known,
-    namesToOptimise = toFit,
-    options = opts,
-    indexes = geneIndex
-  )
-  
-} else {
-  
-}
-
+#' Estimate profile likelihood for gene parameters (all other fixed)
+#'
+#' @param pd the \link{`PulseData`} object
+#' @param fit result output from the \link{`fitModel`} function
+#' @param geneIndex integer(1); the row index in the count table 
+#'   where the data for the given gene are located
+#' @param parName a character; 
+#'   the names of the gene-specific parameter (e.g. "mu")
+#' @param options the options list used for the \link{`fitModel`} function call
+#' @param interval double(2) vector; left and right boundaries to calculate the
+#'   profile likelihood for the parameter given in `parName`
+#' @param logScale a logical (default: `FALSE`). Should points on the 
+#'   `interval` be positioned at log scale?
+#' @param numPoints the number of points to position at the `interval` for
+#'   profile likelihood calculations
+#'
+#' @return a data.frame; the column `logL` corresponds to the -log(likelihood) 
+#'   function values. The other represents the profiled parameter values.
+#' @export
+#'
 profileOnlyGene <- function(pd,
-                            fit,
+                            par,
                             geneIndex,
                             parName,
                             options,
@@ -83,26 +88,46 @@ profileOnlyGene <- function(pd,
       data.frame(x = seq(interval[1], interval[2], length.out = numPoints))
   }
   names(profileParam) <- parName
-  knownNames <- .getKnownNames(fit, options)
-  namesToOptimise <- setdiff(.getGeneToFitNames(fit, knownNames), parName)
-  .profileGene(pd,
-               fit,
-               knownNames,
-               namesToOptimise,
-               profileParam,
-               options,
-               geneIndex) 
+  pL <- plFixed(parName, par, options, pd, geneIndex)
+  res <- vapply(profileParam[,1], pL, double(1))
+  profileParam$logL <- res
+  profileParam
+}
+
+#' Get the profile likelihood function (all other parameter fixed)
+#'
+#' @param parName a character, e.g. "mu"
+#' @param par a result of the \link{`fitModel`} function
+#' @param options an option list used for the \link{`fitModel`} call
+#' @param pd a \link{`PulseData`} object
+#' @param geneIndex an integer(1); a row index which corresponds to 
+#'   the investigating gene
+#'
+#' @return a function with the calling convention as   
+#'   `f(x = double(1)) --> double(1)`,  
+#'   which return the value of -log(likelihood(mu = x))
+#' @export
+#'
+#' @examples
+plFixed <- function(parName,
+                    par,
+                    options,
+                    pd,
+                    geneIndex) {
+  knownNames <- .getKnownNames(par, options)
+  namesToOptimise <- setdiff(.getGeneToFitNames(par, knownNames), parName)
+  pLfunction(options, par, pd, parName, geneIndex, namesToOptimise, knownNames)
 }
 
 pLfunction <- function(options,
                        par,
                        pd,
-                       profileParam,
+                       paramName,
                        geneIndex,
                        namesToOptimise,
                        knownNames) {
   options <- normaliseBoundaries(options, par, pd)
-  optimalValue <- par[[names(profileParam)]][geneIndex]
+  optimalValue <- par[[paramName]][geneIndex]
   # garantee that boundaries are in the same order as the params
   lb <- as.data.frame(options$lb[namesToOptimise])
   ub <- as.data.frame(options$ub[namesToOptimise])
@@ -110,47 +135,30 @@ pLfunction <- function(options,
   objective <- ll(par, namesToOptimise, pd, byOne = TRUE)
   par[namesToOptimise] <- NULL
   fixedPars <- par
-  knownNames <- c(knownNames, names(profileParam))
+  knownNames <- c(knownNames,paramName)
   fixedPars[knownNames] <-
     lapply(par[knownNames], `[[`, geneIndex)
-  fixedPars[names(profileParam)] <- optimalValue
+  fixedPars[paramName] <- optimalValue
   optimum <-
     .fitGene(p, geneIndex, objective, lb, ub, fixedPars, pd$counts)$value
   function(x) {
-    fixedPars[names(profileParam)] <- x
+    fixedPars[paramName] <- x
     .fitGene(p, geneIndex, objective, lb, ub, fixedPars, pd$counts)$value - optimum
   }
 }
 
-.profileGene <- function(pd,
-                        par,
-                        knownNames,
-                        namesToOptimise,
-                        profileParam,
-                        options,
-                        geneIndex) {
-  
- pL <- pLfunction(options,
-                       par,
-                       pd,
-                       profileParam,
-                       geneIndex,
-                       namesToOptimise,
-                       knownNames) 
- 
-  res <- vapply(profileParam[,1], pL, double(1))
-  profileParam$logL <- res
-  profileParam
+plotPL <- function(pl, confidence=.95) {
+  parName <- names(pl)[which(names(pl) != "logL")]
+  par(mar = c(4,4,1,1))
+  plot(
+    x = pl[[parName]],
+    y = pl[["logL"]],
+    type = "l",
+    xlab = "", #parName,
+    ylab =  "", #"-logL",
+    bty = "l"
+  )
+  mtext(parName,1,2, family = "serif")
+  mtext("-logL",2,2.5, family = "serif")
+  abline(h = qchisq(confidence,1)/2, col= rgb(1,.2,0), lwd=2)
 }
-
-fit <- result
-geneIndex <- 10
-parName <- "b"
-interval <- c(0.9,1.1) * fit[[parName]][geneIndex]
-
-pl <- profileOnlyGene(
-  pd,
-  fit,
-  geneIndex, parName, options, interval, numPoints = 201)
-plot(pl, type="l")
-abline(h = qchisq(.95,1)/2, col=5)

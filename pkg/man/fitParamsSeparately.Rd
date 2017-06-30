@@ -4,7 +4,8 @@
 \alias{fitParamsSeparately}
 \title{Fit parameters with separate likelihood functions}
 \usage{
-fitParamsSeparately(pd, par, knownNames, namesToOptimise, options)
+fitParamsSeparately(pd, par, knownNames, namesToOptimise, options,
+  indexes = seq_len(dim(pd$counts)[1]))
 }
 \arguments{
 \item{pd}{the \code{\link{PulseData}} object}
@@ -19,6 +20,8 @@ need be optimised}
 
 \item{options}{a list with optimisation options. For details, see
 \link{setTolerance}, \link{setFittingOptions}.}
+
+\item{indexes}{indexes of genes to fit. By default includes all the genes.}
 }
 \value{
 a list with fitted parameters
