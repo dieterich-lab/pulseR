@@ -98,14 +98,11 @@ crossing points of the threshold line and the profile likelihood curve.
 
 Use the `estimateCI` function in order to estimate this points numerically:
 
-```{r eval=FALSE}
+```{r}
 geneIndexes <- seq_along(fit$b)
 CIs <- estimateCIFixed(pd =pd, fit = fit, geneIndexes = geneIndexes, 
-                       parName = parName, options =  options) 
+                       parName = parName, options =  opts) 
+CIs
 ```
 
-```{r}
-plot(x = geneIndexes, y=fit$b, ylim = c(.8*min(CIs), 1.2*max(CIs)))
-arrows(geneIndexes, CIs[,1], geneIndexes, CIs[,2], angle = 90, code = 3, length = .05)
-```
 
