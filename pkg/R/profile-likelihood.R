@@ -147,6 +147,15 @@ pLfunction <- function(options,
   }
 }
 
+#' Plot the profile likeliihood
+#'
+#' @param pl  a result from the \link{`profileOnlyGene`} frunction
+#' @param confidence a confidence level for the likelihood threshold line
+#'   (default .95)
+#'
+#' @return used for its side effect
+#' @export
+#'
 plotPL <- function(pl, confidence=.95) {
   parName <- names(pl)[which(names(pl) != "logL")]
   par(mar = c(4,4,1,1))
@@ -162,3 +171,56 @@ plotPL <- function(pl, confidence=.95) {
   mtext("-logL",2,2.5, family = "serif")
   abline(h = qchisq(confidence,1)/2, col= rgb(1,.2,0), lwd=2)
 }
+
+
+#' Estimate CI when parameters of other genes are fixed
+#'
+#' @param pd 
+#' @param fit 
+#' @param geneIndexes 
+#' @param parName 
+#' @param options 
+#' @param confidence 
+#' @param interval 
+#'
+#' @return
+#' @export
+#'
+estimateCIFixed <- function(pd,
+                            fit,
+                            geneIndexes,
+                            parName,
+                            options,
+                            confidence=.95,
+                            interval) {
+  if (missing(interval)) {
+    interval <- cbind(options$lb[[parName]], options$ub[[parName]])
+  }
+  result <- lapply(geneIndexes, function(geneIndex) {
+    pL <- plFixed(
+      parName   = parName,
+      par       = fit,
+      options   = options,
+      pd        = pd,
+      geneIndex = geneIndex
+    )
+    if (!is.null(dim(interval)) && (dim(interval) > 1)) {
+      interval <- interval[geneIndex, ]
+    }
+    .getCI(
+      pL = pL,
+      optimum = fit[[parName]][geneIndex],
+      interval = interval,
+      confidence = confidence
+    )
+  })
+  do.call(rbind, result)
+}
+
+.getCI <- function(pL, optimum, confidence, interval) {
+  threshold <- qchisq(confidence, 1)/2
+  ciLeft <- uniroot(function(x) pL(x) - threshold, c(interval[1], optimum))$root
+  ciRight <- uniroot(function(x) pL(x) - threshold, c(optimum, interval[2]))$root
+  c(ciLeft, ciRight)
+}
+
