@@ -2,7 +2,9 @@
 title: "Profile likelihood"
 author: "Uvarovskii Alexey"
 date: "`r Sys.Date()`"
-output: rmarkdown::html_vignette
+output: 
+  rmarkdown::html_vignette:
+    toc: true
 vignette: >
   %\VignetteIndexEntry{Confidence intervals}
   %\VignetteEngine{knitr::rmarkdown}
@@ -105,4 +107,11 @@ CIs <- estimateCIFixed(pd =pd, fit = fit, geneIndexes = geneIndexes,
 CIs
 ```
 
+
+## Estimation of confidence intervals using the whole likelihood
+
+If the normalisation factors are not fixed, or changes in a single gene parameter
+result in observed difference in the shared or normalisation parameters values,
+it is necessary to use the whole likelihood, which is a function of all shared and
+individual parameters.
 
