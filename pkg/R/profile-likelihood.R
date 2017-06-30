@@ -156,7 +156,7 @@ pLfunction <- function(options,
 #' @return used for its side effect
 #' @export
 #'
-plotPL <- function(pl, confidence=.95) {
+plotPL <- function(pl, confidence=.95, ...) {
   parName <- names(pl)[which(names(pl) != "logL")]
   par(mar = c(4,4,1,1))
   plot(
@@ -165,7 +165,8 @@ plotPL <- function(pl, confidence=.95) {
     type = "l",
     xlab = "", #parName,
     ylab =  "", #"-logL",
-    bty = "l"
+    bty = "l",
+    ...
   )
   mtext(parName,1,2, family = "serif")
   mtext("-logL",2,2.5, family = "serif")
