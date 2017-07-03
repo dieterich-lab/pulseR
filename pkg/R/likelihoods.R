@@ -164,7 +164,7 @@ totalll <- function(par, pd, include=names(par)) {
     par[include] <- relist(x, par[include])
     evaledForms <- eval(as.call(c(cbind, pd$formulas)), par)
     norms <- getNorms(pd, par$normFactors)
-    means <- sample_means(evaledForms,  norms)
+    means <- sample_means(evaledForms, norms)
     -sum(stats::dnbinom(pd$counts, mu = means, size = par$size, log = TRUE))
   }
 }
@@ -175,7 +175,7 @@ totalll <- function(par, pd, include=names(par)) {
 #' @param pd a \link{PulseData} object.
 #'
 #' @return a named list:
-#'   - preditions, a matrix of the same dimension as of the raw counts 
+#'   - predictions, a matrix of the same dimension as of the raw counts 
 #'   - llog, a matrix with logarithms of likelihood for the given raw counts.
 #' @export
 #'
