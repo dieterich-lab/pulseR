@@ -225,10 +225,13 @@ fitModel <- function(pulseData, par, options){
   setdiff(names(par), names(options$lb))
 }
 
+# return names of parameters which must be fitted
 .namesToFit <- function(par, known) {
   setdiff(names(par), c("size", "normFactors", known))
 }
 
+# return names of gene-specific parameters which must be fitted
+# a parameter is assumed to be gene-specific, if its length in `par` is > 1
 .getGeneToFitNames <- function(par, known) {
   toFit <- .namesToFit(par, known)
   len <- vapply(par, length, integer(1))
@@ -236,6 +239,8 @@ fitModel <- function(pulseData, par, options){
   geneParams
 }
 
+# return names of known gene-specific parameters
+# a parameter is assumed to be gene-specific, if its length in `par` is > 1
 .getKnownGeneNames <- function(par, known) {
   toFit <- .namesToFit(par, known)
   len <- vapply(par, length, integer(1))
@@ -243,6 +248,8 @@ fitModel <- function(pulseData, par, options){
   knownGenePars
 }
 
+# return names of shared parameters
+# a parameter is assumed to be shared, if its length in `par` is 1
 .getSharedNames <- function(par, known) {
   toFit <- .namesToFit(par, known)
   len <- vapply(par, length, integer(1))
