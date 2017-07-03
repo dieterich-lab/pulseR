@@ -4,13 +4,16 @@
 \alias{totalll}
 \title{Create a likelihood function}
 \usage{
-totalll(par, pd)
+totalll(par, pd, include = names(par))
 }
 \arguments{
 \item{par}{a named list with parameter values (including the size parameter
 for the negative binomial distribution, see \code{\link{dnbinom}})}
 
 \item{pd}{a \code{\link{PulseData}} object}
+
+\item{include}{character vector, names of the parameters in the par list,
+which will be used in the created likelihood function}
 }
 \value{
 a function with the following arguments:
@@ -19,11 +22,11 @@ a function with the following arguments:
 \code{par} argument. The first element of the normFactors, if
 \code{par$normFactors} is not \code{NULL}, is excluded, because it is assumed
 to be fixed to 1. Other parameters are the same as in \code{par}.
-The structure of \code{x} is identical to \code{unlist(par)}, if the first
+The structure of \code{x} is identical to \code{unlist(par[include])}. The first
 element of \code{par$normFactors} is removed.
 }
 
-The created function returns a logarithm of the likelihood function
+The created function returns a minus logarithm of the likelihood function
 calculated on the basis of the negative binomial distribution for the
 provided counts, normalisation factors and  parameters.
 }

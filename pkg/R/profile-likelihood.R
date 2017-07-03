@@ -30,27 +30,6 @@
 }
 
 
-#' Profile likelihood for a single parameter
-#'
-#' @param pd a PulseData object
-#' @param fit a fitting result
-#' @param opts options object 
-#' @param var a list, describing position of the parameter in `fit`
-#' @param interval a vector of two numbers. Defines boundaries for profile
-#' likelihood estimation
-#'
-#' @return a data.frame ["value", "logL"]
-#'
-profile <- function(pd, result, opts, var, interval, N = 20) {
-  x <- seq(interval[1], interval[2], seq.length = N) 
-  logL <- lapply(x, function(value) {
-    .profileOptim(path = var,
-                  value = value,
-                  opts = opts)
-  }) 
-  data.frame(values = values, logL = logL)
-}
-
 #' Estimate profile likelihood for gene parameters (all other fixed)
 #'
 #' @param pd the \link{`PulseData`} object
@@ -131,7 +110,7 @@ pLfunction <- function(options,
   # garantee that boundaries are in the same order as the params
   lb <- as.data.frame(options$lb[namesToOptimise])
   ub <- as.data.frame(options$ub[namesToOptimise])
-  p <- data.frame(par[namesToOptimise])
+  initValues <- data.frame(par[namesToOptimise])
   objective <- ll(par, namesToOptimise, pd, byOne = TRUE)
   par[namesToOptimise] <- NULL
   fixedPars <- par
@@ -140,10 +119,48 @@ pLfunction <- function(options,
     lapply(par[knownNames], `[[`, geneIndex)
   fixedPars[paramName] <- optimalValue
   optimum <-
-    .fitGene(p, geneIndex, objective, lb, ub, fixedPars, pd$counts)$value
+    .fitGene(initValues, geneIndex, objective, lb, ub, 
+             fixedPars, pd$counts)$value
   function(x) {
     fixedPars[paramName] <- x
-    .fitGene(p, geneIndex, objective, lb, ub, fixedPars, pd$counts)$value - optimum
+    .fitGene(initValues, geneIndex, objective, lb, ub, 
+             fixedPars, pd$counts)$value - optimum
+  }
+}
+
+
+pLfunctionTotal <- function(options,
+                       par,
+                       pd,
+                       paramPath,
+                       namesToOptimise,
+                       knownNames) {
+  options <- normaliseBoundaries(options, par, pd)
+  optimalValue <- .getElement2(par, paramPath)
+  # garantee that boundaries are in the same order as the params
+  lb <- options$lb[namesToOptimise]
+  ub <- options$ub[namesToOptimise]
+  p <- data.frame(par[namesToOptimise])
+  fixedPars <- par[setdiff(names(par), namesToOptimise)]
+  if (!is.null(par$normFactors)) {
+    options$lb$normFactors[1][[1]] <- 1
+    options$ub$normFactors[1][[1]] <- 1
+  }
+  objective <- totalll(par = par,
+                       pd = pd,
+                       include = namesToOptimise)
+  optimum <- evaluateLikelihood(par, pd)
+  function(x) {
+    lb <- unlist(.assignElement(lb, paramPath, x))
+    ub <- unlist(.assignElement(ub, paramPath, x))
+    stats::optim(
+      unlist(p),
+      objective,
+      method = "L-BFGS-B",
+      control = list(parscale = (lb + ub) / 2),
+      lower = lb,
+      upper = ub
+    )$par - optimum
   }
 }
 
