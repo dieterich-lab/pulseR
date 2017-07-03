@@ -150,8 +150,6 @@ llnormFactors <- function(par, pd) {
 #'      to be fixed to 1. Other parameters are the same as in `par`.
 #'      The structure of `x` is identical to `unlist(par)`, if the first
 #'      element of `par$normFactors` is removed.
-#'   - counts, a numeric matrix with read counts for every gene/isoform and 
-#'     for every sample
 #'     
 #'   The created function returns a logarithm of the likelihood function
 #'   calculated on the basis of the negative binomial distribution for the
@@ -160,12 +158,12 @@ llnormFactors <- function(par, pd) {
 #' @export
 #'
 totalll <- function(par, pd) {
-  function(x, counts) {
+  function(x) {
     x <- relist(x, par)
     evaledForms <- eval(as.call(c(cbind, pd$formulas)), x)
     norms <- getNorms(pd, x$normFactors)
     means <- sample_means(evaledForms,  norms)
-    -sum(stats::dnbinom( counts, mu = means, size = x$size, log = TRUE))
+    -sum(stats::dnbinom(pd$counts, mu = means, size = x$size, log = TRUE))
   }
 }
 

@@ -21,8 +21,6 @@ a function with the following arguments:
 to be fixed to 1. Other parameters are the same as in \code{par}.
 The structure of \code{x} is identical to \code{unlist(par)}, if the first
 element of \code{par$normFactors} is removed.
-\item counts, a numeric matrix with read counts for every gene/isoform and
-for every sample
 }
 
 The created function returns a logarithm of the likelihood function
