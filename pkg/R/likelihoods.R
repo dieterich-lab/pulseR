@@ -142,28 +142,30 @@ llnormFactors <- function(par, pd) {
 #' Create a likelihood function 
 #' 
 #' @inheritParams ll
+#' @param include character vector, names of the parameters in the par list,
+#' which will be used in the created likelihood function
 #'
 #' @return a function with the following arguments:
 #'   - x, a numeric vector which correspods to the records in 
 #'     `par` argument. The first element of the normFactors, if
 #'     `par$normFactors` is not `NULL`, is excluded, because it is assumed
 #'      to be fixed to 1. Other parameters are the same as in `par`.
-#'      The structure of `x` is identical to `unlist(par)`, if the first
+#'      The structure of `x` is identical to `unlist(par[include])`. The first
 #'      element of `par$normFactors` is removed.
 #'     
-#'   The created function returns a logarithm of the likelihood function
+#'   The created function returns a minus logarithm of the likelihood function
 #'   calculated on the basis of the negative binomial distribution for the
 #'   provided counts, normalisation factors and  parameters.
 #' @import utils methods
 #' @export
 #'
-totalll <- function(par, pd) {
+totalll <- function(par, pd, include=names(par)) {
   function(x) {
-    x <- relist(x, par)
-    evaledForms <- eval(as.call(c(cbind, pd$formulas)), x)
-    norms <- getNorms(pd, x$normFactors)
+    par[include] <- relist(x, par[include])
+    evaledForms <- eval(as.call(c(cbind, pd$formulas)), par)
+    norms <- getNorms(pd, par$normFactors)
     means <- sample_means(evaledForms,  norms)
-    -sum(stats::dnbinom(pd$counts, mu = means, size = x$size, log = TRUE))
+    -sum(stats::dnbinom(pd$counts, mu = means, size = par$size, log = TRUE))
   }
 }
 
@@ -207,10 +209,5 @@ log2screen <- function(options, ...) {
 #' @export
 #'
 evaluateLikelihood <- function(par, pd) {
-  evaledForms <- eval(as.call(c(cbind, pd$formulas)), par)
-  norms <- getNorms(pd, par$normFactors)
-  means <- sample_means(evaledForms, norms)
-  llog <- stats::dnbinom(
-    pd$counts, mu = means, size = par$size, log = TRUE)
-  sum(llog)
+  sum(predictExpression(par, pd)$llog)
 }
