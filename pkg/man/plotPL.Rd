@@ -4,7 +4,7 @@
 \alias{plotPL}
 \title{Plot the profile likeliihood}
 \usage{
-plotPL(pl, confidence = 0.95)
+plotPL(pl, confidence = 0.95, ...)
 }
 \arguments{
 \item{pl}{a result from the \link{`profileOnlyGene`} frunction}
