@@ -85,7 +85,8 @@ fit <- readRDS("fit.rds")
 geneIndex <- 10
 parName <- "b"
 interval <- c(0.99,1.01) * fit[[parName]][geneIndex]
-pl <- profileOnlyGene(pd, fit, geneIndex, parName, opts, interval, numPoints = 201)
+numPoints <- 51
+pl <- profileOnlyGene(pd, fit, geneIndex, parName, opts, interval, numPoints = numPoints)
 ```
 
 We can see the result using the `plotPL` function:
@@ -107,11 +108,47 @@ CIs <- estimateCIFixed(pd =pd, fit = fit, geneIndexes = geneIndexes,
 CIs
 ```
 
-
 ## Estimation of confidence intervals using the whole likelihood
 
 If the normalisation factors are not fixed, or changes in a single gene parameter
 result in observed difference in the shared or normalisation parameters values,
 it is necessary to use the whole likelihood, which is a function of all shared and
 individual parameters.
+
+```{r fig.width=6, fig.height=4}
+plTotal <- profile(paramPath = list("b",10),
+              pd = pd, 
+              par = fit,
+              options = opts,
+              interval = interval,
+              numPoints = numPoints)
+plotPL(pl)
+lines(plTotal$b, plTotal$logL, col=3, lty=2)
+```
+
+Quite narrow:
+```{r cache=TRUE}
+plTotal <- profile(paramPath = list("normFactors",2,1),
+              pd = pd, 
+              par = fit,
+              options = opts,
+              interval = c(2.96,2.98),
+              numPoints = 21)
+plotPL(plTotal)
+
+```
+
+Although we can see a broader view:
+
+```{r cache=TRUE}
+plTotal <- profile(paramPath = list("normFactors",2,1),
+              pd = pd, 
+              par = fit,
+              options = opts,
+              interval = c(2.,4.),
+              numPoints = 51)
+plotPL(plTotal)
+
+```
+
 

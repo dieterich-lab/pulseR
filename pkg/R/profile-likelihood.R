@@ -39,6 +39,53 @@
 #' @param parName a character; 
 #'   the names of the gene-specific parameter (e.g. "mu")
 #' @param options the options list used for the \link{`fitModel`} function call
+#' @param ... other parameters to pass to \link{`runPl`},
+#'  i.e. `logScale` (logical) and number of points `numPoints`
+#' @inheritParams runPL
+#' @return a data.frame; the column `logl` corresponds to the -log(likelihood) 
+#'   function values. the other represents the profiled parameter values.
+#' @export
+#'
+profileOnlyGene <- function(pd, par,
+                            geneIndex,
+                            parName,
+                            options,
+                            interval, 
+                            ...
+                            ) {
+  pL <- plFixed(parName, par, options, pd, geneIndex)
+  result <- runPL(pL, interval, ...)
+  names(result)[1] <- parName
+  result
+}
+
+#' Profile
+#'
+#' @inheritParams profileOnlyGene
+#' @inheritParams pl
+#' @param parName 
+#'
+#' @return a data.frame; the column `logl` corresponds to the -log(likelihood) 
+#'   function values. the other represents the profiled parameter values.
+#' @export
+#'
+profile <- function(paramPath,
+                    pd,
+                    par,
+                    options,
+                    interval,
+                    parName = as.character(paramPath[[1]]) ,
+                    namesToOptimise = names(options$lb), 
+                    ...) {
+  pL <- pl(paramPath, par, options, pd,namesToOptimise )
+  result <- runPL(pL, interval, ...)
+  names(result)[1] <- parName
+  result
+}
+
+#' Compute profile likelihood on the interval
+#'
+#' @param pL a function (x) --> double(1) returning the -log(likelihood)
 #' @param interval double(2) vector; left and right boundaries to calculate the
 #'   profile likelihood for the parameter given in `parName`
 #' @param logScale a logical (default: `FALSE`). Should points on the 
@@ -46,18 +93,10 @@
 #' @param numPoints the number of points to position at the `interval` for
 #'   profile likelihood calculations
 #'
-#' @return a data.frame; the column `logL` corresponds to the -log(likelihood) 
-#'   function values. The other represents the profiled parameter values.
+#' @return
 #' @export
 #'
-profileOnlyGene <- function(pd,
-                            par,
-                            geneIndex,
-                            parName,
-                            options,
-                            interval,
-                            logScale = FALSE,
-                            numPoints = 21) {
+runPL <- function(pL,  interval, logScale = FALSE, numPoints = 21) {
   if (logScale) {
     profileParam <- exp(data.frame(x = seq(
       log(interval[1]), log(interval[2]), length.out = numPoints
@@ -66,8 +105,6 @@ profileOnlyGene <- function(pd,
     profileParam <-
       data.frame(x = seq(interval[1], interval[2], length.out = numPoints))
   }
-  names(profileParam) <- parName
-  pL <- plFixed(parName, par, options, pd, geneIndex)
   res <- vapply(profileParam[,1], pL, double(1))
   profileParam$logL <- res
   profileParam
@@ -87,7 +124,6 @@ profileOnlyGene <- function(pd,
 #'   which return the value of -log(likelihood(mu = x))
 #' @export
 #'
-#' @examples
 plFixed <- function(parName,
                     par,
                     options,
@@ -95,10 +131,40 @@ plFixed <- function(parName,
                     geneIndex) {
   knownNames <- .getKnownNames(par, options)
   namesToOptimise <- setdiff(.getGeneToFitNames(par, knownNames), parName)
-  pLfunction(options, par, pd, parName, geneIndex, namesToOptimise, knownNames)
+  .pLfunction(options, par, pd, parName, geneIndex, namesToOptimise, knownNames)
 }
 
-pLfunction <- function(options,
+#' Get the profile likelihood function (consider the parameters of other genes
+#' as not fixed)
+#'
+#' @param paramPath a list with names and indexes in order to locate the 
+#' parameter of the profile
+#' @param par a result of the \link{`fitModel`} function
+#' @param options an option list used for the \link{`fitModel`} call
+#' @param pd a \link{`PulseData`} object
+#' @param namesToOptimise which parameters are optimised (i.e. not fixed);
+#'   by default they are derived from the names of the boundaries
+#'
+#' @return a function with the calling convention as   
+#'   `f(x = double(1)) --> double(1)`,  
+#'   which return the value of -log(likelihood(mu = x))
+#'
+#' @details `paramPath` is defined as the sequence of selections performed on 
+#' the parameter list (`par`). For example, list("mu", 1) will point to the 
+#' "mu" parameter of the first gene. 
+#' 
+#' @export
+#'
+pl <- function(paramPath,
+               par,
+               options,
+               pd,
+               namesToOptimise = names(options$lb)) {
+  knownNames <- .getKnownNames(par, options)
+  .pLfunctionTotal(options, par, pd, paramPath, namesToOptimise, knownNames)
+}
+
+.pLfunction <- function(options,
                        par,
                        pd,
                        paramName,
@@ -129,7 +195,22 @@ pLfunction <- function(options,
 }
 
 
-pLfunctionTotal <- function(options,
+  
+# returns indexes of the parameters in the unlist(par[namesToOptimise])
+# additionally, the parameter at paramPath is excluded if it is present in
+# par[namesToOptimise]
+.getFreeIndexes <- function(par, paramPath, namesToOptimise) {
+  freePars <- par[namesToOptimise]
+  fixedIndexes <- .getIndex(paramPath, freePars)
+  freeInd <- unlist(relist(seq_along(unlist(freePars)),freePars))
+  freeInd <- freeInd[freeInd != fixedIndexes]
+  if (!is.null(par$normFactors)) {
+    freeInd <- freeInd[freeInd != .getIndex(list("normFactors", 1, 1), freePars)]
+  }
+  freeInd
+}
+
+.pLfunctionTotal <- function(options,
                        par,
                        pd,
                        paramPath,
@@ -137,30 +218,31 @@ pLfunctionTotal <- function(options,
                        knownNames) {
   options <- normaliseBoundaries(options, par, pd)
   optimalValue <- .getElement2(par, paramPath)
-  # garantee that boundaries are in the same order as the params
-  lb <- options$lb[namesToOptimise]
-  ub <- options$ub[namesToOptimise]
-  p <- data.frame(par[namesToOptimise])
-  fixedPars <- par[setdiff(names(par), namesToOptimise)]
-  if (!is.null(par$normFactors)) {
-    options$lb$normFactors[1][[1]] <- 1
-    options$ub$normFactors[1][[1]] <- 1
+  boundaries <- lapply(c("lb", "ub"), function(side) {
+    b <- options[[side]][namesToOptimise]
+    unlist(b)[.getFreeIndexes(b, paramPath, namesToOptimise)]
+  })
+  names(boundaries) <- c("lb", "ub")
+  freeInd <- .getFreeIndexes(par, paramPath, namesToOptimise)
+  objective <- function(freeParams, params) {
+    x <- unlist(params[namesToOptimise])
+    x[freeInd] <- freeParams
+    params[namesToOptimise] <- relist(x, params[namesToOptimise])
+    -evaluateLikelihood(params, pd)
   }
-  objective <- totalll(par = par,
-                       pd = pd,
-                       include = namesToOptimise)
-  optimum <- evaluateLikelihood(par, pd)
+  optimisationStart <- unlist(par[namesToOptimise])[freeInd]
+  optimum <- -evaluateLikelihood(par, pd)
   function(x) {
-    lb <- unlist(.assignElement(lb, paramPath, x))
-    ub <- unlist(.assignElement(ub, paramPath, x))
+    par <- .assignElement(par, paramPath, x)
     stats::optim(
-      unlist(p),
+      optimisationStart,
       objective,
       method = "L-BFGS-B",
-      control = list(parscale = (lb + ub) / 2),
-      lower = lb,
-      upper = ub
-    )$par - optimum
+      control = list(parscale = (boundaries$lb + boundaries$ub) / 2),
+      lower = boundaries$lb,
+      upper = boundaries$ub,
+      params = par
+    )$value - optimum
   }
 }
 
