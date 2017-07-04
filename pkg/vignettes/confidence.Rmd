@@ -151,4 +151,7 @@ plotPL(plTotal)
 
 ```
 
+```{r}
+sessionInfo()
+```
 
