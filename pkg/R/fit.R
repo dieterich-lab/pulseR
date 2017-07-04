@@ -242,7 +242,6 @@ fitModel <- function(pulseData, par, options){
 # return names of known gene-specific parameters
 # a parameter is assumed to be gene-specific, if its length in `par` is > 1
 .getKnownGeneNames <- function(par, known) {
-  toFit <- .namesToFit(par, known)
   len <- vapply(par, length, integer(1))
   knownGenePars <- names(len[known] > 1)
   knownGenePars
