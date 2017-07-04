@@ -26,3 +26,4 @@ However, they may correspond to different time points etc.
 \details{
 The returned normalisation coefficients are assign to 1.
 }
+\keyword{internal}

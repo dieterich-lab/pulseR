@@ -7,7 +7,7 @@
 plotPL(pl, confidence = 0.95, ...)
 }
 \arguments{
-\item{pl}{a result from the \link{`profileOnlyGene`} frunction}
+\item{pl}{a result from the \link{profileOnlyGene} frunction}
 
 \item{confidence}{a confidence level for the likelihood threshold line
 (default .95)}

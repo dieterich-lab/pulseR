@@ -128,6 +128,7 @@ print.PulseData <- function(x,...){
 #'   the \code{count_data}
 #'
 #' @importFrom  stats median
+#' @keywords  internal
 findDeseqFactorsSingle <- function(count_data)
 {
   loggeomeans <- rowMeans(log(count_data))
@@ -155,6 +156,7 @@ deseq <- function(x, loggeomeans) {
 #' @param spikeLists a named list with the same structure as formulaIndexes
 #'
 #' @return a list of lists of the normalisation coefficients for every sample
+#' @keywords  internal
 #'
 normaliseWithSpikeIns <- function(pd, refGroup, spikeLists){
   refSpikes <- unlist(spikeLists[[refGroup]])
@@ -185,6 +187,7 @@ normaliseWithSpikeIns <- function(pd, refGroup, spikeLists){
 #' @param groups a vector for splitting objects to groups
 #'
 #' @return a vector with the coefficient for every sample
+#' @keywords  internal
 #'
 normaliseNoSpikeins <- function(pd, groups){
   factors <- double(length(groups))
@@ -202,6 +205,8 @@ normaliseNoSpikeins <- function(pd, groups){
 #' @param conditions factors to split samples for normalisation
 #' @return vector of double; normalisation factors in the same order as 
 #'   columns in the \code{count_data}
+#' @keywords  internal
+#' 
 findDeseqFactorsForFractions <- function(count_data, conditions) {
     deseqFactors <- lapply(
       split(colnames(count_data), conditions),
@@ -296,6 +301,7 @@ addKnownToFormulas <- function(formulas, formulaIndexes, conditions) {
 #' for every group. 
 #' normCoeffIndexes stores indexes of coefficients from unlist(normCoeffs) 
 #' sample-wise, i.e. length(normCoeffIndexes) is the number of samples.
+#' @keywords  internal
 #'
 makeGroups <- function(pd, normGroups) {
   # generate a list of normalisation coefficients with a proper structure

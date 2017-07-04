@@ -12,11 +12,11 @@ profile(paramPath, pd, par, options, interval,
 \item{paramPath}{a list with names and indexes in order to locate the
 parameter of the profile}
 
-\item{pd}{the \link{`PulseData`} object}
+\item{pd}{the \link{PulseData} object}
 
-\item{par}{a result of the \link{`fitModel`} function}
+\item{par}{a result of the \link{fitModel} function}
 
-\item{options}{the options list used for the \link{`fitModel`} function call}
+\item{options}{the options list used for the \link{fitModel} function call}
 
 \item{interval}{double(2) vector; left and right boundaries to calculate the
 profile likelihood for the parameter given in \code{parName}}
@@ -26,7 +26,7 @@ profile likelihood for the parameter given in \code{parName}}
 \item{namesToOptimise}{which parameters are optimised (i.e. not fixed);
 by default they are derived from the names of the boundaries}
 
-\item{...}{other parameters to pass to \link{`runPl`},
+\item{...}{other parameters to pass to \link{runPL},
 i.e. \code{logScale} (logical) and number of points \code{numPoints}}
 }
 \value{

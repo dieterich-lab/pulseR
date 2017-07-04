@@ -212,7 +212,7 @@ growFrom0 <- function(mu, d, t) {
 
 #' Creates a formula which describe evolution of RNA concentration
 #' 
-#' This implement the non-standard evaluation version of the 
+#' This implements the non-standard evaluation version of the 
 #' \code{\link{grow}} function.
 #' @inheritParams grow
 #' @return an expression for the calculation of the RNA level.

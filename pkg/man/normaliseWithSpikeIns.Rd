@@ -20,3 +20,4 @@ a list of lists of the normalisation coefficients for every sample
 \description{
 Estimate DESeq normalisation factors using spike-ins counts
 }
+\keyword{internal}

@@ -21,3 +21,4 @@ we use matrix representation of this relations via norm_factors matrix.
 By multiplying evaluated formulas vector by norm_factors matrix,
 we compute a weighted sum of the formulas.
 }
+\keyword{internal}

@@ -19,3 +19,4 @@ columns in the \code{count_data}
 \description{
 Calculate normalisation factors
 }
+\keyword{internal}

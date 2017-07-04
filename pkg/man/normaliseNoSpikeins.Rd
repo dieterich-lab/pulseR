@@ -17,3 +17,4 @@ a vector with the coefficient for every sample
 \description{
 Performs sequencing depth normalisation using the DESeq procedure.
 }
+\keyword{internal}

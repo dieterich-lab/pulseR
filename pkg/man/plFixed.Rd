@@ -9,11 +9,11 @@ plFixed(parName, par, options, pd, geneIndex)
 \arguments{
 \item{parName}{a character, e.g. "mu"}
 
-\item{par}{a result of the \link{`fitModel`} function}
+\item{par}{a result of the \link{fitModel} function}
 
-\item{options}{an option list used for the \link{`fitModel`} call}
+\item{options}{an option list used for the \link{fitModel} call}
 
-\item{pd}{a \link{`PulseData`} object}
+\item{pd}{a \link{PulseData} object}
 
 \item{geneIndex}{an integer(1); a row index which corresponds to
 the investigating gene}

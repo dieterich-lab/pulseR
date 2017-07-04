@@ -32,14 +32,14 @@
 
 #' Estimate profile likelihood for gene parameters (all other fixed)
 #'
-#' @param pd the \link{`PulseData`} object
-#' @param fit result output from the \link{`fitModel`} function
+#' @param pd the \link{PulseData} object
+#' @param fit result output from the \link{fitModel} function
 #' @param geneIndex integer(1); the row index in the count table 
 #'   where the data for the given gene are located
 #' @param parName a character; 
 #'   the names of the gene-specific parameter (e.g. "mu")
-#' @param options the options list used for the \link{`fitModel`} function call
-#' @param ... other parameters to pass to \link{`runPl`},
+#' @param options the options list used for the \link{fitModel} function call
+#' @param ... other parameters to pass to \link{runPL},
 #'  i.e. `logScale` (logical) and number of points `numPoints`
 #' @inheritParams runPL
 #' @return a data.frame; the column `logl` corresponds to the -log(likelihood) 
@@ -93,7 +93,9 @@ profile <- function(paramPath,
 #' @param numPoints the number of points to position at the `interval` for
 #'   profile likelihood calculations
 #'
-#' @return
+#' @return a data.frame; the first column consists of the parameter values,
+#'   the second ("logL") is for -log(likelihood) values.
+#' 
 #' @export
 #'
 runPL <- function(pL,  interval, logScale = FALSE, numPoints = 21) {
@@ -113,9 +115,9 @@ runPL <- function(pL,  interval, logScale = FALSE, numPoints = 21) {
 #' Get the profile likelihood function (all other parameter fixed)
 #'
 #' @param parName a character, e.g. "mu"
-#' @param par a result of the \link{`fitModel`} function
-#' @param options an option list used for the \link{`fitModel`} call
-#' @param pd a \link{`PulseData`} object
+#' @param par a result of the \link{fitModel} function
+#' @param options an option list used for the \link{fitModel} call
+#' @param pd a \link{PulseData} object
 #' @param geneIndex an integer(1); a row index which corresponds to 
 #'   the investigating gene
 #'
@@ -139,9 +141,9 @@ plFixed <- function(parName,
 #'
 #' @param paramPath a list with names and indexes in order to locate the 
 #' parameter of the profile
-#' @param par a result of the \link{`fitModel`} function
-#' @param options an option list used for the \link{`fitModel`} call
-#' @param pd a \link{`PulseData`} object
+#' @param par a result of the \link{fitModel} function
+#' @param options an option list used for the \link{fitModel} call
+#' @param pd a \link{PulseData} object
 #' @param namesToOptimise which parameters are optimised (i.e. not fixed);
 #'   by default they are derived from the names of the boundaries
 #'
@@ -248,7 +250,7 @@ pl <- function(paramPath,
 
 #' Plot the profile likeliihood
 #'
-#' @param pl  a result from the \link{`profileOnlyGene`} frunction
+#' @param pl  a result from the \link{profileOnlyGene} frunction
 #' @param confidence a confidence level for the likelihood threshold line
 #'   (default .95)
 #'
@@ -275,15 +277,14 @@ plotPL <- function(pl, confidence=.95, ...) {
 
 #' Estimate CI when parameters of other genes are fixed
 #'
-#' @param pd 
-#' @param fit 
-#' @param geneIndexes 
-#' @param parName 
-#' @param options 
-#' @param confidence 
+#' @inheritParams plFixed
+#' @inheritParams getCI
+#' @param geneIndexes an integer vector; for which genes subset confidence
+#'   intervals are to be calculated
 #' @param interval 
 #'
-#' @return
+#' @return a data.frame with two columns (left, right) confidence boundaries
+#'   in the order of geneIndexes
 #' @export
 #'
 estimateCIFixed <- function(pd,
@@ -307,7 +308,7 @@ estimateCIFixed <- function(pd,
     if (!is.null(dim(interval)) && (dim(interval) > 1)) {
       interval <- interval[geneIndex, ]
     }
-    .getCI(
+    getCI(
       pL = pL,
       optimum = fit[[parName]][geneIndex],
       interval = interval,
@@ -317,7 +318,21 @@ estimateCIFixed <- function(pd,
   do.call(rbind, result)
 }
 
-.getCI <- function(pL, optimum, confidence, interval) {
+#'  Estimate confidence interval
+#'
+#' @param pL a profile likelihood function
+#' @param optimum an optimal value of the parameter (e.g. from fitting)
+#' @param confidence confidence level for interval estimation
+#' @param interval a vector of too numbers, define (min, max) allowed 
+#'   parameter values
+#'
+#' @return a vector of two: c(min, max);
+#' @details  if the likelihood does not reach 
+#'   the needed level (i.e. the CI exceeds the limitations in the `interval`,
+#'   NA is returned. Hence, in case of both ends, the return value is c(NA, NA).
+#' @keywords internal
+#' 
+getCI <- function(pL, optimum, confidence, interval) {
   threshold <- qchisq(confidence, 1)/2
   objective <- function(x) pL(x) - threshold
   optimalObjective <- objective(optimum)

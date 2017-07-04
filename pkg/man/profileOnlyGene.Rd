@@ -7,7 +7,7 @@
 profileOnlyGene(pd, par, geneIndex, parName, options, interval, ...)
 }
 \arguments{
-\item{pd}{the \link{`PulseData`} object}
+\item{pd}{the \link{PulseData} object}
 
 \item{geneIndex}{integer(1); the row index in the count table
 where the data for the given gene are located}
@@ -15,15 +15,15 @@ where the data for the given gene are located}
 \item{parName}{a character;
 the names of the gene-specific parameter (e.g. "mu")}
 
-\item{options}{the options list used for the \link{`fitModel`} function call}
+\item{options}{the options list used for the \link{fitModel} function call}
 
 \item{interval}{double(2) vector; left and right boundaries to calculate the
 profile likelihood for the parameter given in \code{parName}}
 
-\item{...}{other parameters to pass to \link{`runPl`},
+\item{...}{other parameters to pass to \link{runPL},
 i.e. \code{logScale} (logical) and number of points \code{numPoints}}
 
-\item{fit}{result output from the \link{`fitModel`} function}
+\item{fit}{result output from the \link{fitModel} function}
 }
 \value{
 a data.frame; the column \code{logl} corresponds to the -log(likelihood)

@@ -11,11 +11,11 @@ pl(paramPath, par, options, pd, namesToOptimise = names(options$lb))
 \item{paramPath}{a list with names and indexes in order to locate the
 parameter of the profile}
 
-\item{par}{a result of the \link{`fitModel`} function}
+\item{par}{a result of the \link{fitModel} function}
 
-\item{options}{an option list used for the \link{`fitModel`} call}
+\item{options}{an option list used for the \link{fitModel} call}
 
-\item{pd}{a \link{`PulseData`} object}
+\item{pd}{a \link{PulseData} object}
 
 \item{namesToOptimise}{which parameters are optimised (i.e. not fixed);
 by default they are derived from the names of the boundaries}

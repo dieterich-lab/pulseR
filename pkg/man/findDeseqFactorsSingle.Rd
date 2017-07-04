@@ -16,3 +16,4 @@ the \code{count_data}
 \description{
 Calculate normalisation factors for columns in a matrix
 }
+\keyword{internal}

@@ -126,6 +126,7 @@ validateOptions <- function(options){
 #' @param options an options list
 #'
 #' @return NULL
+#' @keywords  internal
 #'
 checkThresholds <- function(options){
   if (is.null(options$tolerance))
@@ -331,6 +332,7 @@ initParameters <- function(par, geneParams, pulseData, options) {
 #' @param options an options object
 #'
 #' @return NULL
+#' @keywords  internal
 #'
 stopIfNotInRanges <- function(args, options) {
   args <- args[names(options$lb)]

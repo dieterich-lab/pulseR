@@ -17,6 +17,7 @@ substitute_q <- function(x, env)
 #' @param norm_factors a matrix n x k, where k is the number of samples
 #'
 #' @return a vector of length equal to the sample number
+#' @keywords  internal
 #'
 sample_means <- function(evaled_forms, norm_factors){
   evaled_forms %*% norm_factors
@@ -91,6 +92,7 @@ ll <- function(par, namesToOptimise, pd, byOne=FALSE) {
 #' different formulas used in estimation of means 
 #' (i.e. the same as in `pd$rawFormulas`). The columns correspond to the samples
 #' in the count matrix of the PulseData object `pd`.
+#' @keywords  internal
 #'
 getNorms <- function(pd, normFactors = NULL) {
   m <- matrix(0,

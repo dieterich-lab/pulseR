@@ -25,3 +25,4 @@ in the count matrix of the PulseData object \code{pd}.
 \description{
 Constructs a matrix of normalisation coefficients
 }
+\keyword{internal}

@@ -18,6 +18,10 @@ profile likelihood for the parameter given in \code{parName}}
 \item{numPoints}{the number of points to position at the \code{interval} for
 profile likelihood calculations}
 }
+\value{
+a data.frame; the first column consists of the parameter values,
+the second ("logL") is for -log(likelihood) values.
+}
 \description{
 Compute profile likelihood on the interval
 }

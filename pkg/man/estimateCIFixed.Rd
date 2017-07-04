@@ -8,19 +8,22 @@ estimateCIFixed(pd, fit, geneIndexes, parName, options, confidence = 0.95,
   interval)
 }
 \arguments{
-\item{pd}{}
+\item{pd}{a \link{PulseData} object}
 
-\item{fit}{}
+\item{geneIndexes}{an integer vector; for which genes subset confidence
+intervals are to be calculated}
 
-\item{geneIndexes}{}
+\item{parName}{a character, e.g. "mu"}
 
-\item{parName}{}
+\item{options}{an option list used for the \link{fitModel} call}
 
-\item{options}{}
-
-\item{confidence}{}
+\item{confidence}{confidence level for interval estimation}
 
 \item{interval}{}
+}
+\value{
+a data.frame with two columns (left, right) confidence boundaries
+in the order of geneIndexes
 }
 \description{
 Estimate CI when parameters of other genes are fixed
