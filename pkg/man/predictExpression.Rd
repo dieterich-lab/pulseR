@@ -14,7 +14,7 @@ predictExpression(par, pd)
 \value{
 a named list:
 \itemize{
-\item preditions, a matrix of the same dimension as of the raw counts
+\item predictions, a matrix of the same dimension as of the raw counts
 \item llog, a matrix with logarithms of likelihood for the given raw counts.
 }
 }
