@@ -133,7 +133,6 @@ fitModel <- function(pulseData, par, options){
     par$normFactors <- assignList(pulseData$interSampleCoeffs, 1)
   }
   log2screen(options, cat("\n"))
-  err <- c(params = Inf, shared = Inf, normFactors = Inf)
   funs <- list(
     params = function(par) 
       fitParamsSeparately(pulseData, par, knownGenePars,  geneParsToFit, options),
@@ -149,6 +148,7 @@ fitModel <- function(pulseData, par, options){
   if (is.null(par$normFactors))
     sets$normFactors <- NULL
   
+  err <- c(params = Inf, shared = Inf, normFactors = Inf)
   while (any(err[names(sets)] > unlist(options$tolerance[names(sets)]))) {
     # Fit shared params
     for (paramSet in names(sets)) {
