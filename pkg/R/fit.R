@@ -46,7 +46,7 @@ fitParams <- function(pd, par, namesToOptimise, options) {
 #'
 fitParamsSeparately <- function(pd,
                                 par,
-                                knownNames,
+                                knownGenePars,
                                 namesToOptimise,
                                 options, 
                                 indexes = seq_len(dim(pd$counts)[1])) {
@@ -59,7 +59,7 @@ fitParamsSeparately <- function(pd,
   par[namesToOptimise] <- NULL
   fixedPars <- par
   for (i in indexes) {
-    fixedPars[knownNames] <- lapply(par[knownNames], `[[`, i)
+    fixedPars[knownGenePars] <- lapply(par[knownGenePars], `[[`, i)
     p[i,] <- .fitGene(p, i, objective, lb, ub, fixedPars, pd$counts)$par
   }
   as.list(p)
@@ -123,14 +123,12 @@ getMaxRelDifference <- function(x, y)
 #' fitResult <- fitModel(pd, par)
 #' }
 fitModel <- function(pulseData, par, options){
-  known <- .getKnownNames(par, options)
+  known   <- .getKnownNames(par, options)
   options <- normaliseBoundaries(
     options, par[setdiff(names(par), known)], pulseData)
-  toFit <- setdiff(names(par), c("size", "normFactors", known))
-  len <- vapply(par, length, integer(1))
-  sharedParams <- toFit[len[toFit] == 1] 
-  geneParams <- toFit[len[toFit] > 1]
-  knownGenePars <- names(len[known] > 1)
+  sharedParams  <- .getSharedNames(par, known) 
+  geneParams    <- .getGeneToFitNames(par, known) 
+  knownGenePars <- .getKnownGeneNames(par, known) 
   if (!is.null(pulseData$interSampleCoeffs) && is.null(par$normFactors)) {
     par$normFactors <- assignList(pulseData$interSampleCoeffs, 1)
   }
@@ -157,7 +155,7 @@ fitModel <- function(pulseData, par, options){
       pd = pulseData,
       par = par,
       namesToOptimise = geneParams,
-      knownNames = knownGenePars,
+      knownGenePars = knownGenePars,
       options = options
     )
     rel_err <- getMaxRelDifference(res, par[geneParams])
@@ -193,7 +191,7 @@ fitModel <- function(pulseData, par, options){
     pd = pulseData,
     par = par,
     namesToOptimise = geneParams,
-    knownNames = knownGenePars,
+    knownGenePars = knownGenePars,
     options = options
   )
   par[geneParams] <- res

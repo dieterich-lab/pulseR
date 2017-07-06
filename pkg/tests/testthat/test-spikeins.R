@@ -115,7 +115,7 @@ test_that("gene params fitting works (separately)", {
   toOptimise <- c("a", "b")
   par2[toOptimise] <- options$lb[toOptimise]
   res <- pulseR:::fitParamsSeparately(
-    pd, par, toOptimise, knownNames = "p", options)
+    pd, par, toOptimise, knownGenePars = "p", options)
   expect_lt(max(err(res, par)), .1)
 })
 
