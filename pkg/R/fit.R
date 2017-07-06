@@ -127,30 +127,29 @@ fitModel <- function(pulseData, par, options){
   # identify what to fit and what is fixed
   known   <- .getKnownNames(par, options)
   knownGenePars <- .getKnownGeneNames(par, known) 
-  sets <- list(params = .getGeneToFitNames(par, known), 
+  fitSets <- list(params = .getGeneToFitNames(par, known), 
                shared = .getSharedNames(par, known),
                normFactors = "normFactors")
-  if (length(sets$shared) == 0)
-    sets$shared <- NULL
+  if (length(fitSets$shared) == 0)
+    fitSets$shared <- NULL
   if (is.null(par$normFactors))
-    sets$normFactors <- NULL
+    fitSets$normFactors <- NULL
   # prepare functions and boundaries for optimisation
   options <- normaliseBoundaries(
     options, par[setdiff(names(par), known)], pulseData)
   funs <- list(
     params = function(par) 
-      fitParamsSeparately(pulseData, par, knownGenePars, sets$params, options),
+      fitParamsSeparately(pulseData, par, knownGenePars, fitSets$params, options),
     shared = function(par)
-      fitParams(pulseData, par, sets$shared, options),
+      fitParams(pulseData, par, fitSets$shared, options),
     normFactors = function(par) 
       list(normFactors = fitNormFactors(pulseData, par, options))
   )
   
   err <- c(params = Inf, shared = Inf, normFactors = Inf)
-  while (any(err[names(sets)] > unlist(options$tolerance[names(sets)]))) {
-    # Fit shared params
-    for (paramSet in names(sets)) {
-      parNames <- sets[[paramSet]]
+  while (any(err[names(fitSets)] > unlist(options$tolerance[names(fitSets)]))) {
+    for (paramSet in names(fitSets)) {
+      parNames <- fitSets[[paramSet]]
       res <- funs[[paramSet]](par)
       err[[paramSet]] <- getMaxRelDifference(res, par[parNames])
       par[parNames] <- res
@@ -162,7 +161,7 @@ fitModel <- function(pulseData, par, options){
     }
   }
   ## fit gene specific final parameters
-  par[sets$params] <- funs[["params"]](par)
+  par[fitSets$params] <- funs[["params"]](par)
   if (!is.null(options$resultRDS)) {
     saveRDS(object = par, file = options$resultRDS)
   }
