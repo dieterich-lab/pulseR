@@ -106,7 +106,9 @@ fitNormFactors <- function(pd, par, options) {
     upper = ub,
     counts = pd$counts
   )$par
-  relist(c(1,x), par$normFactors)
+  result <- relist(c(1,x), par$normFactors)
+  names(result) <- names(pd$interSampleCoeffs)
+  result
 }
 
 getMaxRelDifference <- function(x, y)
