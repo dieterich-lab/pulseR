@@ -129,9 +129,6 @@ fitModel <- function(pulseData, par, options){
   sharedParams  <- .getSharedNames(par, known) 
   geneParsToFit <- .getGeneToFitNames(par, known) 
   knownGenePars <- .getKnownGeneNames(par, known) 
-  if (!is.null(pulseData$interSampleCoeffs) && is.null(par$normFactors)) {
-    par$normFactors <- assignList(pulseData$interSampleCoeffs, 1)
-  }
   log2screen(options, cat("\n"))
   funs <- list(
     params = function(par) 
@@ -164,8 +161,7 @@ fitModel <- function(pulseData, par, options){
     }
   }
   ## fit gene specific final parameters
-  res <- funs[["params"]](par)
-  par[geneParsToFit] <- res
+  par[geneParsToFit] <- funs[["params"]](par)
   if (!is.null(options$resultRDS)) {
     saveRDS(object = par, file = options$resultRDS)
   }
