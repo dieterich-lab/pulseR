@@ -147,7 +147,7 @@ fitModel <- function(pulseData, par, options){
     }
     # Fit params for every genes individually
     res <- fitParamsSeparately(
-      pulseData, par, geneParsToFit, knownGenePars, options)
+      pulseData, par, knownGenePars,  geneParsToFit, options)
     rel_err <- getMaxRelDifference(res, par[geneParsToFit])
     par[geneParsToFit] <- res
     if (!is.null(par$normFactors)) {
@@ -156,29 +156,33 @@ fitModel <- function(pulseData, par, options){
       par$normFactors <- res
     }
     par["size"] <- fitParams( pulseData, par, "size", options)
-    str <- format(c(rel_err, shared_rel_err, fraction_rel_err),
-                  digits = 2,
-                  width = 6)
-    log2screen(options, cat(
-      paste0(
-        "Max Rel.err. in [params: ", str[1],
-        "]  [shared: ", str[2], 
-        "]  [fractions: ", str[3],
-        "]    \r"
-      )
-    ))
+    progressMsg <- progressString(rel_err, shared_rel_err, fraction_rel_err)
+    log2screen(options, progressMsg)
     if (!is.null(options$resultRDS)) {
       saveRDS(object = par, file = options$resultRDS)
     }
   }
   ## fit gene specific final parameters
   res <- fitParamsSeparately(
-    pulseData, par, geneParsToFit, knownGenePars, options)
+    pulseData, par, knownGenePars, geneParsToFit, options)
   par[geneParsToFit] <- res
   if (!is.null(options$resultRDS)) {
     saveRDS(object = par, file = options$resultRDS)
   }
   par
+}
+
+progressString <- function(rel_err, shared_rel_err, fraction_rel_err) {
+  str <- format(c(rel_err, shared_rel_err, fraction_rel_err),
+                digits = 2,
+                width = 6)
+  paste0("Max Rel.err. in [params: ",
+         str[1],
+         "]  [shared: ",
+         str[2],
+         "]  [fractions: ",
+         str[3],
+         "]    \r")
 }
 
 # if a paramaeter is not mentioned in the boundaries, 
