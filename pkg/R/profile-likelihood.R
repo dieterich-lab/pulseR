@@ -186,14 +186,12 @@ pl <- function(paramPath,
                pd,
                namesToOptimise = names(options$lb)) {
   knownNames <- .getKnownNames(par, options)
-  #.pLfunctionTotal(options, par, pd, paramPath, namesToOptimise, knownNames)
   options <- normaliseBoundaries(options, par, pd)
   optimalValue <- .getElement2(par, paramPath)
-  boundaries <- lapply(c("lb", "ub"), function(side) {
+  boundaries <- lapply(c(lb = "lb", ub = "ub"), function(side) {
     b <- options[[side]][namesToOptimise]
     unlist(b)[.getFreeIndexes(b, paramPath, namesToOptimise)]
   })
-  names(boundaries) <- c("lb", "ub")
   freeInd <- .getFreeIndexes(par, paramPath, namesToOptimise)
   objective <- function(freeParams, params) {
     x <- unlist(params[namesToOptimise])
