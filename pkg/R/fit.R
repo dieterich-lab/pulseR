@@ -127,9 +127,11 @@ fitModel <- function(pulseData, par, options){
   # identify what to fit and what is fixed
   known   <- .getKnownNames(par, options)
   knownGenePars <- .getKnownGeneNames(par, known) 
-  fitSets <- list(params = .getGeneToFitNames(par, known), 
-               shared = .getSharedNames(par, known),
-               normFactors = "normFactors")
+  fitSets <- list(
+    shared = .getSharedNames(par, known),
+    params = .getGeneToFitNames(par, known),
+    normFactors = "normFactors"
+  )
   if (length(fitSets$shared) == 0)
     fitSets$shared <- NULL
   if (is.null(par$normFactors))
@@ -146,8 +148,8 @@ fitModel <- function(pulseData, par, options){
       list(normFactors = fitNormFactors(pulseData, par, options))
   )
   
-  err <- c(params = Inf, shared = Inf, normFactors = Inf)
-  while (any(err[names(fitSets)] > unlist(options$tolerance[names(fitSets)]))) {
+  err <- c(params = Inf, shared = Inf, normFactors = Inf)[names(fitSets)]
+  while (any(err > unlist(options$tolerance[names(fitSets)]))) {
     for (paramSet in names(fitSets)) {
       parNames <- fitSets[[paramSet]]
       res <- funs[[paramSet]](par)
@@ -181,7 +183,7 @@ progressString <- function(err) {
          "]    \r")
 }
 
-# if a paramaeter is not mentioned in the boundaries, 
+# if a parameter is not mentioned in the boundaries, 
 # it is assumed to be fixed
 .getKnownNames <- function(par, options) {
   setdiff(names(par), names(options$lb))
