@@ -140,7 +140,26 @@ plFixed <- function(parName,
                     geneIndex) {
   knownNames <- .getKnownNames(par, options)
   namesToOptimise <- setdiff(.getGeneToFitNames(par, knownNames), parName)
-  .pLfunction(options, par, pd, parName, geneIndex, namesToOptimise, knownNames)
+  #.pLfunction(options, par, pd, parName, geneIndex, namesToOptimise, knownNames)
+  options <- normaliseBoundaries(options, par, pd)
+  optimalValue <- par[[paramName]][geneIndex]
+  # garantee that boundaries are in the same order as the params
+  lb <- as.data.frame(options$lb[namesToOptimise])
+  ub <- as.data.frame(options$ub[namesToOptimise])
+  initValues <- data.frame(par[namesToOptimise])
+  objective <- ll(par, namesToOptimise, pd, byOne = TRUE)
+  par[namesToOptimise] <- NULL
+  knownNames <- c(knownNames,paramName)
+  fixedPars <- par
+  fixedPars[knownNames] <- lapply(par[knownNames], `[[`, geneIndex)
+  fixedPars[paramName] <- optimalValue
+  optimum <- .fitGene(initValues, geneIndex, objective, lb, ub, 
+             fixedPars, pd$counts)$value
+  function(x) {
+    fixedPars[paramName] <- x
+    .fitGene(initValues, geneIndex, objective, lb, ub, 
+             fixedPars, pd$counts)$value - optimum
+  }
 }
 
 #' Get the profile likelihood function (consider the parameters of other genes
@@ -221,36 +240,6 @@ pl <- function(paramPath,
   )
 }
 
-.pLfunction <- function(options,
-                       par,
-                       pd,
-                       paramName,
-                       geneIndex,
-                       namesToOptimise,
-                       knownNames) {
-  options <- normaliseBoundaries(options, par, pd)
-  optimalValue <- par[[paramName]][geneIndex]
-  # garantee that boundaries are in the same order as the params
-  lb <- as.data.frame(options$lb[namesToOptimise])
-  ub <- as.data.frame(options$ub[namesToOptimise])
-  initValues <- data.frame(par[namesToOptimise])
-  objective <- ll(par, namesToOptimise, pd, byOne = TRUE)
-  par[namesToOptimise] <- NULL
-  knownNames <- c(knownNames,paramName)
-  fixedPars <- par
-  fixedPars[knownNames] <- lapply(par[knownNames], `[[`, geneIndex)
-  fixedPars[paramName] <- optimalValue
-  optimum <- .fitGene(initValues, geneIndex, objective, lb, ub, 
-             fixedPars, pd$counts)$value
-  function(x) {
-    fixedPars[paramName] <- x
-    .fitGene(initValues, geneIndex, objective, lb, ub, 
-             fixedPars, pd$counts)$value - optimum
-  }
-}
-
-
-  
 # returns indexes of the parameters in the unlist(par[namesToOptimise])
 # additionally, the parameter at paramPath is excluded if it is present in
 # par[namesToOptimise]
