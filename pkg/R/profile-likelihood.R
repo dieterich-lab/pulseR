@@ -140,9 +140,7 @@ plFixed <- function(parName,
                     geneIndex) {
   knownNames <- .getKnownNames(par, options)
   namesToOptimise <- setdiff(.getGeneToFitNames(par, knownNames), parName)
-  #.pLfunction(options, par, pd, parName, geneIndex, namesToOptimise, knownNames)
   options <- normaliseBoundaries(options, par, pd)
-  optimalValue <- par[[paramName]][geneIndex]
   # garantee that boundaries are in the same order as the params
   lb <- as.data.frame(options$lb[namesToOptimise])
   ub <- as.data.frame(options$ub[namesToOptimise])
@@ -150,15 +148,14 @@ plFixed <- function(parName,
   objective <- ll(par, namesToOptimise, pd, byOne = TRUE)
   par[namesToOptimise] <- NULL
   knownNames <- c(knownNames,paramName)
-  fixedPars <- par
-  fixedPars[knownNames] <- lapply(par[knownNames], `[[`, geneIndex)
-  fixedPars[paramName] <- optimalValue
+  genePars <- par
+  genePars[knownNames] <- lapply(par[knownNames], `[[`, geneIndex)
   optimum <- .fitGene(initValues, geneIndex, objective, lb, ub, 
-             fixedPars, pd$counts)$value
+             genePars, pd$counts)$value
   function(x) {
-    fixedPars[paramName] <- x
+    genePars[paramName] <- x
     .fitGene(initValues, geneIndex, objective, lb, ub, 
-             fixedPars, pd$counts)$value - optimum
+             genePars, pd$counts)$value - optimum
   }
 }
 
