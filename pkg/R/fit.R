@@ -158,8 +158,7 @@ fitModel <- function(pulseData, par, options){
       par[parNames] <- res
     }
     par["size"] <- fitParams(pulseData, par, "size", options)
-    progressMsg <- progressString(err)
-    log2screen(options, progressMsg)
+    log2screen(options,progressString(err))
     if (!is.null(options$resultRDS)) {
       saveRDS(object = par, file = options$resultRDS)
     }
