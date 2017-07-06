@@ -170,7 +170,36 @@ pl <- function(paramPath,
                pd,
                namesToOptimise = names(options$lb)) {
   knownNames <- .getKnownNames(par, options)
-  .pLfunctionTotal(options, par, pd, paramPath, namesToOptimise, knownNames)
+  #.pLfunctionTotal(options, par, pd, paramPath, namesToOptimise, knownNames)
+  options <- normaliseBoundaries(options, par, pd)
+  optimalValue <- .getElement2(par, paramPath)
+  boundaries <- lapply(c("lb", "ub"), function(side) {
+    b <- options[[side]][namesToOptimise]
+    unlist(b)[.getFreeIndexes(b, paramPath, namesToOptimise)]
+  })
+  names(boundaries) <- c("lb", "ub")
+  freeInd <- .getFreeIndexes(par, paramPath, namesToOptimise)
+  objective <- function(freeParams, params) {
+    x <- unlist(params[namesToOptimise])
+    x[freeInd] <- freeParams
+    params[namesToOptimise] <- relist(x, params[namesToOptimise])
+    -evaluateLikelihood(params, pd)
+  }
+  optimisationStart <- unlist(par[namesToOptimise])[freeInd]
+  optimum <- -evaluateLikelihood(par, pd)
+  function(x) {
+    par <- .assignElement(par, paramPath, x)
+    stats::optim(
+      optimisationStart,
+      objective,
+      method = "L-BFGS-B",
+      control = list(parscale = (boundaries$lb + boundaries$ub) / 2),
+      lower = boundaries$lb,
+      upper = boundaries$ub,
+      params = par
+    )$value - optimum
+  }
+  
 }
 
 # fit params for i-th gene
@@ -236,41 +265,6 @@ pl <- function(paramPath,
   freeInd
 }
 
-.pLfunctionTotal <- function(options,
-                       par,
-                       pd,
-                       paramPath,
-                       namesToOptimise,
-                       knownNames) {
-  options <- normaliseBoundaries(options, par, pd)
-  optimalValue <- .getElement2(par, paramPath)
-  boundaries <- lapply(c("lb", "ub"), function(side) {
-    b <- options[[side]][namesToOptimise]
-    unlist(b)[.getFreeIndexes(b, paramPath, namesToOptimise)]
-  })
-  names(boundaries) <- c("lb", "ub")
-  freeInd <- .getFreeIndexes(par, paramPath, namesToOptimise)
-  objective <- function(freeParams, params) {
-    x <- unlist(params[namesToOptimise])
-    x[freeInd] <- freeParams
-    params[namesToOptimise] <- relist(x, params[namesToOptimise])
-    -evaluateLikelihood(params, pd)
-  }
-  optimisationStart <- unlist(par[namesToOptimise])[freeInd]
-  optimum <- -evaluateLikelihood(par, pd)
-  function(x) {
-    par <- .assignElement(par, paramPath, x)
-    stats::optim(
-      optimisationStart,
-      objective,
-      method = "L-BFGS-B",
-      control = list(parscale = (boundaries$lb + boundaries$ub) / 2),
-      lower = boundaries$lb,
-      upper = boundaries$ub,
-      params = par
-    )$value - optimum
-  }
-}
 
 #' Plot the profile likeliihood
 #'
