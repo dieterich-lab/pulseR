@@ -123,27 +123,28 @@ getMaxRelDifference <- function(x, y)
 #' fitResult <- fitModel(pd, par)
 #' }
 fitModel <- function(pulseData, par, options){
-  known   <- .getKnownNames(par, options)
-  options <- normaliseBoundaries(
-    options, par[setdiff(names(par), known)], pulseData)
-  sharedParams  <- .getSharedNames(par, known) 
-  geneParsToFit <- .getGeneToFitNames(par, known) 
-  knownGenePars <- .getKnownGeneNames(par, known) 
   log2screen(options, cat("\n"))
-  funs <- list(
-    params = function(par) 
-      fitParamsSeparately(pulseData, par, knownGenePars,  geneParsToFit, options),
-    shared = function(par)
-      fitParams(pulseData, par, sharedParams, options),
-    normFactors = function(par) 
-      list(normFactors = fitNormFactors(pulseData, par, options))
-  )
-  sets <- list(
-    params = geneParsToFit, shared = sharedParams, normFactors = "normFactors")
-  if (length(sharedParams) == 0)
+  # identify what to fit and what is fixed
+  known   <- .getKnownNames(par, options)
+  knownGenePars <- .getKnownGeneNames(par, known) 
+  sets <- list(params = .getGeneToFitNames(par, known), 
+               shared = .getSharedNames(par, known),
+               normFactors = "normFactors")
+  if (length(sets$shared) == 0)
     sets$shared <- NULL
   if (is.null(par$normFactors))
     sets$normFactors <- NULL
+  # prepare functions and boundaries for optimisation
+  options <- normaliseBoundaries(
+    options, par[setdiff(names(par), known)], pulseData)
+  funs <- list(
+    params = function(par) 
+      fitParamsSeparately(pulseData, par, knownGenePars, sets$params, options),
+    shared = function(par)
+      fitParams(pulseData, par, sets$shared, options),
+    normFactors = function(par) 
+      list(normFactors = fitNormFactors(pulseData, par, options))
+  )
   
   err <- c(params = Inf, shared = Inf, normFactors = Inf)
   while (any(err[names(sets)] > unlist(options$tolerance[names(sets)]))) {
@@ -155,13 +156,13 @@ fitModel <- function(pulseData, par, options){
       par[parNames] <- res
     }
     par["size"] <- fitParams(pulseData, par, "size", options)
-    log2screen(options,progressString(err))
+    log2screen(options, progressString(err))
     if (!is.null(options$resultRDS)) {
       saveRDS(object = par, file = options$resultRDS)
     }
   }
   ## fit gene specific final parameters
-  par[geneParsToFit] <- funs[["params"]](par)
+  par[sets$params] <- funs[["params"]](par)
   if (!is.null(options$resultRDS)) {
     saveRDS(object = par, file = options$resultRDS)
   }
