@@ -65,24 +65,6 @@ fitParamsSeparately <- function(pd,
   as.list(p)
 }
 
-# fit params for i-th gene
-# p is a data.frame with the being fitted parameters by column
-# objective is a function to optimise 
-# the calling convention if f(x, counts, fixedPars),
-# where x are the parameters to fit, fixed is a character vector of gene-
-# sepecific parameters which are fixed
-.fitGene <- function(p, i, objective, lb, ub, fixedPars, counts) {
-  stats::optim(
-    unlist(p[i,]),
-    objective,
-    method = "L-BFGS-B",
-    control = list(parscale = p[i, ]),
-    lower = lb[i, ],
-    upper = ub[i, ],
-    counts = counts[i, ],
-    fixedPars = fixedPars
-  )
-}
 
 #' Fit fraction normalisation coefficients
 #' 

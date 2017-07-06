@@ -173,6 +173,25 @@ pl <- function(paramPath,
   .pLfunctionTotal(options, par, pd, paramPath, namesToOptimise, knownNames)
 }
 
+# fit params for i-th gene
+# p is a data.frame with the being fitted parameters by column
+# objective is a function to optimise 
+# the calling convention if f(x, counts, fixedPars),
+# where x are the parameters to fit, fixed is a character vector of gene-
+# sepecific parameters which are fixed
+.fitGene <- function(p, i, objective, lb, ub, fixedPars, counts) {
+  stats::optim(
+    unlist(p[i,]),
+    objective,
+    method = "L-BFGS-B",
+    control = list(parscale = p[i, ]),
+    lower = lb[i, ],
+    upper = ub[i, ],
+    counts = counts[i, ],
+    fixedPars = fixedPars
+  )
+}
+
 .pLfunction <- function(options,
                        par,
                        pd,
@@ -188,13 +207,11 @@ pl <- function(paramPath,
   initValues <- data.frame(par[namesToOptimise])
   objective <- ll(par, namesToOptimise, pd, byOne = TRUE)
   par[namesToOptimise] <- NULL
-  fixedPars <- par
   knownNames <- c(knownNames,paramName)
-  fixedPars[knownNames] <-
-    lapply(par[knownNames], `[[`, geneIndex)
+  fixedPars <- par
+  fixedPars[knownNames] <- lapply(par[knownNames], `[[`, geneIndex)
   fixedPars[paramName] <- optimalValue
-  optimum <-
-    .fitGene(initValues, geneIndex, objective, lb, ub, 
+  optimum <- .fitGene(initValues, geneIndex, objective, lb, ub, 
              fixedPars, pd$counts)$value
   function(x) {
     fixedPars[paramName] <- x
