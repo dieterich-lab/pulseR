@@ -127,7 +127,7 @@ fitModel <- function(pulseData, par, options){
   options <- normaliseBoundaries(
     options, par[setdiff(names(par), known)], pulseData)
   sharedParams  <- .getSharedNames(par, known) 
-  geneParams    <- .getGeneToFitNames(par, known) 
+  geneParsToFit    <- .getGeneToFitNames(par, known) 
   knownGenePars <- .getKnownGeneNames(par, known) 
   if (!is.null(pulseData$interSampleCoeffs) && is.null(par$normFactors)) {
     par$normFactors <- assignList(pulseData$interSampleCoeffs, 1)
@@ -141,36 +141,21 @@ fitModel <- function(pulseData, par, options){
          fraction_rel_err > options$tolerance$normFactors) {
     # Fit shared params
     if (length(sharedParams) > 0) {
-      res <- fitParams(
-        pd = pulseData,
-        par = par,
-        namesToOptimise = sharedParams,
-        options = options
-      )
+      res <- fitParams(pulseData, par, sharedParams, options)
       shared_rel_err <- getMaxRelDifference(res, par[sharedParams])
       par[sharedParams] <- res
     }
     # Fit params for every genes individually
     res <- fitParamsSeparately(
-      pd = pulseData,
-      par = par,
-      namesToOptimise = geneParams,
-      knownGenePars = knownGenePars,
-      options = options
-    )
-    rel_err <- getMaxRelDifference(res, par[geneParams])
-    par[geneParams] <- res
+      pulseData, par, geneParsToFit, knownGenePars, options)
+    rel_err <- getMaxRelDifference(res, par[geneParsToFit])
+    par[geneParsToFit] <- res
     if (!is.null(par$normFactors)) {
       res <- fitNormFactors(pulseData, par, options)
       fraction_rel_err <- getMaxRelDifference(res, par$normFactors)
       par$normFactors <- res
     }
-    par["size"] <- fitParams(
-      pd = pulseData,
-      par = par,
-      namesToOptimise = "size",
-      options = options
-    )
+    par["size"] <- fitParams( pulseData, par, "size", options)
     str <- format(c(rel_err, shared_rel_err, fraction_rel_err),
                   digits = 2,
                   width = 6)
@@ -188,13 +173,8 @@ fitModel <- function(pulseData, par, options){
   }
   ## fit gene specific final parameters
   res <- fitParamsSeparately(
-    pd = pulseData,
-    par = par,
-    namesToOptimise = geneParams,
-    knownGenePars = knownGenePars,
-    options = options
-  )
-  par[geneParams] <- res
+    pulseData, par, geneParsToFit, knownGenePars, options)
+  par[geneParsToFit] <- res
   if (!is.null(options$resultRDS)) {
     saveRDS(object = par, file = options$resultRDS)
   }
