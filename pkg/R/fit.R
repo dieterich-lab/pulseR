@@ -127,44 +127,45 @@ fitModel <- function(pulseData, par, options){
   options <- normaliseBoundaries(
     options, par[setdiff(names(par), known)], pulseData)
   sharedParams  <- .getSharedNames(par, known) 
-  geneParsToFit    <- .getGeneToFitNames(par, known) 
+  geneParsToFit <- .getGeneToFitNames(par, known) 
   knownGenePars <- .getKnownGeneNames(par, known) 
   if (!is.null(pulseData$interSampleCoeffs) && is.null(par$normFactors)) {
     par$normFactors <- assignList(pulseData$interSampleCoeffs, 1)
   }
   log2screen(options, cat("\n"))
-  rel_err <- Inf
-  shared_rel_err <- ifelse(length(sharedParams) == 0, 0, Inf)
-  fraction_rel_err <- ifelse(is.null(par$normFactors), 0, Inf)
-  while (rel_err > options$tolerance$params ||
-         shared_rel_err > options$tolerance$shared ||
-         fraction_rel_err > options$tolerance$normFactors) {
+  err <- c(params = Inf, shared = Inf, normFactors = Inf)
+  funs <- list(
+    params = function(par) 
+      fitParamsSeparately(pulseData, par, knownGenePars,  geneParsToFit, options),
+    shared = function(par)
+      fitParams(pulseData, par, sharedParams, options),
+    normFactors = function(par) 
+      list(normFactors = fitNormFactors(pulseData, par, options))
+  )
+  sets <- list(
+    params = geneParsToFit, shared = sharedParams, normFactors = "normFactors")
+  if (length(sharedParams) == 0)
+    sets$shared <- NULL
+  if (is.null(par$normFactors))
+    sets$normFactors <- NULL
+  
+  while (any(err[names(sets)] > unlist(options$tolerance[names(sets)]))) {
     # Fit shared params
-    if (length(sharedParams) > 0) {
-      res <- fitParams(pulseData, par, sharedParams, options)
-      shared_rel_err <- getMaxRelDifference(res, par[sharedParams])
-      par[sharedParams] <- res
+    for (paramSet in names(sets)) {
+      parNames <- sets[[paramSet]]
+      res <- funs[[paramSet]](par)
+      err[[paramSet]] <- getMaxRelDifference(res, par[parNames])
+      par[parNames] <- res
     }
-    # Fit params for every genes individually
-    res <- fitParamsSeparately(
-      pulseData, par, knownGenePars,  geneParsToFit, options)
-    rel_err <- getMaxRelDifference(res, par[geneParsToFit])
-    par[geneParsToFit] <- res
-    if (!is.null(par$normFactors)) {
-      res <- fitNormFactors(pulseData, par, options)
-      fraction_rel_err <- getMaxRelDifference(res, par$normFactors)
-      par$normFactors <- res
-    }
-    par["size"] <- fitParams( pulseData, par, "size", options)
-    progressMsg <- progressString(rel_err, shared_rel_err, fraction_rel_err)
+    par["size"] <- fitParams(pulseData, par, "size", options)
+    progressMsg <- progressString(err)
     log2screen(options, progressMsg)
     if (!is.null(options$resultRDS)) {
       saveRDS(object = par, file = options$resultRDS)
     }
   }
   ## fit gene specific final parameters
-  res <- fitParamsSeparately(
-    pulseData, par, knownGenePars, geneParsToFit, options)
+  res <- funs[["params"]](par)
   par[geneParsToFit] <- res
   if (!is.null(options$resultRDS)) {
     saveRDS(object = par, file = options$resultRDS)
@@ -172,8 +173,8 @@ fitModel <- function(pulseData, par, options){
   par
 }
 
-progressString <- function(rel_err, shared_rel_err, fraction_rel_err) {
-  str <- format(c(rel_err, shared_rel_err, fraction_rel_err),
+progressString <- function(err) {
+  str <- format(unlist(err),
                 digits = 2,
                 width = 6)
   paste0("Max Rel.err. in [params: ",
