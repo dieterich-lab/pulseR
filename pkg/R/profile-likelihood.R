@@ -1,32 +1,39 @@
-.getIndex <- function(path, example) {
-  x <- unlist(example)
+# get index of the parameter on the `path` in the unlist(params)
+.getIndex <- function(path, params) {
+  x <- unlist(params)
   x[] <- seq_along(x)
-  index <- .getElement(relist(x, example), path)
+  index <- .getElement(relist(x, params), path)
   if (length(index) > 1) 
     stop("Not complete path to the element (length of selection > 1)")
   index
 }
   
-.assignElement <- function(x, i, value) {
-  if (length(i) == 1) {
-    x[[unlist(i)]] <- value 
-    x
+# assign value in the list of parameters `params` given the path as a list
+# `path` (e.g. list("mu", 2) will assign to params$mu[2])
+.assignElement <- function(params, path, value) {
+  if (length(path) == 1) {
+    params[[unlist(path)]] <- value 
+    params
   } else {
-    x[[unlist(i[1])]] <- Recall(x[[unlist(i[1])]], i[-1], value)
-    x 
+    params[[unlist(path[1])]] <-
+      Recall(params[[unlist(path[1])]], path[-1], value)
+    params 
   }
 }
 
-.getElement <- function(x, i) {
-  if (length(i) == 1) {
-    x[[unlist(i)]] 
+# get the element value located on the `path` in the `params`
+.getElement <- function(params, path) {
+  if (length(path) == 1) {
+    params[[unlist(path)]] 
   } else {
-    Recall(x[[unlist(i[1])]], i[-1])
+    Recall(params[[unlist(path[1])]], path[-1])
   }
 }
 
-.getElement2 <- function(x,i) {
-  Reduce(function(z, i) z[[i]], init = x, i)
+# alternative implementation
+# get the element value located on the `path` in the `params`
+.getElement2 <- function(params, path) {
+  Reduce(function(z, path) z[[path]], init = params, path)
 }
 
 
