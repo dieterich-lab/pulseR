@@ -156,20 +156,23 @@ plFixed <- function(parName,
   # garantee that boundaries are in the same order as the params
   lb <- as.data.frame(options$lb[namesToOptimise])
   ub <- as.data.frame(options$ub[namesToOptimise])
-  initValues <- data.frame(par[namesToOptimise])
+  #initValues <- data.frame(par[namesToOptimise])
   objective <- ll(par, namesToOptimise, pd, byOne = TRUE)
-  par[namesToOptimise] <- NULL
   knownNames <- c(knownNames, parName)
-  genePars <- par
-  genePars[knownNames] <- lapply(par[knownNames], `[[`, geneIndex)
-  optimum <- .fitGene(initValues, geneIndex, objective, lb, ub, 
-             genePars, pd$counts)$value
+  fixedPars <- par[!names(par) %in% namesToOptimise]
+  fixedPars[knownNames] <- lapply(par[knownNames], `[[`, geneIndex)
+  initValues <- unlist(lapply(par[namesToOptimise], `[[`, geneIndex))
+  optimum <- objective(initValues, pd$counts[geneIndex,], fixedPars)
   function(x) {
-    genePars[parName] <- x
-    .fitGene(initValues, geneIndex, objective, lb, ub, 
-             genePars, pd$counts)$value - optimum
-  }
+    fixedPars[parName] <- x
+    min(replicate(options$replicateNumber,{
+      jitterCoeffs <- 1 + runif(length(initValues), 
+                                -options$jitter, options$jitter)
+    .fitGene(initValues * jitterCoeffs, geneIndex, objective, lb, ub, 
+             fixedPars, pd$counts)$value - optimum
+    })) }
 }
+
 
 #' Get the profile likelihood function (consider the parameters of other genes
 #' as not fixed)
