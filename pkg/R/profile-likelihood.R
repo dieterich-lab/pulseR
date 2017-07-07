@@ -52,6 +52,7 @@
 #' @return a data.frame; the column `logl` corresponds to the -log(likelihood) 
 #'   function values. the other represents the profiled parameter values.
 #' @export
+#' @rdname profile
 #'
 profileOnlyGene <- function(pd, par,
                             geneIndex,
@@ -75,6 +76,7 @@ profileOnlyGene <- function(pd, par,
 #' @return a data.frame; the column `logl` corresponds to the -log(likelihood) 
 #'   function values. the other represents the profiled parameter values.
 #' @export
+#' @rdname profile
 #'
 profile <- function(paramPath,
                     pd,
@@ -92,7 +94,9 @@ profile <- function(paramPath,
 
 #' Compute profile likelihood on the interval
 #'
-#' @param pL a function (x) --> double(1) returning the -log(likelihood)
+#' @param pL a function (x) --> double(1) returning the -log(likelihood).
+#'   For example, it can be a function returned by 
+#'   \link{`pl`} or \link{`plFixed`}.
 #' @param interval double(2) vector; left and right boundaries to calculate the
 #'   profile likelihood for the parameter given in `parName`
 #' @param logScale a logical (default: `FALSE`). Should points on the 
@@ -104,6 +108,7 @@ profile <- function(paramPath,
 #'   the second ("logL") is for -log(likelihood) values.
 #' 
 #' @export
+#' @rdname profile
 #'
 runPL <- function(pL,  interval, logScale = FALSE, numPoints = 21) {
   if (logScale) {
@@ -132,6 +137,7 @@ runPL <- function(pL,  interval, logScale = FALSE, numPoints = 21) {
 #'   `f(x = double(1)) --> double(1)`,  
 #'   which return the value of -log(likelihood(mu = x))
 #' @export
+#' @rdname profile
 #'
 plFixed <- function(parName,
                     par,
@@ -147,13 +153,13 @@ plFixed <- function(parName,
   initValues <- data.frame(par[namesToOptimise])
   objective <- ll(par, namesToOptimise, pd, byOne = TRUE)
   par[namesToOptimise] <- NULL
-  knownNames <- c(knownNames,paramName)
+  knownNames <- c(knownNames, parName)
   genePars <- par
   genePars[knownNames] <- lapply(par[knownNames], `[[`, geneIndex)
   optimum <- .fitGene(initValues, geneIndex, objective, lb, ub, 
              genePars, pd$counts)$value
   function(x) {
-    genePars[paramName] <- x
+    genePars[parName] <- x
     .fitGene(initValues, geneIndex, objective, lb, ub, 
              genePars, pd$counts)$value - optimum
   }
@@ -179,6 +185,7 @@ plFixed <- function(parName,
 #' "mu" parameter of the first gene. 
 #' 
 #' @export
+#' @rdname profile
 #'
 pl <- function(paramPath,
                par,
@@ -258,6 +265,7 @@ pl <- function(paramPath,
 #'
 #' @return used for its side effect
 #' @export
+#' @rdname profile
 #'
 plotPL <- function(pl, confidence=.95, ...) {
   parName <- names(pl)[which(names(pl) != "logL")]
@@ -333,6 +341,7 @@ estimateCIFixed <- function(pd,
 #'   the needed level (i.e. the CI exceeds the limitations in the `interval`,
 #'   NA is returned. Hence, in case of both ends, the return value is c(NA, NA).
 #' @keywords internal
+#' @rdname profile
 #' 
 getCI <- function(pL, optimum, confidence, interval) {
   threshold <- qchisq(confidence, 1)/2
