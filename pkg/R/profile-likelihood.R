@@ -54,14 +54,18 @@
 #' @export
 #' @rdname profile
 #'
-profileOnlyGene <- function(pd, par,
-                            geneIndex,
+profileOnlyGene <- function(pd,
+                            par,
                             parName,
-                            options,
+                            geneIndex,
                             interval, 
+                            options,
                             ...
                             ) {
   pL <- plFixed(parName, par, options, pd, geneIndex)
+  parValue <- par[[parName]][geneIndex]
+  if (missing(interval))
+    interval <- c(.1,2) * parValue
   result <- runPL(pL, interval, ...)
   names(result)[1] <- parName
   result
@@ -83,12 +87,14 @@ profile <- function(paramPath,
                     par,
                     options,
                     interval,
-                    parName = as.character(paramPath[[1]]) ,
                     namesToOptimise = names(options$lb), 
                     ...) {
   pL <- pl(paramPath, par, options, pd,namesToOptimise )
+  parValue <- .getElement2(par, paramPath)
+  if (missing(interval))
+    interval <- c(.1,2) * parValue
   result <- runPL(pL, interval, ...)
-  names(result)[1] <- parName
+  names(result)[1] <- as.character(paramPath[[1]]) 
   result
 }
 
