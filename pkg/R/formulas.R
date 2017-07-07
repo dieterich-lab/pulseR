@@ -7,9 +7,9 @@
 #' @return list with keys corresponding to condition names and values as
 #'   unevaluated call objects
 #' @export
+#' @rdname formulas
 #'
 #' @examples
-#' @rdname formulas
 #' \dontrun{
 #' formulas <- MeanFormulas(total=mu, labelled=mu*d, unlabelled=mu*(1-d))
 #' }
