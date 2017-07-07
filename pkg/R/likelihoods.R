@@ -58,9 +58,6 @@ ll <- function(par, namesToOptimise, pd, byOne=FALSE) {
   # from the flatten vector of parameters, which is used by 
   # optimisation function
   pattern <- par[namesToOptimise]
-  # leave only first parameter values if creating a gene-specific likelihood
-  if (byOne)
-    pattern <- lapply(pattern, `[[`, 1)
   par[namesToOptimise] <- NULL
   evalCall <- as.call(c(cbind, pd$formulas))
   norms <- getNorms(pd, par$normFactors)
