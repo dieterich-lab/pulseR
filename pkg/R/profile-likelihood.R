@@ -220,18 +220,17 @@ pl <- function(paramPath,
       params = par
     )$value - optimum
   }
-  
 }
 
 # fit params for i-th gene
-# p is a data.frame with the being fitted parameters by column
+# initPars is a vector of double
 # objective is a function to optimise 
 # the calling convention if f(x, counts, fixedPars),
 # where x are the parameters to fit, fixed is a character vector of gene-
 # sepecific parameters which are fixed
-.fitGene <- function(p, i, objective, lb, ub, fixedPars, counts) {
+.fitGene <- function(initPars, i, objective, lb, ub, fixedPars, counts) {
   stats::optim(
-    unlist(p[i,]),
+    initPars,
     objective,
     method = "L-BFGS-B",
     control = list(parscale = .5 * (lb[i,] + ub[i, ])), 
