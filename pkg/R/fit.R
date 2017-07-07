@@ -62,7 +62,7 @@ fitParamsSeparately <- function(pd,
   fixedPars <- par
   for (i in indexes) {
     fixedPars[knownGenePars] <- lapply(par[knownGenePars], `[[`, i)
-    p[i,] <- .fitGene(p, i, objective, lb, ub, fixedPars, pd$counts)$par
+    p[i,] <- .fitGene(p[i,], i, objective, lb, ub, fixedPars, pd$counts)$par
   }
   as.list(p)
 }
@@ -178,13 +178,8 @@ progressString <- function(err) {
   str <- format(unlist(err),
                 digits = 2,
                 width = 6)
-  paste0("Max Rel.err. in [params: ",
-         str[1],
-         "]  [shared: ",
-         str[2],
-         "]  [fractions: ",
-         str[3],
-         "]    \r")
+  paste0("Max Rel.err. in ", 
+         paste("[",names(str), str,"]", collapse = " "), "\n")
 }
 
 # if a parameter is not mentioned in the boundaries, 
