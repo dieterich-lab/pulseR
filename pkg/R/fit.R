@@ -11,6 +11,7 @@
 #'
 #' @return a list with fitted parameters
 #' @export
+#' @rdname fit
 #'
 fitParams <- function(pd, par, namesToOptimise, options) {
   options <- normaliseBoundaries(options, par, pd)
@@ -43,6 +44,7 @@ fitParams <- function(pd, par, namesToOptimise, options) {
 #' @param indexes indexes of genes to fit. By default includes all the genes.
 #' @return a list with fitted parameters
 #' @export
+#' @rdname fit
 #'
 fitParamsSeparately <- function(pd,
                                 par,
@@ -73,6 +75,7 @@ fitParamsSeparately <- function(pd,
 #' @importFrom  stats optimise
 #' @return a list of normalisation factors
 #' @export
+#' @rdname fit
 #' 
 fitNormFactors <- function(pd, par, options) {
   lb <- unlist(options$lb$normFactors)[-1]
@@ -117,6 +120,7 @@ getMaxRelDifference <- function(x, y)
 #' the initial guess `par` list
 #'     
 #' @export
+#' @rdname fit
 #'
 #' @examples 
 #' \dontrun{
