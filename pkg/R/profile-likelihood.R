@@ -165,7 +165,7 @@ plFixed <- function(parName,
   optimum <- objective(initValues, pd$counts[geneIndex,], fixedPars)
   function(x) {
     fixedPars[parName] <- x
-    min(replicate(options$replicateNumber,{
+    min(replicate(options$replicates,{
       jitterCoeffs <- 1 + runif(length(initValues), 
                                 -options$jitter, options$jitter)
     .fitGene(initValues * jitterCoeffs, geneIndex, objective, lb, ub, 
