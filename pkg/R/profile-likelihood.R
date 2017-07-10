@@ -114,7 +114,6 @@ profile <- function(paramPath,
 #'   the second ("logL") is for -log(likelihood) values.
 #' 
 #' @export
-#' @rdname profile
 #'
 runPL <- function(pL,  interval, logScale = FALSE, numPoints = 21) {
   if (logScale) {
@@ -130,39 +129,81 @@ runPL <- function(pL,  interval, logScale = FALSE, numPoints = 21) {
   profileParam
 }
 
-#' Get the profile likelihood function (all other parameter fixed)
-#'
+#' Return a profile likelihood function for further use.
+#' 
+#' A profile likelihood function returned by the `pl` considers parameters of
+#' other genes. In contrast, the one from the `plGene` assumes
+#'  parameters of other genes,  shared parameters and 
+#'  the normalisation factors to be fixed. \cr
+#' The profile likelihood is estimated by numerical optimisation, and it can
+#' be sensitive to the initial values. The optimisation is repeated 
+#' `options$replicate` times (default: 10), by adding a random values to the 
+#' the optimum  parameters at a scale specified in the options$jitter.
+#' 
+#' 
+#' @param paramPath a list with names and indexes in order to locate the 
+#' parameter in the `par` argument (e.g. `list("mu", 1)` corresponds to
+#' the "mu" parameter value for the first gene, i.e.  
+#' `\verb{par[["mu"]][[1]]}` 
 #' @param parName a character, e.g. "mu"
-#' @param par a result of the \link{fitModel} function
-#' @param options an option list used for the \link{fitModel} call
-#' @param pd a \link{PulseData} object
 #' @param geneIndex an integer(1); a row index which corresponds to 
 #'   the investigating gene
+#' @param par a result of the \link{fitModel} function
+#' @param pd a \link{PulseData} object
+#' @param options an option list used for the \link{fitModel} call;
+#'   additional options can be specified:
+#'  - jitter, a double (default: .1)
+#'  - replicate, an integer number of repeating the optimisation from random 
+#'    points
+#'  - absolute, a logical (default: FALSE); if FALSE, the likelihood value at
+#'  the optimal point (i.e. `par`) is substracted from the returned value.
+#'  In this case, the value of the returned function at the point `par` is 0.
+#' @param freeParams which parameters are optimised (i.e. not fixed);
+#'   by default they are derived from the names of the boundaries
+#'
+#' @details The randomisation of the parameter x is made as 
+#' $ x^* = (1 + a) * x$, where $a$ is a random value from the uniform
+#' distribution (0,`options$jitter`). 
 #'
 #' @return a function with the calling convention as   
-#'   `f(x = double(1)) --> double(1)`,  
+#'   `f(x = double(1)) --> double(1))`,  
 #'   which return the value of -log(likelihood(mu = x))
+#' 
+#' @name profiles
+NULL
+
+.addDefaultsPL <- function(options) {
+  defaults <- list(
+    replicate = 10,
+    jitter = .1,
+    absolute = FALSE)
+  notSet <- setdiff(names(defaults),names(options))
+  options[notSet] <- defaults[notSet]
+  options
+}
+
 #' @export
-#' @rdname profile
-#'
-plFixed <- function(parName,
-                    par,
-                    options,
-                    pd,
-                    geneIndex) {
+#' @rdname profiles
+plGene <- function(parName,
+                   geneIndex,
+                   par,
+                   pd,
+                   options) {
+  options <- .addDefaultsPL(options)
   knownNames <- .getKnownNames(par, options)
   namesToOptimise <- setdiff(.getGeneToFitNames(par, knownNames), parName)
   options <- normaliseBoundaries(options, par, pd)
   # garantee that boundaries are in the same order as the params
   lb <- as.data.frame(options$lb[namesToOptimise])
   ub <- as.data.frame(options$ub[namesToOptimise])
-  #initValues <- data.frame(par[namesToOptimise])
   objective <- ll(par, namesToOptimise, pd, byOne = TRUE)
   knownNames <- c(knownNames, parName)
   fixedPars <- par[!names(par) %in% namesToOptimise]
   fixedPars[knownNames] <- lapply(par[knownNames], `[[`, geneIndex)
   initValues <- unlist(lapply(par[namesToOptimise], `[[`, geneIndex))
-  optimum <- objective(initValues, pd$counts[geneIndex,], fixedPars)
+  optimum <- ifelse(options$absolute,
+                    0,
+                    objective(initValues, pd$counts[geneIndex, ], fixedPars))
   function(x) {
     fixedPars[parName] <- x
     min(replicate(options$replicates,{
@@ -174,48 +215,29 @@ plFixed <- function(parName,
 }
 
 
-#' Get the profile likelihood function (consider the parameters of other genes
-#' as not fixed)
-#'
-#' @param paramPath a list with names and indexes in order to locate the 
-#' parameter of the profile
-#' @param par a result of the \link{fitModel} function
-#' @param options an option list used for the \link{fitModel} call
-#' @param pd a \link{PulseData} object
-#' @param namesToOptimise which parameters are optimised (i.e. not fixed);
-#'   by default they are derived from the names of the boundaries
-#'
-#' @return a function with the calling convention as   
-#'   `f(x = double(1)) --> double(1)`,  
-#'   which return the value of -log(likelihood(mu = x))
-#'
-#' @details `paramPath` is defined as the sequence of selections performed on 
-#' the parameter list (`par`). For example, list("mu", 1) will point to the 
-#' "mu" parameter of the first gene. 
-#' 
 #' @export
-#' @rdname profile
-#'
+#' @rdname profiles
 pl <- function(paramPath,
                par,
-               options,
                pd,
-               namesToOptimise = names(options$lb)) {
+               options,
+               freeParams = names(options$lb)) {
+  options <- .addDefaultsPL(options)
   knownNames <- .getKnownNames(par, options)
   options <- normaliseBoundaries(options, par, pd)
   optimalValue <- .getElement2(par, paramPath)
   boundaries <- lapply(c(lb = "lb", ub = "ub"), function(side) {
-    b <- options[[side]][namesToOptimise]
-    unlist(b)[.getFreeIndexes(b, paramPath, namesToOptimise)]
+    b <- options[[side]][freeParams]
+    unlist(b)[.getFreeIndexes(b, paramPath, freeParams)]
   })
-  freeInd <- .getFreeIndexes(par, paramPath, namesToOptimise)
+  freeInd <- .getFreeIndexes(par, paramPath, freeParams)
   objective <- function(freeParams, params) {
-    x <- unlist(params[namesToOptimise])
+    x <- unlist(params[freeParams])
     x[freeInd] <- freeParams
-    params[namesToOptimise] <- relist(x, params[namesToOptimise])
+    params[freeParams] <- relist(x, params[freeParams])
     -evaluateLikelihood(params, pd)
   }
-  optimisationStart <- unlist(par[namesToOptimise])[freeInd]
+  optimisationStart <- unlist(par[freeParams])[freeInd]
   optimum <- -evaluateLikelihood(par, pd)
   function(x) {
     par <- .assignElement(par, paramPath, x)
@@ -223,7 +245,7 @@ pl <- function(paramPath,
       optimisationStart,
       objective,
       method = "L-BFGS-B",
-      control = list(parscale = (boundaries$lb + boundaries$ub) / 2),
+      control = list(parscale = optimisationStart),
       lower = boundaries$lb,
       upper = boundaries$ub,
       params = par
@@ -293,25 +315,29 @@ plotPL <- function(pl, confidence=.95, ...) {
 }
 
 
-#' Estimate CI when parameters of other genes are fixed
+#' Estimate confidence intervals
 #'
 #' @inheritParams plFixed
 #' @inheritParams getCI
-#' @param geneIndexes an integer vector; for which genes subset confidence
-#'   intervals are to be calculated
-#' @param interval 
-#'
-#' @return a data.frame with two columns (left, right) confidence boundaries
-#'   in the order of geneIndexes
+#' @param geneIndexes a vector;  corresponds to the indexes of genes, for which the
+#' confidence intervals must be computed
+#' @details
+#' @return 
+#' - `ciGene`: 
+#'   a data.frame with two columns (left, right) confidence boundaries
+#'   in the order of geneIndexes;  
+#' - `ci`: a vector of two numbers;
 #' @export
+#' @rdname confint
 #'
-estimateCIFixed <- function(pd,
-                            fit,
-                            geneIndexes,
-                            parName,
-                            options,
-                            confidence=.95,
-                            interval) {
+ciGene <- function(pd,
+                   fit,
+                   geneIndexes,
+                   parName,
+                   options,
+                   interval,
+                   confidence = .95) {
+  options <- normaliseBoundaries(options, par, pd)
   if (missing(interval)) {
     interval <- cbind(options$lb[[parName]], options$ub[[parName]])
   }
@@ -323,17 +349,36 @@ estimateCIFixed <- function(pd,
       pd        = pd,
       geneIndex = geneIndex
     )
-    if (!is.null(dim(interval)) && (dim(interval) > 1)) {
-      interval <- interval[geneIndex, ]
-    }
     getCI(
       pL = pL,
       optimum = fit[[parName]][geneIndex],
-      interval = interval,
+      interval = interval[geneIndex,],
       confidence = confidence
     )
   })
   do.call(rbind, result)
+}
+
+#' @export
+#' @rdname confint
+ci <- function(pd,
+               fit,
+               paramPath,
+               options,
+               interval,
+               confidence = .95) {
+  options <- normaliseBoundaries(options, fit, pd)
+  if (missing(interval)) {
+    interval <- cbind(.getElement2(options$lb, paramPath),
+                      .getElement2(options$ub, paramPath))
+  }
+  pL <- pl(paramPath, fit, options, pd, namesToOptimise)
+  getCI(
+    pL = pL,
+    optimum = fit[[parName]][geneIndex],
+    interval = interval,
+    confidence = confidence
+  )
 }
 
 #'  Estimate confidence interval
@@ -349,7 +394,6 @@ estimateCIFixed <- function(pd,
 #'   the needed level (i.e. the CI exceeds the limitations in the `interval`,
 #'   NA is returned. Hence, in case of both ends, the return value is c(NA, NA).
 #' @keywords internal
-#' @rdname profile
 #' 
 getCI <- function(pL, optimum, confidence, interval) {
   threshold <- qchisq(confidence, 1)/2
