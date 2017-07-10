@@ -86,7 +86,6 @@ fitNormFactors <- function(pd, par, options) {
     x,
     objective,
     method = "L-BFGS-B",
-    control = list(parscale = (lb + ub) / 2), 
     lower = lb,
     upper = ub,
     counts = pd$counts
@@ -132,8 +131,8 @@ fitModel <- function(pulseData, par, options){
   known   <- .getKnownNames(par, options)
   knownGenePars <- .getKnownGeneNames(par, known) 
   fitSets <- list(
-    shared = .getSharedNames(par, known),
     params = .getGeneToFitNames(par, known),
+    shared = .getSharedNames(par, known),
     normFactors = "normFactors"
   )
   if (length(fitSets$shared) == 0)
