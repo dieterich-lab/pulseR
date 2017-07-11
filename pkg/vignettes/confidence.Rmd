@@ -56,6 +56,7 @@ pd <- PulseData(
   formulaIndexes = formulaIndexes,
   groups = fractions
 )
+detach(pulseRFractionData)
 opts <- setBoundaries(list(
   a = c(.1, 1e6),
   b = c(.01, .99),
@@ -63,7 +64,7 @@ opts <- setBoundaries(list(
 ))
 initPars <- list(p = pulseRFractionData$par$p)
 initPars <- initParameters(initPars, c("a", "b"), pulseData = pd, options = opts)
-opts <- setTolerance(params = 1e-3, normFactors = 1e-2, options = opts)
+opts <- setTolerance(params = 1e-6, normFactors = 1e-3, options = opts)
 
 ```
 
@@ -82,11 +83,11 @@ fit <- readRDS("fit.rds")
 #### Construct the profile likelihood
 
 ```{r}
-geneIndex <- 10
+geneIndex <- 7
 parName <- "b"
-interval <- c(0.99,1.01) * fit[[parName]][geneIndex]
+interval <- c(0.95,1.05) * fit[[parName]][geneIndex]
 numPoints <- 51
-pl <- profileOnlyGene(pd, fit, geneIndex, parName, opts, interval, numPoints = numPoints)
+pl <- profileGene(parName, geneIndex, pd, fit, interval, options=opts, numPoints = 21)
 ```
 
 We can see the result using the `plotPL` function:
@@ -99,12 +100,11 @@ The red line corresponds to the 95% confidence level likelihood threshold.
 The 95%-confidence interval for the $b$ parameter is defined from the 
 crossing points of the threshold line and the profile likelihood curve.
 
-Use the `estimateCI` function in order to estimate this points numerically:
+Use the `ciGene` function in order to estimate this points numerically:
 
 ```{r}
 geneIndexes <- seq_along(fit$b)
-CIs <- estimateCIFixed(pd =pd, fit = fit, geneIndexes = geneIndexes, 
-                       parName = parName, options =  opts) 
+CIs <- ciGene(parName, geneIndexes, pd, fit, opts)
 CIs
 ```
 
@@ -116,14 +116,14 @@ it is necessary to use the whole likelihood, which is a function of all shared a
 individual parameters.
 
 ```{r fig.width=6, fig.height=4}
-plTotal <- profile(paramPath = list("b",10),
+plTotal <- profile(paramPath = list("b",geneIndex),
               pd = pd, 
               par = fit,
               options = opts,
               interval = interval,
-              numPoints = numPoints)
+              numPoints = 20)
 plotPL(pl)
-lines(plTotal$b, plTotal$logL, col=3, lty=2)
+lines(plTotal$b, plTotal$logL, col="tomato", lty=2, lwd=2)
 ```
 
 Quite narrow:
