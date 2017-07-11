@@ -6,7 +6,7 @@
 \alias{plotPL}
 \title{Estimate profile likelihood for gene parameters (all other fixed)}
 \usage{
-profileOnlyGene(pd, par, parName, geneIndex, interval, options, ...)
+profileOnlyGene(parName, geneIndex, pd, par, interval, options, ...)
 
 profile(paramPath, pd, par, options, interval,
   namesToOptimise = names(options$lb), ...)
@@ -14,15 +14,15 @@ profile(paramPath, pd, par, options, interval,
 plotPL(pl, confidence = 0.95, ...)
 }
 \arguments{
-\item{pd}{the \link{PulseData} object}
-
-\item{par}{a result of the \link{fitModel} function}
-
 \item{parName}{a character;
 the names of the gene-specific parameter (e.g. "mu")}
 
 \item{geneIndex}{integer(1); the row index in the count table
 where the data for the given gene are located}
+
+\item{pd}{the \link{PulseData} object}
+
+\item{par}{a result of the \link{fitModel} function}
 
 \item{interval}{double(2) vector; left and right boundaries to calculate the
 profile likelihood for the parameter given in \code{parName}}

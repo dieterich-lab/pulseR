@@ -5,18 +5,40 @@
 \alias{ci}
 \title{Estimate confidence intervals}
 \usage{
-ciGene(pd, fit, geneIndexes, parName, options, interval, confidence = 0.95)
+ciGene(parName, geneIndexes, pd, par, options, interval, confidence = 0.95)
 
-ci(pd, fit, paramPath, options, interval, confidence = 0.95)
+ci(paramPath, pd, par, options, interval, confidence = 0.95)
 }
 \arguments{
+\item{parName}{a character, e.g. "mu"}
+
 \item{geneIndexes}{a vector;  corresponds to the indexes of genes, for which the
 confidence intervals must be computed}
+
+\item{pd}{a \link{PulseData} object}
+
+\item{par}{a result of the \link{fitModel} function}
+
+\item{options}{an option list used for the \link{fitModel} call;
+additional options can be specified:
+\itemize{
+\item jitter, a double (default: .1)
+\item replicate, an integer number of repeating the optimisation from random
+points
+\item absolute, a logical (default: FALSE); if FALSE, the likelihood value at
+the optimal point (i.e. \code{par}) is substracted from the returned value.
+In this case, the value of the returned function at the point \code{par} is 0.
+}}
 
 \item{interval}{a vector of too numbers, define (min, max) allowed
 parameter values}
 
 \item{confidence}{confidence level for interval estimation}
+
+\item{paramPath}{a list with names and indexes in order to locate the
+parameter in the \code{par} argument (e.g. \code{list("mu", 1)} corresponds to
+the "mu" parameter value for the first gene, i.e.
+\code{\verb{par[["mu"]][[1]]}}}
 }
 \value{
 \itemize{

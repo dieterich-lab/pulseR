@@ -54,15 +54,15 @@
 #' @export
 #' @rdname profile
 #'
-profileOnlyGene <- function(pd,
-                            par,
-                            parName,
+profileOnlyGene <- function(parName,
                             geneIndex,
+                            pd, 
+                            par,
                             interval, 
                             options,
                             ...
                             ) {
-  pL <- plGene(parName, par, options, pd, geneIndex)
+  pL <- plGene(parName, geneIndex, par, pd, options)
   parValue <- par[[parName]][geneIndex]
   if (missing(interval))
     interval <- c(.1,2) * parValue
@@ -89,7 +89,7 @@ profile <- function(paramPath,
                     interval,
                     namesToOptimise = names(options$lb), 
                     ...) {
-  pL <- pl(paramPath, par, options, pd,namesToOptimise )
+  pL <- pl(paramPath, par, pd, options, namesToOptimise)
   parValue <- .getElement2(par, paramPath)
   if (missing(interval))
     interval <- c(.1,2) * parValue
@@ -337,7 +337,7 @@ ciGene <- function(parName, geneIndexes, pd,  par, options, interval,
     interval <- cbind(options$lb[[parName]], options$ub[[parName]])
   }
   result <- lapply(geneIndexes, function(geneIndex) {
-    pL <- plGene(parName, par, options, pd, geneIndex)
+    pL <- plGene(parName, geneIndex, par, pd, options)
     getCI(
       pL = pL,
       optimum = par[[parName]][geneIndex],
