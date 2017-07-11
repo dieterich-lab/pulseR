@@ -350,16 +350,21 @@ ciGene <- function(parName, geneIndexes, pd,  par, options, interval,
 
 #' @export
 #' @rdname confint
-ci <- function(paramPath, pd,  par, options, interval, confidence = .95) {
+ci <- function(paramPath, pd, par, options, freeParams,
+               interval, confidence = .95) {
   options <- normaliseBoundaries(options, par, pd)
   if (missing(interval)) {
     interval <- cbind(.getElement2(options$lb, paramPath),
                       .getElement2(options$ub, paramPath))
   }
-  pL <- pl(paramPath, par, options, pd, namesToOptimise)
+  if (missing(freeParams)) {
+    pL <- pl(paramPath, par, pd, options)
+  } else {
+    pL <- pl(paramPath, par, pd, options, freeParams)
+  }
   getCI(
     pL = pL,
-    optimum = par[[parName]][geneIndex],
+    optimum = .getElement2(par, paramPath),
     interval = interval,
     confidence = confidence
   )

@@ -16,7 +16,7 @@ normFactors <- list(
 )
 
 nTime <- 1
-nReplicates <- 10
+nReplicates <- 4
 conditions <- data.frame(condition = rep(names(formulaIndexes), each = nTime),
                          time = rep(1:nTime, length(formulas) * nReplicates))
 rownames(conditions) <- paste0("sample_", seq_along(conditions$condition))
@@ -25,7 +25,7 @@ normFactors <- known$formulaIndexes[unique(names(known$formulaIndexes))]
 
 fractions <- as.character(interaction(conditions))
 
-nGenes <- 10
+nGenes <- 2
 par <- list(size = 1e4)
 par <-  c(par, list(
   mu = runif(nGenes, 100, 1000), nu = runif(nGenes,100,1000)))
@@ -77,11 +77,12 @@ test_that("profile estimations on the interval", {
 })
 
 
-test_that("profile estimations on the interval", {
+test_that("ci calculation", {
   cis <- ciGene("mu",1,pd,fit,options)
   optimum <- evaluateLikelihood(fit, pd)
   vapply(cis, function(x) {
     p <- .assignElement(fit, list("mu",1), x)
     evaluateLikelihood(p, pd) - optimum
   }, double(1))
+  cis <- ci(list("mu", 1), pd, fit, options) 
 })
