@@ -71,7 +71,7 @@ test_that("profile estimations on the interval", {
    prof <- profile(list("mu", 1), pd, fit, options,
                    interval = rep(fit$mu[1], 2), numPoints = 1) 
    expect_lte(abs(prof$logL), 1e-6)
-   prof <- profileOnlyGene("mu", 1, pd, fit, options,
+   prof <- profileGene("mu", 1, pd, fit, options,
                    interval = rep(fit$mu[1], 2), numPoints = 1) 
    expect_lte(abs(prof$logL), 1e-6)
 })

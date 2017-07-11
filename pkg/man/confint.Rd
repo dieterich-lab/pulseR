@@ -7,7 +7,7 @@
 \usage{
 ciGene(parName, geneIndexes, pd, par, options, interval, confidence = 0.95)
 
-ci(paramPath, pd, par, options, interval, confidence = 0.95)
+ci(paramPath, pd, par, options, freeParams, interval, confidence = 0.95)
 }
 \arguments{
 \item{parName}{a character, e.g. "mu"}
@@ -39,6 +39,9 @@ parameter values}
 parameter in the \code{par} argument (e.g. \code{list("mu", 1)} corresponds to
 the "mu" parameter value for the first gene, i.e.
 \code{\verb{par[["mu"]][[1]]}}}
+
+\item{freeParams}{which parameters are optimised (i.e. not fixed);
+by default they are derived from the names of the boundaries}
 }
 \value{
 \itemize{

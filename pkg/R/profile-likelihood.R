@@ -54,7 +54,7 @@
 #' @export
 #' @rdname profile
 #'
-profileOnlyGene <- function(parName,
+profileGene <- function(parName,
                             geneIndex,
                             pd, 
                             par,
