@@ -134,7 +134,6 @@ test_that("all together fitting works", {
       runif(length(par[[p]]), options$lb[[p]], options$ub[[p]])
   }
   par2$alpha <- .1
-  options$verbose <- "verbose"
   res <- pulseR:::fitModel(pd, par2, options)
   res$size <- NULL
   par$size <- NULL

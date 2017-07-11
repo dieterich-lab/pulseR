@@ -77,7 +77,6 @@ err <- function(x,y){
 }
 
 test_that("gene params fitting works (together)", {
-  skip("skip long test")
   par2 <- par
   toOptimise <- c("a", "b")
   par2[toOptimise] <- options$lb[toOptimise]
@@ -111,7 +110,6 @@ test_that("all together fitting works", {
     par2[[p]] <-
       runif(length(par[[p]]), options$lb[[p]], options$ub[[p]])
   }
-  options$verbose <- "verbose"
   res <- pulseR:::fitModel(pd, par2, options)
   res$size <- NULL
   par$size <- NULL
