@@ -62,7 +62,7 @@ profileOnlyGene <- function(pd,
                             options,
                             ...
                             ) {
-  pL <- plFixed(parName, par, options, pd, geneIndex)
+  pL <- plGene(parName, par, options, pd, geneIndex)
   parValue <- par[[parName]][geneIndex]
   if (missing(interval))
     interval <- c(.1,2) * parValue
@@ -102,7 +102,7 @@ profile <- function(paramPath,
 #'
 #' @param pL a function (x) --> double(1) returning the -log(likelihood).
 #'   For example, it can be a function returned by 
-#'   \link{`pl`} or \link{`plFixed`}.
+#'   \link{`pl`} or \link{`plGene`}.
 #' @param interval double(2) vector; left and right boundaries to calculate the
 #'   profile likelihood for the parameter given in `parName`
 #' @param logScale a logical (default: `FALSE`). Should points on the 
@@ -174,7 +174,7 @@ NULL
 
 .addDefaultsPL <- function(options) {
   defaults <- list(
-    replicate = 10,
+    replicates = 10,
     jitter = .1,
     absolute = FALSE)
   notSet <- setdiff(names(defaults),names(options))
@@ -231,10 +231,10 @@ pl <- function(paramPath,
     unlist(b)[.getFreeIndexes(b, paramPath, freeParams)]
   })
   freeInd <- .getFreeIndexes(par, paramPath, freeParams)
-  objective <- function(freeParams, params) {
-    x <- unlist(params[freeParams])
-    x[freeInd] <- freeParams
-    params[freeParams] <- relist(x, params[freeParams])
+  objective <- function(x, params) {
+    p <- unlist(params[freeParams])
+    p[freeInd] <- x
+    params[freeParams] <- relist(p, params[freeParams])
     -evaluateLikelihood(params, pd)
   }
   optimisationStart <- unlist(par[freeParams])[freeInd]
@@ -317,7 +317,7 @@ plotPL <- function(pl, confidence=.95, ...) {
 
 #' Estimate confidence intervals
 #'
-#' @inheritParams plFixed
+#' @inheritParams plGene
 #' @inheritParams getCI
 #' @param geneIndexes a vector;  corresponds to the indexes of genes, for which the
 #' confidence intervals must be computed
@@ -330,28 +330,17 @@ plotPL <- function(pl, confidence=.95, ...) {
 #' @export
 #' @rdname confint
 #'
-ciGene <- function(pd,
-                   fit,
-                   geneIndexes,
-                   parName,
-                   options,
-                   interval,
+ciGene <- function(parName, geneIndexes, pd,  par, options, interval,
                    confidence = .95) {
   options <- normaliseBoundaries(options, par, pd)
   if (missing(interval)) {
     interval <- cbind(options$lb[[parName]], options$ub[[parName]])
   }
   result <- lapply(geneIndexes, function(geneIndex) {
-    pL <- plFixed(
-      parName   = parName,
-      par       = fit,
-      options   = options,
-      pd        = pd,
-      geneIndex = geneIndex
-    )
+    pL <- plGene(parName, par, options, pd, geneIndex)
     getCI(
       pL = pL,
-      optimum = fit[[parName]][geneIndex],
+      optimum = par[[parName]][geneIndex],
       interval = interval[geneIndex,],
       confidence = confidence
     )
@@ -361,21 +350,16 @@ ciGene <- function(pd,
 
 #' @export
 #' @rdname confint
-ci <- function(pd,
-               fit,
-               paramPath,
-               options,
-               interval,
-               confidence = .95) {
-  options <- normaliseBoundaries(options, fit, pd)
+ci <- function(paramPath, pd,  par, options, interval, confidence = .95) {
+  options <- normaliseBoundaries(options, par, pd)
   if (missing(interval)) {
     interval <- cbind(.getElement2(options$lb, paramPath),
                       .getElement2(options$ub, paramPath))
   }
-  pL <- pl(paramPath, fit, options, pd, namesToOptimise)
+  pL <- pl(paramPath, par, options, pd, namesToOptimise)
   getCI(
     pL = pL,
-    optimum = fit[[parName]][geneIndex],
+    optimum = par[[parName]][geneIndex],
     interval = interval,
     confidence = confidence
   )
