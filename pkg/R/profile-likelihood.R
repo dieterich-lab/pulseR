@@ -336,12 +336,15 @@ ciGene <- function(parName, geneIndexes, pd,  par, options, interval,
   if (missing(interval)) {
     interval <- cbind(options$lb[[parName]], options$ub[[parName]])
   }
+  interval_ <- interval
   result <- lapply(geneIndexes, function(geneIndex) {
+    if (!is.null(dim(interval)[1]))
+      interval_ <- interval[geneIndex,]
     pL <- plGene(parName, geneIndex, par, pd, options)
     getCI(
       pL = pL,
       optimum = par[[parName]][geneIndex],
-      interval = interval[geneIndex,],
+      interval = interval_,
       confidence = confidence
     )
   })
