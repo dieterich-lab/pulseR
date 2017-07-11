@@ -5,7 +5,6 @@
 \alias{ll}
 \alias{getNorms}
 \alias{llnormFactors}
-\alias{totalll}
 \alias{predictExpression}
 \alias{evaluateLikelihood}
 \title{Get matrix for samples}
@@ -17,8 +16,6 @@ ll(par, namesToOptimise, pd, byOne = FALSE)
 getNorms(pd, normFactors = NULL)
 
 llnormFactors(par, pd)
-
-totalll(par, pd, include = names(par))
 
 predictExpression(par, pd)
 
@@ -47,9 +44,6 @@ normalisation is used (i.e. no spike-ins are provided).
 If NULL (default), only sequencing depth normalisation is used
 on the basis of spike-ins counts. The structure of \code{normFactors} must be
 same as of \code{pd$interSampleCoeffs}.}
-
-\item{include}{character vector, names of the parameters in the par list,
-which will be used in the created likelihood function}
 
 \item{pd}{\code{\link{PulseData}} object}
 
@@ -96,20 +90,6 @@ The created function returns a logarithm of the likelihood function
 calculated on the basis of the negative binomial distribution for the
 provided counts, normalisation factors and  parameters.
 
-a function with the following arguments:
-\itemize{
-\item x, a numeric vector which correspods to the records in
-\code{par} argument. The first element of the normFactors, if
-\code{par$normFactors} is not \code{NULL}, is excluded, because it is assumed
-to be fixed to 1. Other parameters are the same as in \code{par}.
-The structure of \code{x} is identical to \code{unlist(par[include])}. The first
-element of \code{par$normFactors} is removed.
-}
-
-The created function returns a minus logarithm of the likelihood function
-calculated on the basis of the negative binomial distribution for the
-provided counts, normalisation factors and  parameters.
-
 a named list:
 \itemize{
 \item predictions, a matrix of the same dimension as of the raw counts
@@ -131,8 +111,6 @@ Constructs a matrix of normalisation coefficients
 The first element of the normalisation factors is assumed to be fixed
 and equal 1. The rest of normalisation factors (i.e. without the first one)
 are assumed as variable parameters for the likelihood function.
-
-Create a likelihood function
 
 Calculates mean read number estimations
 
