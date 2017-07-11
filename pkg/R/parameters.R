@@ -34,11 +34,15 @@
 normaliseNormFactorBoundaries <- function(options, pd){
   f <- function(x) {
     if (is.list(x)) {
-      # if a user specified a list on the basis of the conditions
-      if (length(x) == length(unique(pd$conditions[, 1]))) {
-        conditionIds <- match(names(pd$interSampleCoeffs), pd$groups)
-        x <- multiplyList(x, pd$conditions[conditionIds, 1])
-      }
+      # the structure is the same as interSampleCoeffs
+      if (length(x) == length(pd$interSampleCoeffs))
+        x
+      else
+        # if a user specified a list on the basis of the conditions
+        if (length(x) == length(unique(pd$conditions[, 1]))) {
+          conditionIds <- match(names(pd$interSampleCoeffs), pd$groups)
+          x <- multiplyList(x, pd$conditions[conditionIds, 1])
+        }
     }
     # if only a scalar
     if (is.vector(x) && length(x) == 1) {
@@ -80,7 +84,7 @@ normaliseNormFactorBoundaries <- function(options, pd){
 normaliseBoundaries <- function(options, par, pd){
   if (!is.null(pd$interSampleCoeffs))  
     options <- normaliseNormFactorBoundaries(options, pd)
-  toExtend <- setdiff(names(options$lb), "normFactors")
+  toExtend <- setdiff(names(options$lb), c("size", "normFactors"))
   options$lb[toExtend] <- .b(options$lb[toExtend], par[toExtend])
   options$ub[toExtend] <- .b(options$ub[toExtend], par[toExtend])
   options
