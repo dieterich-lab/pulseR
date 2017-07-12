@@ -349,7 +349,7 @@ ciGene <- function(parName, geneIndexes, pd,  par, options, interval,
     )
   }
   if (!is.null(options$parallel) && options$parallel > 1) {
-    result <- lapply(geneIndexes, cifun, mc.cores = options$parallel)
+    result <- mclapply(geneIndexes, cifun, mc.cores = options$parallel)
   } else {
     result <- lapply(geneIndexes, cifun)
   }
