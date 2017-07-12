@@ -28,7 +28,7 @@
 #' same as defined in formulas. For example, if a formula is defined as 
 #' `mu * exp(-d * time)` where `time` is the time point of the experiment, 
 #' the condition data.frame must contain a column named `time`.
-#' 
+#' @import methods
 #' @export
 #' @rdname pulsedata
 #' 

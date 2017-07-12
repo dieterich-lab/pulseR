@@ -42,6 +42,7 @@ normaliseNormFactorBoundaries <- function(options, pd){
         if (length(x) == length(unique(pd$conditions[, 1]))) {
           conditionIds <- match(names(pd$interSampleCoeffs), pd$groups)
           x <- multiplyList(x, pd$conditions[conditionIds, 1])
+          names(x) <- names(pd$interSampleCoeffs)
         }
     }
     # if only a scalar
