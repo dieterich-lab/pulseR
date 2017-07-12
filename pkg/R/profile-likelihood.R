@@ -337,14 +337,9 @@ ciGene <- function(parName, geneIndexes, pd,  par, options, interval,
     interval <- cbind(options$lb[[parName]], options$ub[[parName]])
   }
   interval_ <- interval
-  if (!is.null(options$parallel) && options$parallel) {
-    applyfun <- mclapply
-  } else {
-    applyfun <- lapply
-  }
-  result <- lapply(geneIndexes, function(geneIndex) {
+  cifun <-  function(geneIndex) {
     if (!is.null(dim(interval)[1]))
-      interval_ <- interval[geneIndex,]
+      interval_ <- interval[geneIndex, ]
     pL <- plGene(parName, geneIndex, par, pd, options)
     getCI(
       pL = pL,
@@ -352,7 +347,12 @@ ciGene <- function(parName, geneIndexes, pd,  par, options, interval,
       interval = interval_,
       confidence = confidence
     )
-  })
+  }
+  if (!is.null(options$parallel) && options$parallel > 1) {
+    result <- lapply(geneIndexes, cifun, mc.cores = options$parallel)
+  } else {
+    result <- lapply(geneIndexes, cifun)
+  }
   do.call(rbind, result)
 }
 
