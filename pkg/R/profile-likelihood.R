@@ -337,6 +337,11 @@ ciGene <- function(parName, geneIndexes, pd,  par, options, interval,
     interval <- cbind(options$lb[[parName]], options$ub[[parName]])
   }
   interval_ <- interval
+  if (!is.null(options$parallel) && options$parallel) {
+    applyfun <- mclapply
+  } else {
+    applyfun <- lapply
+  }
   result <- lapply(geneIndexes, function(geneIndex) {
     if (!is.null(dim(interval)[1]))
       interval_ <- interval[geneIndex,]
