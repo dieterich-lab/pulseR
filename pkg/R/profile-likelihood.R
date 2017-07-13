@@ -73,7 +73,7 @@ profileGene <- function(parName,
 
 #' Profile
 #'
-#' @inheritParams profileOnlyGene
+#' @inheritParams profileGene
 #' @inheritParams pl
 #' @param parName 
 #'
@@ -289,7 +289,7 @@ pl <- function(paramPath,
 
 #' Plot the profile likeliihood
 #'
-#' @param pl  a result from the \link{profileOnlyGene} frunction
+#' @param pl  a result from the \link{profileGene} frunction
 #' @param confidence a confidence level for the likelihood threshold line
 #'   (default .95)
 #'
@@ -349,7 +349,7 @@ ciGene <- function(parName, geneIndexes, pd,  par, options, interval,
     )
   }
   if (!is.null(options$parallel) && options$parallel > 1) {
-    result <- mclapply(geneIndexes, cifun, mc.cores = options$parallel)
+    result <- parallel::mclapply(geneIndexes, cifun, mc.cores = options$parallel)
   } else {
     result <- lapply(geneIndexes, cifun)
   }

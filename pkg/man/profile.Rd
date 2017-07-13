@@ -37,7 +37,7 @@ parameter in the \code{par} argument (e.g. \code{list("mu", 1)} corresponds to
 the "mu" parameter value for the first gene, i.e.
 \code{\verb{par[["mu"]][[1]]}}}
 
-\item{pl}{a result from the \link{profileOnlyGene} frunction}
+\item{pl}{a result from the \link{profileGene} frunction}
 
 \item{confidence}{a confidence level for the likelihood threshold line
 (default .95)}
