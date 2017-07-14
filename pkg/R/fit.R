@@ -52,6 +52,10 @@ fitParamsSeparately <- function(pd,
                                 namesToOptimise,
                                 options, 
                                 indexes = seq_len(dim(pd$counts)[1])) {
+  if (missing(knownGenePars))
+    knownGenePars <- character(0)
+  if (is.null(options$replicates))
+    options$replicates <- 1
   options <- normaliseBoundaries(options, par, pd)
   # garantee that boundaries are in the same order as the params
   lb <- as.data.frame(options$lb[namesToOptimise])
@@ -62,7 +66,8 @@ fitParamsSeparately <- function(pd,
   fixedPars <- par
   for (i in indexes) {
     fixedPars[knownGenePars] <- lapply(par[knownGenePars], `[[`, i)
-    p[i,] <- .fitGene(p[i,], i, objective, lb, ub, fixedPars, pd$counts)$par
+    p[i,] <- .fitGene(p[i,], i, objective, lb, ub, fixedPars, pd$counts,
+                      N = options$replicates)$par
   }
   as.list(p)
 }

@@ -259,17 +259,43 @@ pl <- function(paramPath,
 # the calling convention if f(x, counts, fixedPars),
 # where x are the parameters to fit, fixed is a character vector of gene-
 # sepecific parameters which are fixed
-.fitGene <- function(initPars, i, objective, lb, ub, fixedPars, counts) {
-  stats::optim(
-    initPars,
+.fitGene <- function(initPars, i, objective, lb, ub, fixedPars, counts, N=2) {
+  lb <- unlist(lb[i,])
+  ub <- unlist(ub[i,])
+  optFun <- function(inits)
+    stats::optim(
+    inits,
     objective,
     method = "L-BFGS-B",
     control = list(parscale =  initPars), 
-    lower = lb[i, ],
-    upper = ub[i, ],
+    lower = lb,
+    upper = ub,
     counts = counts[i, ],
     fixedPars = fixedPars
   )
+  res <- optFun(initPars)
+  if (N > 1) {
+    res <- c(list(res),
+             replicate(N, {
+               initValues <- .sampleWithLog(lb, ub)
+               optFun(initValues)
+             }, simplify = FALSE))
+  res <- res[[which.min(lapply(res, `[[`, "value"))]]
+  }
+  res
+}
+
+.sampleWithLog <- function(lb,ub) {
+  sameSign <- lb*ub > 0
+  res <- double(length(lb))
+  # different signs -- linear runif
+  res[!sameSign] <- runif(sum(!sameSign), lb[!sameSign], ub[!sameSign])
+  # same sign -- logarithmic
+  signs <- sign(lb[sameSign])
+  res[sameSign] <- signs * exp(runif(sum(sameSign),
+                                     log(abs(lb[sameSign])),
+                                     log(abs(ub[sameSign]))))
+  res
 }
 
 # returns indexes of the parameters in the unlist(par[namesToOptimise])
