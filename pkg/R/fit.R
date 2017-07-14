@@ -70,7 +70,7 @@ fitParamsSeparately <- function(pd,
     fixedPars[knownGenePars] <- lapply(par[knownGenePars], `[[`, i)
     .fitGene(p[i,], i, objective, lb, ub, fixedPars, pd$counts,
                       N = options$replicates)$par
-  })
+  }, mc.cores = options$cores)
   res <- do.call(rbind, res)
   p[indexes,] <- res
   as.list(p)
