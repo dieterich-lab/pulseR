@@ -276,7 +276,7 @@ pl <- function(paramPath,
   res <- optFun(initPars)
   if (N > 1) {
     res <- c(list(res),
-             replicate(N, {
+             replicate(N - 1, {
                initValues <- .sampleWithLog(lb, ub)
                optFun(initValues)
              }, simplify = FALSE))
