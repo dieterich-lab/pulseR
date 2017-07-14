@@ -374,7 +374,7 @@ ciGene <- function(parName, geneIndexes, pd,  par, options, interval,
       confidence = confidence
     )
   }
-  if (!is.null(options$parallel) && options$parallel > 1) {
+  if (!is.null(options$cores) && options$cores > 1) {
     result <- parallel::mclapply(geneIndexes, cifun, mc.cores = options$parallel)
   } else {
     result <- lapply(geneIndexes, cifun)
