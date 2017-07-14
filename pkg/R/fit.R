@@ -64,11 +64,15 @@ fitParamsSeparately <- function(pd,
   objective <- ll(par, namesToOptimise, pd, byOne = TRUE)
   par[namesToOptimise] <- NULL
   fixedPars <- par
-  for (i in indexes) {
+  if (is.null(options$cores))
+    options$cores <- 1
+  res <- parallel::mclapply(indexes, function(i) {
     fixedPars[knownGenePars] <- lapply(par[knownGenePars], `[[`, i)
-    p[i,] <- .fitGene(p[i,], i, objective, lb, ub, fixedPars, pd$counts,
+    .fitGene(p[i,], i, objective, lb, ub, fixedPars, pd$counts,
                       N = options$replicates)$par
-  }
+  })
+  res <- do.call(rbind, res)
+  p[indexes,] <- res
   as.list(p)
 }
 
