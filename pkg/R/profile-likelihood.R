@@ -265,7 +265,7 @@ pl <- function(paramPath,
 # the calling convention if f(x, counts, fixedPars),
 # where x are the parameters to fit, fixed is a character vector of gene-
 # sepecific parameters which are fixed
-.fitGene <- function(initPars, i, objective, lb, ub, fixedPars, counts, N=2) {
+.fitGene <- function(initPars, i, objective, lb, ub, fixedPars, counts, N=1) {
   lb <- unlist(lb[i,])
   ub <- unlist(ub[i,])
   optFun <- function(inits)
@@ -380,8 +380,8 @@ ciGene <- function(parName, geneIndexes, pd,  par, options, interval,
       confidence = confidence
     )
   }
-  if (!is.null(options$parallel) && options$parallel > 1) {
-    result <- parallel::mclapply(geneIndexes, cifun, mc.cores = options$parallel)
+  if (!is.null(options$cores) && options$cores > 1) {
+    result <- parallel::mclapply(geneIndexes, cifun, mc.cores = options$cores)
   } else {
     result <- lapply(geneIndexes, cifun)
   }
