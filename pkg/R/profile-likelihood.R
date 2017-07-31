@@ -124,7 +124,7 @@ runPL <- function(pL,  interval, logScale = FALSE, numPoints = 21) {
     profileParam <-
       data.frame(x = seq(interval[1], interval[2], length.out = numPoints))
   }
-  res <- vapply(profileParam[,1], pL, double(1))
+  res <- vapply(profileParam[,1], function(x) pL(x)$value, double(1))
   profileParam$logL <- res
   profileParam
 }
@@ -206,12 +206,16 @@ plGene <- function(parName,
                     objective(initValues, pd$counts[geneIndex, ], fixedPars))
   function(x) {
     fixedPars[parName] <- x
-    min(replicate(options$replicates,{
+    fits <- replicate(options$replicates,{
       jitterCoeffs <- 1 + runif(length(initValues), 
                                 -options$jitter, options$jitter)
-    .fitGene(initValues * jitterCoeffs, geneIndex, objective, lb, ub, 
-             fixedPars, pd$counts)$value - optimum
-    })) }
+      res <- .fitGene(initValues * jitterCoeffs, geneIndex, objective, lb, ub, 
+               fixedPars, pd$counts)
+      res$value <- res$value - optimum
+      res
+    }, simplify = FALSE)
+    fits[[which.max(lapply(fits, `[[`, "value"))]]
+  }
 }
 
 
@@ -241,7 +245,7 @@ pl <- function(paramPath,
   optimum <- -evaluateLikelihood(par, pd)
   function(x) {
     par <- .assignElement(par, paramPath, x)
-    stats::optim(
+    res <- stats::optim(
       optimisationStart,
       objective,
       method = "L-BFGS-B",
@@ -249,7 +253,9 @@ pl <- function(paramPath,
       lower = boundaries$lb,
       upper = boundaries$ub,
       params = par
-    )$value - optimum
+    )
+    res$value <- res$value - optimum
+    res
   }
 }
 
@@ -420,7 +426,7 @@ ci <- function(paramPath, pd, par, options, freeParams,
 #' 
 getCI <- function(pL, optimum, confidence, interval) {
   threshold <- qchisq(confidence, 1)/2
-  objective <- function(x) pL(x) - threshold
+  objective <- function(x) pL(x)$value - threshold
   optimalObjective <- objective(optimum)
   ci <- c(NA, NA)
   if (optimalObjective * objective(interval[1]) < 0)

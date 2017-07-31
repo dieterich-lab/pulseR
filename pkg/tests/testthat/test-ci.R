@@ -62,9 +62,9 @@ fit <- fitModel(pd, par,options)
 
 test_that("plGene is zero at optimum", {
    expect_lte(
-     abs(plGene("mu",1,fit, pd,options)(fit$mu[1])), 1e-4)
+     abs(plGene("mu",1,fit, pd,options)(fit$mu[1])$value), 1e-4)
    expect_lte(
-     abs(pl(list("mu",1),fit, pd,options)(fit$mu[1])), 1e-4)
+     abs(pl(list("mu",1),fit, pd,options)(fit$mu[1])$value), 1e-4)
 })
 
 test_that("profile estimations on the interval", {
