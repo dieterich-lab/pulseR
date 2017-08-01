@@ -169,7 +169,8 @@ fitModel <- function(pulseData, par, options){
       par[parNames] <- res
     }
     par["size"] <- fitParams(pulseData, par, "size", options)
-    log2screen(options, progressString(err))
+    logLik <- evaluateLikelihood(par, pulseData)
+    log2screen(options, progressString(err, logLik))
     if (!is.null(options$resultRDS)) {
       saveRDS(object = par, file = options$resultRDS)
     }
@@ -182,11 +183,12 @@ fitModel <- function(pulseData, par, options){
   par
 }
 
-progressString <- function(err) {
+progressString <- function(err, logLik) {
   str <- format(unlist(err),
                 digits = 2,
                 width = 6)
-  paste0("Max Rel.err. in ", 
+  logLik <- format(logLik, digits=2, width=6)
+  paste0("LogLik: [", logLik, " ] Max Rel.err. in ", 
          paste("[",names(str), str,"]", collapse = " "), "\n")
 }
 
