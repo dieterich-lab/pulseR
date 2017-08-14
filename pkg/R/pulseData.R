@@ -65,7 +65,7 @@ PulseData <- function(counts,
                       formulaIndexes = NULL,
                       spikeins = NULL,
                       groups = NULL) {
-  e <- new.env()
+  e <- list()
   if (is.null(formulaIndexes))
     formulaIndexes <- match(conditions[, 1], names(formulas))
   class(e) <- "PulseData"
