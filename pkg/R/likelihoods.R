@@ -18,7 +18,6 @@ substitute_q <- function(x, env)
 #'
 #' @return a vector of length equal to the sample number
 #' @keywords  internal
-#' @rdname likelihoods
 #' 
 sample_means <- function(evaled_forms, norm_factors){
   evaled_forms %*% norm_factors
@@ -50,7 +49,6 @@ sample_means <- function(evaled_forms, norm_factors){
 #'  calculated on the basis of the negative binomial distribution for the
 #'  provided counts and parameters.
 #' @export
-#' @rdname likelihoods
 #'
 ll <- function(par, namesToOptimise, pd, byOne=FALSE) {
   # we use relist-unlist idiom in the likelihood implementation
@@ -92,7 +90,6 @@ ll <- function(par, namesToOptimise, pd, byOne=FALSE) {
 #' (i.e. the same as in `pd$rawFormulas`). The columns correspond to the samples
 #' in the count matrix of the PulseData object `pd`.
 #' @keywords  internal
-#' @rdname likelihoods
 #'
 getNorms <- function(pd, normFactors = NULL) {
   m <- matrix(0,
@@ -132,7 +129,6 @@ getNorms <- function(pd, normFactors = NULL) {
 #'   provided counts, normalisation factors and  parameters.
 #'
 #' @export
-#' @rdname likelihoods
 #' 
 llnormFactors <- function(par, pd) {
   evaledForms <- eval(as.call(c(cbind, pd$formulas)), par)
@@ -161,7 +157,6 @@ llnormFactors <- function(par, pd) {
 #' pr <- predictExpression(pd, res)
 #' plot(y = pr$predictions, x = pd$counts, xlab = "raw", ylab = "fitted")
 #' }
-#' @rdname likelihoods
 #' 
 predictExpression <- function(par, pd) {
   evaledForms <- eval(as.call(c(cbind, pd$formulas)), par)
@@ -184,7 +179,6 @@ log2screen <- function(options, ...) {
 #' 
 #' @return a logarithm of the likelihood for given parameters and counts values.
 #' @export
-#' @rdname likelihoods
 #'
 evaluateLikelihood <- function(par, pd) {
   sum(predictExpression(par, pd)$llog)
