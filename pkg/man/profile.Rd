@@ -3,15 +3,12 @@
 \name{profileGene}
 \alias{profileGene}
 \alias{profile}
-\alias{plotPL}
 \title{Estimate profile likelihood for gene parameters (all other fixed)}
 \usage{
 profileGene(parName, geneIndex, pd, par, interval, options, ...)
 
 profile(paramPath, pd, par, options, interval,
   namesToOptimise = names(options$lb), ...)
-
-plotPL(pl, confidence = 0.95, ...)
 }
 \arguments{
 \item{parName}{a character;
@@ -37,11 +34,6 @@ parameter in the \code{par} argument (e.g. \code{list("mu", 1)} corresponds to
 the "mu" parameter value for the first gene, i.e.
 \code{\verb{par[["mu"]][[1]]}}}
 
-\item{pl}{a result from the \link{profileGene} frunction}
-
-\item{confidence}{a confidence level for the likelihood threshold line
-(default .95)}
-
 \item{fit}{result output from the \link{fitModel} function}
 
 \item{parName}{}
@@ -52,13 +44,9 @@ function values. the other represents the profiled parameter values.
 
 a data.frame; the column \code{logl} corresponds to the -log(likelihood)
 function values. the other represents the profiled parameter values.
-
-used for its side effect
 }
 \description{
 Estimate profile likelihood for gene parameters (all other fixed)
 
 Profile
-
-Plot the profile likeliihood
 }

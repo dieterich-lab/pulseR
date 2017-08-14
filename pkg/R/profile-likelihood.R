@@ -327,7 +327,6 @@ pl <- function(paramPath,
 #'
 #' @return used for its side effect
 #' @export
-#' @rdname profile
 #'
 plotPL <- function(pl, confidence=.95, ...) {
   parName <- names(pl)[which(names(pl) != "logL")]
