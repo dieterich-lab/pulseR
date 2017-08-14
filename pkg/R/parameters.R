@@ -29,7 +29,6 @@
 #' @param pd  the \code{\link{PulseData}} object
 #'
 #' @return an updated options list
-#' @rdname params
 #'
 normaliseNormFactorBoundaries <- function(options, pd){
   f <- function(x) {
@@ -80,7 +79,6 @@ normaliseNormFactorBoundaries <- function(options, pd){
 #' @param pd the \code{\link{PulseData}} object
 #'
 #' @return an updated options list
-#' @rdname params
 #'
 normaliseBoundaries <- function(options, par, pd){
   if (!is.null(pd$interSampleCoeffs))  
@@ -99,7 +97,6 @@ normaliseBoundaries <- function(options, par, pd){
 #' @return an updated options list with the default records added for
 #' unspecified fields
 #' @export
-#' @rdname params
 #'
 #' @examples
 #' opts <- addDefault(list())
@@ -118,7 +115,6 @@ addDefault <- function(options) {
 #'
 #' @return NULL
 #' @export
-#' @rdname params
 #' @keywords internal
 validateOptions <- function(options){
   if (!is.list(options))
@@ -136,7 +132,6 @@ validateOptions <- function(options){
 #'
 #' @return NULL
 #' @keywords  internal
-#' @rdname params
 #'
 checkThresholds <- function(options){
   if (is.null(options$tolerance))
@@ -185,7 +180,6 @@ checkThresholds <- function(options){
 #'   - a single scalar value.
 #' 
 #' @export
-#' @rdname params
 #' 
 #' @examples
 #' # the simple way:
@@ -247,7 +241,6 @@ setBoundaries <- function(boundaries,
 #' A threshold  represents the relative changes in parameter values 
 #' between two subsequent fitting iterations.
 #' @export
-#' @rdname params
 #' @examples 
 #' setTolerance(params = 1e-2)
 #'
@@ -274,7 +267,6 @@ setTolerance <- function(params = .01,
 #'
 #' @return an option object with modified specified parameters.
 #' @export
-#' @rdname params
 #'
 setFittingOptions <- function(
     verbose = c("silent", "verbose"),
@@ -304,7 +296,6 @@ setFittingOptions <- function(
 #'
 #' @return  a list to provide to the function \code{\link{fitModel}}.
 #' @export
-#' @rdname params
 #'
 initParameters <- function(par, geneParams, pulseData, options) {
   validateOptions(options)
@@ -347,7 +338,6 @@ initParameters <- function(par, geneParams, pulseData, options) {
 #'
 #' @return NULL
 #' @keywords  internal
-#' @rdname params
 #'
 stopIfNotInRanges <- function(args, options) {
   args <- args[names(options$lb)]
@@ -390,7 +380,6 @@ stopIfNotInRanges <- function(args, options) {
 #' @details Use this function to estimate mean read numbers
 #' on the basis of the total fraction.
 #' @export
-#' @rdname params
 #'
 guessMeans <- function(pulseData,
                        totalLabel = "total",
