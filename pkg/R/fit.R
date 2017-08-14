@@ -1,15 +1,67 @@
 
 
-#' Fit parameters given the initial values and the parameter names
+#' Fit model parameters 
 #'
+#' `fitModel` is the main fitting function which wraps around the others and
+#' fit iteratively the whole model. \cr
+#' `fitParams` fits only the listed parameters and `fitParamsSeparately` fit 
+#' gene-specific parameters having the shared parameters (e.g. normalisation
+#' factors). \cr 
+#' `fitNormFactors` fits the normalisation factors having fixed all other 
+#' parameters.
+#' 
 #' @param pd the \code{\link{PulseData}} object
-#' @param par the parameter named list
+#' @param par a list with an initial parameters values.
+#' Names correspond to the parameter names used in formulas. 
+#' `size` corresponds to the size parameter, `normFactors` stands for the
+#' list with normalistion factors (in spike-in free design, see details).
+#' There are following parameter types:
+#'   - gene-specific parameters must be set as vectors of the length equal to 
+#'     the gene number. The function \link{initParameters} may 
+#'     simplify the process of initial values randomisation.
+#'   - shared parameters. These are prersented by single numeric values,
+#'     which are assumed to be equal between all genes, e.g. additional 
+#'     normalisation fator.
+#'   - the size parameter for the negative binomial 
+#'     distribution and a list with the normalisation factors, if 
+#'     no spike-ins are used in the experiment.
+#'   - normalisation factors (in case of spike-in free design).
+#'     
 #' @param namesToOptimise a vector of names of parameters, which values 
 #'   need be optimised
 #' @param options a list with optimisation options. For details, see
-#' \link{setTolerance}, \link{setFittingOptions}.
+#'  \link{setTolerance}, \link{setFittingOptions}.
+#' @param knownGenePars a vectors of names of the gene-specific parameters,
+#'  which  are assumed to be fixed during optimisation.
+#' @param indexes indexes of genes to fit. By default includes all the genes.
+#' @param options a list of options. For more details, see \link{setBoundaries},
+#'   \link{setTolerance}, \link{setFittingOptions}
+#' 
+#' @details If no spike-ins are used, relations between samples are inferred
+#' during the model fitting. In this case, the initial parameter list must 
+#' containg  a field named `normFactors`. The normalistion factors are 
+#' accepted as a named list, e.g.
+#' ```
+#' par$normFactors <- list(total_fraction = 1,
+#'       pull_down.4 = c(1, 0.01),
+#'       pull_down.8 = c(1, 0.01))
+#' ```
+#' This will define the initial values for the normalisation factors. 
+#' The very first value is **always** equal 1 irregardless of the user input.
+#' This has to be done because the normalisation factors are known
+#' only up to some scaling coefficient, because they appear in 
+#' a multiplication with the expression level or synthesis rate.
+#' 
+#' The structure of the `normFactors` list is identical to the 
+#' `pd$interSampleCoeffs`. This structure is defined by the 
+#' `formulaIndexes` and `conditions` argumenta in the `PulseData`,
+#'  see `\link{PulseData}` for more.
+#' 
+#' `\link{fitParamsSeparately}` is same as \link{fitParams}, 
+#' but performs optimisation for gene-specific parameters only.
+#' Every set of parameters is fitted individually for every gene.
 #'
-#' @return a list with fitted parameters
+#' @return a list with fitted parameters (only which were optimized)
 #' @export
 #' @rdname fit
 #'
@@ -32,20 +84,8 @@ fitParams <- function(pd, par, namesToOptimise, options) {
   relist(x, par[namesToOptimise])
 }
 
-#' Fit parameters with separate likelihood functions
-#'
-#' The same as \link{fitParams}, but performs optimisation for gene-specific
-#' parameters only. Every set of parameters is fitted individually for
-#' every gene.
-#' 
-#' @inheritParams fitParams
-#' @param knownNames a vectors of names of the gene-specific parameters, which 
-#' are assumed to be fixed during optimisation.
-#' @param indexes indexes of genes to fit. By default includes all the genes.
-#' @return a list with fitted parameters
-#' @export
 #' @rdname fit
-#'
+#' @export
 fitParamsSeparately <- function(pd,
                                 par,
                                 knownGenePars,
@@ -77,15 +117,8 @@ fitParamsSeparately <- function(pd,
 }
 
 
-#' Fit fraction normalisation coefficients
-#' 
-#' @inheritParams fitParams
-#' 
-#' @importFrom  stats optimise
-#' @return a list of normalisation factors
-#' @export
 #' @rdname fit
-#' 
+#' @export
 fitNormFactors <- function(pd, par, options) {
   lb <- unlist(options$lb$normFactors)[-1]
   ub <- unlist(options$ub$normFactors)[-1]
@@ -109,31 +142,8 @@ getMaxRelDifference <- function(x, y)
   max(abs(1 - unlist(x) / (unlist(y))), na.rm = TRUE)
 }
 
-#' Fit the model by MLE
-#'
-#' @param pulseData a \link{PulseData} object
-#' @param par a list with an initial parameters values.
-#'   Gene-specific parameters must be set as vectors of the length equal to 
-#'   the gene number. \link{initParameters} may simplify the process of initial
-#'   values randomisation.
-#'   
-#'   The list must include `size` parameter for the negative binomial 
-#'   distribution and a list with the normalisation factors, if 
-#'   no spike-ins are used in the experiment.
-#'   
-#' @param options a list of options. For more details, see \link{setBoundaries},
-#'   \link{setTolerance}, \link{setFittingOptions}
-#'
-#' @return a list with the fitted parameters in the same form as
-#' the initial guess `par` list
-#'     
-#' @export
 #' @rdname fit
-#'
-#' @examples 
-#' \dontrun{
-#' fitResult <- fitModel(pd, par)
-#' }
+#' @export
 fitModel <- function(pulseData, par, options){
   log2screen(options, cat("\n"))
   # identify what to fit and what is fixed

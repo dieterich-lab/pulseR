@@ -5,7 +5,7 @@
 \alias{fitParamsSeparately}
 \alias{fitNormFactors}
 \alias{fitModel}
-\title{Fit parameters given the initial values and the parameter names}
+\title{Fit model parameters}
 \usage{
 fitParams(pd, par, namesToOptimise, options)
 
@@ -19,7 +19,23 @@ fitModel(pulseData, par, options)
 \arguments{
 \item{pd}{the \code{\link{PulseData}} object}
 
-\item{par}{the parameter named list}
+\item{par}{a list with an initial parameters values.
+Names correspond to the parameter names used in formulas.
+\code{size} corresponds to the size parameter, \code{normFactors} stands for the
+list with normalistion factors (in spike-in free design, see details).
+There are following parameter types:
+\itemize{
+\item gene-specific parameters must be set as vectors of the length equal to
+the gene number. The function \link{initParameters} may
+simplify the process of initial values randomisation.
+\item shared parameters. These are prersented by single numeric values,
+which are assumed to be equal between all genes, e.g. additional
+normalisation fator.
+\item the size parameter for the negative binomial
+distribution and a list with the normalisation factors, if
+no spike-ins are used in the experiment.
+\item normalisation factors (in case of spike-in free design).
+}}
 
 \item{namesToOptimise}{a vector of names of parameters, which values
 need be optimised}
@@ -27,48 +43,47 @@ need be optimised}
 \item{options}{a list with optimisation options. For details, see
 \link{setTolerance}, \link{setFittingOptions}.}
 
+\item{knownGenePars}{a vectors of names of the gene-specific parameters,
+which  are assumed to be fixed during optimisation.}
+
 \item{indexes}{indexes of genes to fit. By default includes all the genes.}
-
-\item{pulseData}{a \link{PulseData} object}
-
-\item{knownNames}{a vectors of names of the gene-specific parameters, which
-are assumed to be fixed during optimisation.}
-
-\item{par}{a list with an initial parameters values.
-Gene-specific parameters must be set as vectors of the length equal to
-the gene number. \link{initParameters} may simplify the process of initial
-values randomisation.
-
-The list must include \code{size} parameter for the negative binomial
-distribution and a list with the normalisation factors, if
-no spike-ins are used in the experiment.}
 
 \item{options}{a list of options. For more details, see \link{setBoundaries},
 \link{setTolerance}, \link{setFittingOptions}}
 }
 \value{
-a list with fitted parameters
-
-a list with fitted parameters
-
-a list of normalisation factors
-
-a list with the fitted parameters in the same form as
-the initial guess \code{par} list
+a list with fitted parameters (only which were optimized)
 }
 \description{
-Fit parameters given the initial values and the parameter names
-
-The same as \link{fitParams}, but performs optimisation for gene-specific
-parameters only. Every set of parameters is fitted individually for
-every gene.
-
-Fit fraction normalisation coefficients
-
-Fit the model by MLE
+\code{fitModel} is the main fitting function which wraps around the others and
+fit iteratively the whole model. \cr
+\code{fitParams} fits only the listed parameters and \code{fitParamsSeparately} fit
+gene-specific parameters having the shared parameters (e.g. normalisation
+factors). \cr
+\code{fitNormFactors} fits the normalisation factors having fixed all other
+parameters.
 }
-\examples{
-\dontrun{
-fitResult <- fitModel(pd, par)
+\details{
+If no spike-ins are used, relations between samples are inferred
+during the model fitting. In this case, the initial parameter list must
+containg  a field named \code{normFactors}. The normalistion factors are
+accepted as a named list, e.g.\preformatted{par$normFactors <- list(total_fraction = 1,
+      pull_down.4 = c(1, 0.01),
+      pull_down.8 = c(1, 0.01))
 }
+
+This will define the initial values for the normalisation factors.
+The very first value is \strong{always} equal 1 irregardless of the user input.
+This has to be done because the normalisation factors are known
+only up to some scaling coefficient, because they appear in
+a multiplication with the expression level or synthesis rate.
+
+The structure of the \code{normFactors} list is identical to the
+\code{pd$interSampleCoeffs}. This structure is defined by the
+\code{formulaIndexes} and \code{conditions} argumenta in the \code{PulseData},
+see \code{\link{PulseData}} for more.
+
+\code{\link{fitParamsSeparately}} is same as \link{fitParams},
+but performs optimisation for gene-specific parameters only.
+Every set of parameters is fitted individually for every gene.
 }
