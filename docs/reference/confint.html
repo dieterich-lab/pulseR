@@ -6,13 +6,13 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Performs sequencing depth normalisation using the DESeq procedure. — normaliseNoSpikeins • pulseR</title>
+<title>Estimate confidence intervals — ciGene • pulseR</title>
 
 <!-- jquery -->
 <script src="https://code.jquery.com/jquery-3.1.0.min.js" integrity="sha384-nrOSfDHtoPMzJHjVTdCopGqIqeYETSXhZDFyniQ8ZHcVy08QesyHcnOUpMpqnmWq" crossorigin="anonymous"></script>
 <!-- Bootstrap -->
+<link href="https://maxcdn.bootstrapcdn.com/bootswatch/3.3.7/cerulean/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
 
-<link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
 
 <!-- Font Awesome icons -->
@@ -68,15 +68,18 @@
   </a>
   <ul class="dropdown-menu" role="menu">
     <li>
-      <a href="../articles/fit-fractions.html">PulseR workflow</a>
+      <a href="../articles/confidence.html">Profile likelihood</a>
     </li>
     <li>
       <a href="../articles/formulas.html">Formula creation</a>
     </li>
     <li>
-      <a href="../articles/spike-ins.html">PulseR with spike-ins</a>
+      <a href="../articles/workflow.html">The workflow</a>
     </li>
   </ul>
+</li>
+<li>
+  <a href="../news/index.html">News</a>
 </li>
       </ul>
       
@@ -98,31 +101,82 @@
       <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>Performs sequencing depth normalisation using the DESeq procedure.</h1>
+    <h1>Estimate confidence intervals</h1>
     </div>
 
     
-    <p>Performs sequencing depth normalisation using the DESeq procedure.</p>
+    <p>Estimate confidence intervals</p>
     
 
-    <pre class="usage"><span class='fu'>normaliseNoSpikeins</span>(<span class='no'>pd</span>, <span class='no'>groups</span>)</pre>
+    <pre class="usage"><span class='fu'>ciGene</span>(<span class='no'>parName</span>, <span class='no'>geneIndexes</span>, <span class='no'>pd</span>, <span class='no'>par</span>, <span class='no'>options</span>, <span class='no'>interval</span>, <span class='kw'>confidence</span> <span class='kw'>=</span> <span class='fl'>0.95</span>)
+
+<span class='fu'>ci</span>(<span class='no'>paramPath</span>, <span class='no'>pd</span>, <span class='no'>par</span>, <span class='no'>options</span>, <span class='no'>freeParams</span>, <span class='no'>interval</span>, <span class='kw'>confidence</span> <span class='kw'>=</span> <span class='fl'>0.95</span>)</pre>
     
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a> Arguments</h2>
     <table class="ref-arguments">
     <colgroup><col class="name" /><col class="desc" /></colgroup>
     <tr>
-      <th>pd</th>
-      <td><p>a <code><a href='PulseData.html'>PulseData</a></code> object</p></td>
+      <th>parName</th>
+      <td><p>a character, e.g. "mu"</p></td>
     </tr>
     <tr>
-      <th>groups</th>
-      <td><p>a vector for splitting objects to groups</p></td>
+      <th>geneIndexes</th>
+      <td><p>a vector;  corresponds to the indexes of genes, for which the
+confidence intervals must be computed</p></td>
+    </tr>
+    <tr>
+      <th>pd</th>
+      <td><p>a <a href='pulsedata.html'>PulseData</a> object</p></td>
+    </tr>
+    <tr>
+      <th>par</th>
+      <td><p>a result of the <a href='fit.html'>fitModel</a> function</p></td>
+    </tr>
+    <tr>
+      <th>options</th>
+      <td><p>an option list used for the <a href='fit.html'>fitModel</a> call;
+additional options can be specified:</p><ul>
+<li><p>jitter, a double (default: .1)</p></li>
+<li><p>replicate, an integer number of repeating the optimisation from random
+points</p></li>
+<li><p>absolute, a logical (default: FALSE); if FALSE, the likelihood value at
+the optimal point (i.e. <code>par</code>) is substracted from the returned value.
+In this case, the value of the returned function at the point <code>par</code> is 0.</p></li>
+</ul></td>
+    </tr>
+    <tr>
+      <th>interval</th>
+      <td><p>a vector of too numbers, define (min, max) allowed
+parameter values</p></td>
+    </tr>
+    <tr>
+      <th>confidence</th>
+      <td><p>confidence level for interval estimation</p></td>
+    </tr>
+    <tr>
+      <th>paramPath</th>
+      <td><p>a list with names and indexes in order to locate the
+parameter in the <code>par</code> argument (e.g. <code>list("mu", 1)</code> corresponds to
+the "mu" parameter value for the first gene, i.e.
+<code>par[["mu"]][[1]]</code>.</p></td>
+    </tr>
+    <tr>
+      <th>freeParams</th>
+      <td><p>which parameters are optimised (i.e. not fixed);
+by default they are derived from the names of the boundaries</p></td>
     </tr>
     </table>
     
     <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
 
-    <p>a vector with the coefficient for every sample</p>
+    
+<ul>
+<li><p><code>ciGene</code>:
+a data.frame with two columns (left, right) confidence boundaries
+in the order of geneIndexes;</p></li>
+<li><p><code>ci</code>: a vector of two numbers;</p></li>
+</ul>
+
     
 
   </div>

@@ -6,13 +6,13 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Create a test count data — generateTestDataFrom • pulseR</title>
+<title>Estimate profile likelihood for gene parameters (all other fixed) — profileGene • pulseR</title>
 
 <!-- jquery -->
 <script src="https://code.jquery.com/jquery-3.1.0.min.js" integrity="sha384-nrOSfDHtoPMzJHjVTdCopGqIqeYETSXhZDFyniQ8ZHcVy08QesyHcnOUpMpqnmWq" crossorigin="anonymous"></script>
 <!-- Bootstrap -->
+<link href="https://maxcdn.bootstrapcdn.com/bootswatch/3.3.7/cerulean/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
 
-<link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
 
 <!-- Font Awesome icons -->
@@ -68,15 +68,18 @@
   </a>
   <ul class="dropdown-menu" role="menu">
     <li>
-      <a href="../articles/fit-fractions.html">PulseR workflow</a>
+      <a href="../articles/confidence.html">Profile likelihood</a>
     </li>
     <li>
       <a href="../articles/formulas.html">Formula creation</a>
     </li>
     <li>
-      <a href="../articles/spike-ins.html">PulseR with spike-ins</a>
+      <a href="../articles/workflow.html">The workflow</a>
     </li>
   </ul>
+</li>
+<li>
+  <a href="../news/index.html">News</a>
 </li>
       </ul>
       
@@ -98,46 +101,71 @@
       <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>Create a test count data</h1>
+    <h1>Estimate profile likelihood for gene parameters (all other fixed)</h1>
     </div>
 
     
-    <p>Create a test count data</p>
+    <p>Estimate profile likelihood for gene parameters (all other fixed)</p>
     
 
-    <pre class="usage"><span class='fu'>generateTestDataFrom</span>(<span class='no'>formulas</span>, <span class='no'>formulaIndexes</span>, <span class='no'>normFactors</span>, <span class='no'>par</span>, <span class='no'>conditions</span>)</pre>
+    <pre class="usage"><span class='fu'>profileGene</span>(<span class='no'>parName</span>, <span class='no'>geneIndex</span>, <span class='no'>pd</span>, <span class='no'>par</span>, <span class='no'>interval</span>, <span class='no'>options</span>, <span class='no'>...</span>)
+
+<span class='fu'>profile</span>(<span class='no'>paramPath</span>, <span class='no'>pd</span>, <span class='no'>par</span>, <span class='no'>options</span>, <span class='no'>interval</span>, <span class='kw'>namesToOptimise</span> <span class='kw'>=</span> <span class='fu'>names</span>(<span class='no'>par</span>),
+  <span class='no'>...</span>)</pre>
     
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a> Arguments</h2>
     <table class="ref-arguments">
     <colgroup><col class="name" /><col class="desc" /></colgroup>
     <tr>
-      <th>formulas</th>
-      <td><p>a list</p></td>
+      <th>parName</th>
+      <td><p>a character;
+the names of the gene-specific parameter (e.g. "mu")</p></td>
     </tr>
     <tr>
-      <th>formulaIndexes</th>
-      <td><p>list of lists; defines indexes of formulas
-used for calculation of the expected read number</p></td>
+      <th>geneIndex</th>
+      <td><p>integer(1); the row index in the count table
+where the data for the given gene are located</p></td>
     </tr>
     <tr>
-      <th>normFactors</th>
-      <td><p>list of vectors; normalisation factors, if
-known</p></td>
+      <th>pd</th>
+      <td><p>the <a href='pulsedata.html'>PulseData</a> object</p></td>
     </tr>
     <tr>
       <th>par</th>
-      <td><p>a list of named parameters; gene-specific parameters
-are vectors</p></td>
+      <td><p>result output from the <a href='fit.html'>fitModel</a> function</p></td>
     </tr>
     <tr>
-      <th>conditions</th>
-      <td><p>a condition data.frame</p></td>
+      <th>interval</th>
+      <td><p>a vector of two numbers defining the interval of
+parameter profiling</p></td>
+    </tr>
+    <tr>
+      <th>options</th>
+      <td><p>the options list used for the <a href='fit.html'>fitModel</a> function call</p></td>
+    </tr>
+    <tr>
+      <th>...</th>
+      <td><p>other parameters to pass to <a href='runPL.html'>runPL</a>,
+i.e. <code>logScale</code> (logical) and number of points <code>numPoints</code></p></td>
+    </tr>
+    <tr>
+      <th>paramPath</th>
+      <td><p>a list with names and indexes in order to locate the
+parameter in the <code>par</code> argument (e.g. <code>list("mu", 1)</code> corresponds to
+the "mu" parameter value for the first gene, i.e.
+<code>par[["mu"]][[1]]</code>.</p></td>
+    </tr>
+    <tr>
+      <th>namesToOptimise</th>
+      <td><p>a character vector including the free parameters
+(i.e. they wil be treated as unfixed)</p></td>
     </tr>
     </table>
     
     <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
 
-    <p>matrix of counts with the order of columns as in conditions</p>
+    <p>a data.frame; the column <code>logl</code> corresponds to the -log(likelihood)
+function values. the other represents the profiled parameter values.</p>
     
 
   </div>

@@ -6,13 +6,13 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Fit the model by MLE — fitModel • pulseR</title>
+<title>Return a profile likelihood function for further use. — profiles • pulseR</title>
 
 <!-- jquery -->
 <script src="https://code.jquery.com/jquery-3.1.0.min.js" integrity="sha384-nrOSfDHtoPMzJHjVTdCopGqIqeYETSXhZDFyniQ8ZHcVy08QesyHcnOUpMpqnmWq" crossorigin="anonymous"></script>
 <!-- Bootstrap -->
+<link href="https://maxcdn.bootstrapcdn.com/bootswatch/3.3.7/cerulean/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
 
-<link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
 
 <!-- Font Awesome icons -->
@@ -68,15 +68,18 @@
   </a>
   <ul class="dropdown-menu" role="menu">
     <li>
-      <a href="../articles/fit-fractions.html">PulseR workflow</a>
+      <a href="../articles/confidence.html">Profile likelihood</a>
     </li>
     <li>
       <a href="../articles/formulas.html">Formula creation</a>
     </li>
     <li>
-      <a href="../articles/spike-ins.html">PulseR with spike-ins</a>
+      <a href="../articles/workflow.html">The workflow</a>
     </li>
   </ul>
+</li>
+<li>
+  <a href="../news/index.html">News</a>
 </li>
       </ul>
       
@@ -98,49 +101,83 @@
       <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>Fit the model by MLE</h1>
+    <h1>Return a profile likelihood function for further use.</h1>
     </div>
 
     
-    <p>Fit the model by MLE</p>
+    <p>A profile likelihood function returned by the <code>pl</code> considers parameters of
+other genes. In contrast, the one from the <code>plGene</code> assumes
+parameters of other genes,  shared parameters and
+the normalisation factors to be fixed. 
+The profile likelihood is estimated by numerical optimisation, and it can
+be sensitive to the initial values. The optimisation is repeated
+<code>options$replicate</code> times (default: 10), by adding a random values to the
+the optimum  parameters at a scale specified in the options$jitter.</p>
     
 
-    <pre class="usage"><span class='fu'>fitModel</span>(<span class='no'>pulseData</span>, <span class='no'>par</span>, <span class='no'>options</span>)</pre>
+    <pre class="usage"><span class='fu'>plGene</span>(<span class='no'>parName</span>, <span class='no'>geneIndex</span>, <span class='no'>par</span>, <span class='no'>pd</span>, <span class='no'>options</span>)
+
+<span class='fu'>pl</span>(<span class='no'>paramPath</span>, <span class='no'>par</span>, <span class='no'>pd</span>, <span class='no'>options</span>, <span class='kw'>freeParams</span> <span class='kw'>=</span> <span class='fu'>names</span>(<span class='no'>par</span>))</pre>
     
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a> Arguments</h2>
     <table class="ref-arguments">
     <colgroup><col class="name" /><col class="desc" /></colgroup>
     <tr>
-      <th>pulseData</th>
-      <td><p>a <a href='PulseData.html'>PulseData</a> object</p></td>
+      <th>parName</th>
+      <td><p>a character, e.g. "mu"</p></td>
+    </tr>
+    <tr>
+      <th>geneIndex</th>
+      <td><p>an integer(1); a row index which corresponds to
+the investigating gene</p></td>
     </tr>
     <tr>
       <th>par</th>
-      <td><p>a list with an initial parameters values.
-Gene-specific parameters must be set as vectors of the length equal to
-the gene number. <a href='initParameters.html'>initParameters</a> may simplify the process of initial
-values randomisation.</p>
-<p>The list must include <code>size</code> parameter for the negative binomial
-distribution and a list with the normalisation factors, if
-no spike-ins are used in the experiment.</p></td>
+      <td><p>a result of the <a href='fit.html'>fitModel</a> function</p></td>
+    </tr>
+    <tr>
+      <th>pd</th>
+      <td><p>a <a href='pulsedata.html'>PulseData</a> object</p></td>
     </tr>
     <tr>
       <th>options</th>
-      <td><p>a list of options. For more details, see <a href='setBoundaries.html'>setBoundaries</a>,
-<a href='setTolerance.html'>setTolerance</a>, <a href='setFittingOptions.html'>setFittingOptions</a></p></td>
+      <td><p>an option list used for the <a href='fit.html'>fitModel</a> call;
+additional options can be specified:</p><ul>
+<li><p>jitter, a double (default: .1)</p></li>
+<li><p>replicate, an integer number of repeating the optimisation from random
+points</p></li>
+<li><p>absolute, a logical (default: FALSE); if FALSE, the likelihood value at
+the optimal point (i.e. <code>par</code>) is substracted from the returned value.
+In this case, the value of the returned function at the point <code>par</code> is 0.</p></li>
+</ul></td>
+    </tr>
+    <tr>
+      <th>paramPath</th>
+      <td><p>a list with names and indexes in order to locate the
+parameter in the <code>par</code> argument (e.g. <code>list("mu", 1)</code> corresponds to
+the "mu" parameter value for the first gene, i.e.
+<code>par[["mu"]][[1]]</code>.</p></td>
+    </tr>
+    <tr>
+      <th>freeParams</th>
+      <td><p>which parameters are optimised (i.e. not fixed);
+by default they are derived from the names of the boundaries</p></td>
     </tr>
     </table>
     
     <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
 
-    <p>a list with the fitted parameters in the same form as
-the initial guess <code>par</code> list</p>
+    <p>a function with the calling convention as
+<code>f(x = double(1)) --&gt; double(1))</code>,
+which return the value of -log(likelihood(mu = x))</p>
+    
+    <h2 class="hasAnchor" id="details"><a class="anchor" href="#details"></a>Details</h2>
+
+    <p>The randomisation of the parameter x is made as
+$ x^* = (1 + a) * x$, where $a$ is a random value from the uniform
+distribution (0,<code>options$jitter</code>).</p>
     
 
-    <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
-    <pre class="examples"><span class='co'># NOT RUN {</span>
-<span class='no'>fitResult</span> <span class='kw'>&lt;-</span> <span class='fu'>fitModel</span>(<span class='no'>pd</span>, <span class='no'>par</span>)
-<span class='co'># }</span></pre>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="sidebar">
     <h2>Contents</h2>
@@ -148,9 +185,9 @@ the initial guess <code>par</code> list</p>
       <li><a href="#arguments">Arguments</a></li>
       
       <li><a href="#value">Value</a></li>
-      
-      <li><a href="#examples">Examples</a></li>
-    </ul>
+
+      <li><a href="#details">Details</a></li>
+          </ul>
 
   </div>
 </div>

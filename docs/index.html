@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Analysis of pulse-chase RNAseq data • pulseR</title>
-<!-- jquery --><script src="https://code.jquery.com/jquery-3.1.0.min.js" integrity="sha384-nrOSfDHtoPMzJHjVTdCopGqIqeYETSXhZDFyniQ8ZHcVy08QesyHcnOUpMpqnmWq" crossorigin="anonymous"></script><!-- Bootstrap --><link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+<!-- jquery --><script src="https://code.jquery.com/jquery-3.1.0.min.js" integrity="sha384-nrOSfDHtoPMzJHjVTdCopGqIqeYETSXhZDFyniQ8ZHcVy08QesyHcnOUpMpqnmWq" crossorigin="anonymous"></script><!-- Bootstrap --><link href="https://maxcdn.bootstrapcdn.com/bootswatch/3.3.7/united/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script><!-- Font Awesome icons --><link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.3/css/font-awesome.min.css" rel="stylesheet" integrity="sha384-T8Gy5hrqNKT+hzMclPo118YTQO6cYprQmhrYwIiQ/3axmI1hQomh7Ud2hPOy8SP1" crossorigin="anonymous">
 <!-- pkgdown --><link href="pkgdown.css" rel="stylesheet">
 <script src="jquery.sticky-kit.min.js"></script><script src="pkgdown.js"></script><!-- mathjax --><script src="https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script><!--[if lt IE 9]>
@@ -45,15 +45,18 @@
   </a>
   <ul class="dropdown-menu" role="menu">
 <li>
-      <a href="articles/fit-fractions.html">PulseR workflow</a>
+      <a href="articles/confidence.html">Profile likelihood</a>
     </li>
     <li>
       <a href="articles/formulas.html">Formula creation</a>
     </li>
     <li>
-      <a href="articles/spike-ins.html">PulseR with spike-ins</a>
+      <a href="articles/workflow.html">The workflow</a>
     </li>
   </ul>
+</li>
+<li>
+  <a href="news/index.html">News</a>
 </li>
       </ul>
 <ul class="nav navbar-nav navbar-right">
@@ -74,7 +77,34 @@
       
       </header><div class="row">
   <div class="contents col-md-9">
-    Tool to simplify MLE modelling of pulse-chase experiments.
+    <div id="pulser" class="section level1">
+<div class="page-header"><h1 class="hasAnchor">
+<a href="#pulser" class="anchor"></a>pulseR</h1></div>
+<p><img src="../logo.gif" width="100"><a href="https://travis-ci.org/dieterich-lab/pulseR"><img src="https://travis-ci.org/dieterich-lab/pulseR.svg?branch=master" alt="Build Status"></a> <a href="https://codecov.io/gh/dieterich-lab/pulseR"><img src="https://codecov.io/gh/dieterich-lab/pulseR/branch/master/graph/badge.svg" alt="codecov"></a></p>
+<div id="overview" class="section level2">
+<h2 class="hasAnchor">
+<a href="#overview" class="anchor"></a>Overview</h2>
+<p>Tools for the analysis of RNA metabolic kinetics from RNAseq data.</p>
+</div>
+<div id="installation" class="section level2">
+<h2 class="hasAnchor">
+<a href="#installation" class="anchor"></a>Installation</h2>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">install.packages</span>(<span class="st">"devtools"</span>)
+<span class="kw">library</span>(devtools)
+<span class="kw"><a href="http://www.rdocumentation.org/packages/devtools/topics/install_github">install_github</a></span>(<span class="st">"dieterich-lab/pulseR"</span>, <span class="dt">subdir=</span><span class="st">"pkg"</span>)</code></pre></div>
+<p>or download, unpack and run inside the <code>pkg</code> directory (change the version accordingly)</p>
+<pre class="shell"><code>R CMD build .
+R CMD INSTALL pulseR_0.0.1.tar.gz</code></pre>
+</div>
+<div id="presentation" class="section level2">
+<h2 class="hasAnchor">
+<a href="#presentation" class="anchor"></a>Presentation</h2>
+<div>
+<iframe src="https://alexey0308.github.io/tk/pulseR/slides.html" style="width:100%; height:600px; border:none;">
+</iframe>
+</div>
+</div>
+</div>
   </div>
 
   <div class="col-md-3" id="sidebar">
@@ -84,14 +114,10 @@
 </li>
 </ul>
 <h2>License</h2>
-
+<p><a href="https://www.r-project.org/Licenses/GPL-3">GPL-3</a></p>
 <h2>Developers</h2>
 <ul class="list-unstyled">
 <li>Alexey Uvarovskii <br><small class="roles"> Author, maintainer </small> </li>
-</ul>
-<h2>Dev status</h2>
-<ul class="list-unstyled">
-<li><a href="https://www.r-project.org/Licenses/GPL-3">GPL-3</a></li>
 </ul>
 </div>
 </div>

@@ -11,8 +11,8 @@
 <!-- jquery -->
 <script src="https://code.jquery.com/jquery-3.1.0.min.js" integrity="sha384-nrOSfDHtoPMzJHjVTdCopGqIqeYETSXhZDFyniQ8ZHcVy08QesyHcnOUpMpqnmWq" crossorigin="anonymous"></script>
 <!-- Bootstrap -->
+<link href="https://maxcdn.bootstrapcdn.com/bootswatch/3.3.7/cerulean/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
 
-<link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
 
 <!-- Font Awesome icons -->
@@ -68,15 +68,18 @@
   </a>
   <ul class="dropdown-menu" role="menu">
     <li>
-      <a href="../articles/fit-fractions.html">PulseR workflow</a>
+      <a href="../articles/confidence.html">Profile likelihood</a>
     </li>
     <li>
       <a href="../articles/formulas.html">Formula creation</a>
     </li>
     <li>
-      <a href="../articles/spike-ins.html">PulseR with spike-ins</a>
+      <a href="../articles/workflow.html">The workflow</a>
     </li>
   </ul>
+</li>
+<li>
+  <a href="../news/index.html">News</a>
 </li>
       </ul>
       
@@ -105,14 +108,14 @@
     <p>Constructs a matrix of normalisation coefficients</p>
     
 
-    <pre class="usage"><span class='fu'>getNorms</span>(<span class='no'>pd</span>, <span class='kw'>normFactors</span> <span class='kw'>=</span> <span class='kw'>NULL</span>)</pre>
+    <pre class="usage"><span class='fu'>getNorms</span>(<span class='no'>pulseData</span>, <span class='kw'>normFactors</span> <span class='kw'>=</span> <span class='kw'>NULL</span>)</pre>
     
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a> Arguments</h2>
     <table class="ref-arguments">
     <colgroup><col class="name" /><col class="desc" /></colgroup>
     <tr>
-      <th>pd</th>
-      <td><p><code><a href='PulseData.html'>PulseData</a></code> object</p></td>
+      <th>pulseData</th>
+      <td><p><code><a href='pulsedata.html'>PulseData</a></code> object</p></td>
     </tr>
     <tr>
       <th>normFactors</th>
@@ -120,7 +123,7 @@
 normalisation is used (i.e. no spike-ins are provided).
 If NULL (default), only sequencing depth normalisation is used
 on the basis of spike-ins counts. The structure of <code>normFactors</code> must be
-same as of <code>pd$interSampleCoeffs</code>.</p></td>
+same as of <code>pulseData$interSampleCoeffs</code>.</p></td>
     </tr>
     </table>
     
@@ -129,8 +132,8 @@ same as of <code>pd$interSampleCoeffs</code>.</p></td>
     <p>a matrix of normalisation coefficients to use during calculation of
 mean read number in samples. The row number equals number of
 different formulas used in estimation of means
-(i.e. the same as in <code>pd$rawFormulas</code>). The columns correspond to the samples
-in the count matrix of the PulseData object <code>pd</code>.</p>
+(i.e. the same as in <code>pulseData$rawFormulas</code>). The columns correspond to the samples
+in the count matrix of the PulseData object <code>pulseData</code>.</p>
     
 
   </div>

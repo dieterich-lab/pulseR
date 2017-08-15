@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Estimate initial guess for the mean expression level — guessMeans • pulseR</title>
+<title>Fit model parameters — fitParams • pulseR</title>
 
 <!-- jquery -->
 <script src="https://code.jquery.com/jquery-3.1.0.min.js" integrity="sha384-nrOSfDHtoPMzJHjVTdCopGqIqeYETSXhZDFyniQ8ZHcVy08QesyHcnOUpMpqnmWq" crossorigin="anonymous"></script>
@@ -101,15 +101,27 @@
       <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>Estimate initial guess for the mean expression level</h1>
+    <h1>Fit model parameters</h1>
     </div>
 
     
-    <p>Estimate initial guess for the mean expression level</p>
+    <p><code>fitModel</code> is the main fitting function which wraps around the others and
+fit iteratively the whole model. 
+<code>fitParams</code> fits only the listed parameters and <code>fitParamsSeparately</code> fit
+gene-specific parameters having the shared parameters (e.g. normalisation
+factors). 
+<code>fitNormFactors</code> fits the normalisation factors having fixed all other
+parameters.</p>
     
 
-    <pre class="usage"><span class='fu'>guessMeans</span>(<span class='no'>pulseData</span>, <span class='kw'>totalLabel</span> <span class='kw'>=</span> <span class='st'>"total"</span>, <span class='kw'>fun</span> <span class='kw'>=</span> <span class='fu'>c</span>(<span class='st'>"mean"</span>, <span class='st'>"geomean"</span>,
-  <span class='st'>"median"</span>))</pre>
+    <pre class="usage"><span class='fu'>fitParams</span>(<span class='no'>pulseData</span>, <span class='no'>par</span>, <span class='no'>namesToOptimise</span>, <span class='no'>options</span>)
+
+<span class='fu'>fitParamsSeparately</span>(<span class='no'>pulseData</span>, <span class='no'>par</span>, <span class='no'>knownGenePars</span>, <span class='no'>namesToOptimise</span>, <span class='no'>options</span>,
+  <span class='kw'>indexes</span> <span class='kw'>=</span> <span class='fu'>seq_len</span>(<span class='fu'>dim</span>(<span class='no'>pulseData</span>$<span class='no'>counts</span>)[<span class='fl'>1</span>]))
+
+<span class='fu'>fitNormFactors</span>(<span class='no'>pulseData</span>, <span class='no'>par</span>, <span class='no'>options</span>)
+
+<span class='fu'>fitModel</span>(<span class='no'>pulseData</span>, <span class='no'>par</span>, <span class='no'>options</span>)</pre>
     
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a> Arguments</h2>
     <table class="ref-arguments">
@@ -119,26 +131,70 @@
       <td><p>the <code><a href='pulsedata.html'>PulseData</a></code> object</p></td>
     </tr>
     <tr>
-      <th>totalLabel</th>
-      <td><p>a character, the name of the factor level in the
-condition matrix, which correspond to the total fraction ("total" by default).</p></td>
+      <th>par</th>
+      <td><p>a list with an initial parameters values.
+Names correspond to the parameter names used in formulas.
+<code>size</code> corresponds to the size parameter, <code>normFactors</code> stands for the
+list with normalistion factors (in spike-in free design, see details).
+There are following parameter types:</p><ul>
+<li><p>gene-specific parameters must be set as vectors of the length equal to
+the gene number. The function <a href='initParameters.html'>initParameters</a> may
+simplify the process of initial values randomisation.</p></li>
+<li><p>shared parameters. These are prersented by single numeric values,
+which are assumed to be equal between all genes, e.g. additional
+normalisation fator.</p></li>
+<li><p>the size parameter for the negative binomial
+distribution and a list with the normalisation factors, if
+no spike-ins are used in the experiment.</p></li>
+<li><p>normalisation factors (in case of spike-in free design).</p></li>
+</ul></td>
     </tr>
     <tr>
-      <th>fun</th>
-      <td><p>a function used to estimate the expression level.
-Possible variants are mean, median and adjusted geometric mean (i.e.
-$exp(mean(log(x + .5)))$.</p></td>
+      <th>namesToOptimise</th>
+      <td><p>a vector of names of parameters, which values
+need be optimised</p></td>
+    </tr>
+    <tr>
+      <th>options</th>
+      <td><p>a list of options. For more details, see <a href='setBoundaries.html'>setBoundaries</a>,
+<a href='setTolerance.html'>setTolerance</a>, <a href='setFittingOptions.html'>setFittingOptions</a></p></td>
+    </tr>
+    <tr>
+      <th>knownGenePars</th>
+      <td><p>a vectors of names of the gene-specific parameters,
+which  are assumed to be fixed during optimisation.</p></td>
+    </tr>
+    <tr>
+      <th>indexes</th>
+      <td><p>indexes of genes to fit. By default includes all the genes.</p></td>
     </tr>
     </table>
     
     <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
 
-    <p>a vector of expression level estimations for every gene</p>
+    <p>a list with fitted parameters (only which were optimized)</p>
     
     <h2 class="hasAnchor" id="details"><a class="anchor" href="#details"></a>Details</h2>
 
-    <p>Use this function to estimate mean read numbers
-on the basis of the total fraction.</p>
+    <p>If no spike-ins are used, relations between samples are inferred
+during the model fitting. In this case, the initial parameter list must
+containg  a field named <code>normFactors</code>. The normalistion factors are
+accepted as a named list, e.g.</p><pre>par$normFactors &lt;- list(total_fraction = 1,
+      pull_down.4 = c(1, 0.01),
+      pull_down.8 = c(1, 0.01))
+</pre>
+    <p>This will define the initial values for the normalisation factors.
+The very first value is <strong>always</strong> equal 1 irregardless of the user input.
+This has to be done because the normalisation factors are known
+only up to some scaling coefficient, because they appear in
+a multiplication with the expression level or synthesis rate.</p>
+<p>The structure of the <code>normFactors</code> list is identical to the
+<code>pulseData$interSampleCoeffs</code>. This structure is defined by the
+<code>formulaIndexes</code> and <code>conditions</code> argumenta in the <code>PulseData</code>,
+see <code><a href='pulsedata.html'>PulseData</a></code> for more.
+    <code>fitParamsSeparately</code> is same as fitParams,
+but performs optimisation for gene-specific parameters only.
+Every set of parameters is fitted individually for every gene.</p>
     
 
   </div>

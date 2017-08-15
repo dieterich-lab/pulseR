@@ -11,8 +11,8 @@
 <!-- jquery -->
 <script src="https://code.jquery.com/jquery-3.1.0.min.js" integrity="sha384-nrOSfDHtoPMzJHjVTdCopGqIqeYETSXhZDFyniQ8ZHcVy08QesyHcnOUpMpqnmWq" crossorigin="anonymous"></script>
 <!-- Bootstrap -->
+<link href="https://maxcdn.bootstrapcdn.com/bootswatch/3.3.7/cerulean/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
 
-<link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
 
 <!-- Font Awesome icons -->
@@ -68,15 +68,18 @@
   </a>
   <ul class="dropdown-menu" role="menu">
     <li>
-      <a href="../articles/fit-fractions.html">PulseR workflow</a>
+      <a href="../articles/confidence.html">Profile likelihood</a>
     </li>
     <li>
       <a href="../articles/formulas.html">Formula creation</a>
     </li>
     <li>
-      <a href="../articles/spike-ins.html">PulseR with spike-ins</a>
+      <a href="../articles/workflow.html">The workflow</a>
     </li>
   </ul>
+</li>
+<li>
+  <a href="../news/index.html">News</a>
 </li>
       </ul>
       
@@ -100,7 +103,7 @@
     <div class="page-header">
       <h1>
         Reference
-        <small>version&nbsp;0.0.2</small>
+        <small>version&nbsp;1.0.0</small>
       </h1>
     </div>
 
@@ -128,12 +131,6 @@
         </tr><tr>
           <!--  -->
           <td>
-            <p><code><a href="addKnownToFormulas.html">addKnownToFormulas</a></code> </p>
-          </td>
-          <td><p>Evaluate formulas in the environment of known params from the conditions</p></td>
-        </tr><tr>
-          <!--  -->
-          <td>
             <p><code><a href="amount_.html">amount_</a></code> </p>
           </td>
           <td><p>Create a formula object for the initial RNA level.</p></td>
@@ -146,9 +143,9 @@
         </tr><tr>
           <!--  -->
           <td>
-            <p><code><a href="checkThresholds.html">checkThresholds</a></code> </p>
+            <p><code><a href="confint.html">ciGene</a></code> <code><a href="confint.html">ci</a></code> </p>
           </td>
-          <td><p>Tests tolerance thersholds for correctness</p></td>
+          <td><p>Estimate confidence intervals</p></td>
         </tr><tr>
           <!--  -->
           <td>
@@ -183,51 +180,9 @@ the condition <code>data.frame</code></p></td>
         </tr><tr>
           <!--  -->
           <td>
-            <p><code><a href="findDeseqFactorsForFractions.html">findDeseqFactorsForFractions</a></code> </p>
+            <p><code><a href="fit.html">fitParams</a></code> <code><a href="fit.html">fitParamsSeparately</a></code> <code><a href="fit.html">fitNormFactors</a></code> <code><a href="fit.html">fitModel</a></code> </p>
           </td>
-          <td><p>Calculate normalisation factors</p></td>
-        </tr><tr>
-          <!--  -->
-          <td>
-            <p><code><a href="findDeseqFactorsSingle.html">findDeseqFactorsSingle</a></code> </p>
-          </td>
-          <td><p>Calculate normalisation factors for columns in a matrix</p></td>
-        </tr><tr>
-          <!--  -->
-          <td>
-            <p><code><a href="fitModel.html">fitModel</a></code> </p>
-          </td>
-          <td><p>Fit the model by MLE</p></td>
-        </tr><tr>
-          <!--  -->
-          <td>
-            <p><code><a href="fitNormFactors.html">fitNormFactors</a></code> </p>
-          </td>
-          <td><p>Fit fraction normalisation coefficients</p></td>
-        </tr><tr>
-          <!--  -->
-          <td>
-            <p><code><a href="fitParams.html">fitParams</a></code> </p>
-          </td>
-          <td><p>Fit parameters given the initial values and the parameter names</p></td>
-        </tr><tr>
-          <!--  -->
-          <td>
-            <p><code><a href="fitParamsSeparately.html">fitParamsSeparately</a></code> </p>
-          </td>
-          <td><p>Fit parameters with separate likelihood functions</p></td>
-        </tr><tr>
-          <!--  -->
-          <td>
-            <p><code><a href="generateTestDataFrom.html">generateTestDataFrom</a></code> </p>
-          </td>
-          <td><p>Create a test count data</p></td>
-        </tr><tr>
-          <!--  -->
-          <td>
-            <p><code><a href="getNorms.html">getNorms</a></code> </p>
-          </td>
-          <td><p>Constructs a matrix of normalisation coefficients</p></td>
+          <td><p>Fit model parameters</p></td>
         </tr><tr>
           <!--  -->
           <td>
@@ -274,21 +229,9 @@ if the initial amount is 0.</p></td>
         </tr><tr>
           <!--  -->
           <td>
-            <p><code><a href="makeGroups.html">makeGroups</a></code> </p>
-          </td>
-          <td><p>Constructs coefficients list and their indexes according to the grouping rule</p></td>
-        </tr><tr>
-          <!--  -->
-          <td>
             <p><code><a href="MeanFormulas.html">MeanFormulas</a></code> </p>
           </td>
           <td><p>Create list of formulas for expected read numbers</p></td>
-        </tr><tr>
-          <!--  -->
-          <td>
-            <p><code><a href="multiplyList.html">multiplyList</a></code> </p>
-          </td>
-          <td><p>A helper to generate named lists</p></td>
         </tr><tr>
           <!--  -->
           <td>
@@ -304,19 +247,13 @@ if the initial amount is 0.</p></td>
 
 Create lower and upper boundaries with the same structure as
 the list of normalisation coefficients <code>interSamplCoeffs</code> in
-the <code><a href='reference/PulseData.html'>PulseData</a></code> object.</p></td>
+the <code><a href='reference/pulsedata.html'>PulseData</a></code> object.</p></td>
         </tr><tr>
           <!--  -->
           <td>
-            <p><code><a href="normaliseNoSpikeins.html">normaliseNoSpikeins</a></code> </p>
+            <p><code><a href="plotPL.html">plotPL</a></code> </p>
           </td>
-          <td><p>Performs sequencing depth normalisation using the DESeq procedure.</p></td>
-        </tr><tr>
-          <!--  -->
-          <td>
-            <p><code><a href="normaliseWithSpikeIns.html">normaliseWithSpikeIns</a></code> </p>
-          </td>
-          <td><p>Estimate DESeq normalisation factors using spike-ins counts</p></td>
+          <td><p>Plot the profile likeliihood</p></td>
         </tr><tr>
           <!--  -->
           <td>
@@ -326,9 +263,15 @@ the <code><a href='reference/PulseData.html'>PulseData</a></code> object.</p></t
         </tr><tr>
           <!--  -->
           <td>
-            <p><code><a href="PulseData.html">PulseData</a></code> </p>
+            <p><code><a href="profile.html">profileGene</a></code> <code><a href="profile.html">profile</a></code> </p>
           </td>
-          <td><p>Create an object for pulse-change count data</p></td>
+          <td><p>Estimate profile likelihood for gene parameters (all other fixed)</p></td>
+        </tr><tr>
+          <!--  -->
+          <td>
+            <p><code><a href="profiles.html">plGene</a></code> <code><a href="profiles.html">pl</a></code> </p>
+          </td>
+          <td><p>Return a profile likelihood function for further use.</p></td>
         </tr><tr>
           <!--  -->
           <td>
@@ -344,9 +287,9 @@ the <code><a href='reference/PulseData.html'>PulseData</a></code> object.</p></t
         </tr><tr>
           <!--  -->
           <td>
-            <p><code><a href="sample_means.html">sample_means</a></code> </p>
+            <p><code><a href="runPL.html">runPL</a></code> </p>
           </td>
-          <td><p>Get matrix for samples</p></td>
+          <td><p>Compute profile likelihood on the interval</p></td>
         </tr><tr>
           <!--  -->
           <td>
@@ -366,30 +309,6 @@ the <code><a href='reference/PulseData.html'>PulseData</a></code> object.</p></t
           </td>
           <td><p>Set the stopping criteria in a form of the relative
 changes during fitting iterations.</p></td>
-        </tr><tr>
-          <!--  -->
-          <td>
-            <p><code><a href="shrinkList.html">shrinkList</a></code> </p>
-          </td>
-          <td><p>Leave only one item per name</p></td>
-        </tr><tr>
-          <!--  -->
-          <td>
-            <p><code><a href="stopIfNotInRanges.html">stopIfNotInRanges</a></code> </p>
-          </td>
-          <td><p>Validate list of parameters according to allowed value ranges.</p></td>
-        </tr><tr>
-          <!--  -->
-          <td>
-            <p><code><a href="totalll.html">totalll</a></code> </p>
-          </td>
-          <td><p>Create a likelihood function</p></td>
-        </tr><tr>
-          <!--  -->
-          <td>
-            <p><code><a href="validateOptions.html">validateOptions</a></code> </p>
-          </td>
-          <td><p>Check options for sanity.</p></td>
         </tr>
       </tbody>
       </table>

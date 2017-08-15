@@ -12,9 +12,6 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
-## Introduction
-
-
 
 ## Approximation of confidence intervals using only gene specific data
 
@@ -71,7 +68,7 @@ fit <- fitModel(pulseData = pd, par = initPars, options = opts)
 
 #### Construct the profile likelihood
 
-```{r}
+```{r collapse=TRUE}
 geneIndex <- 7
 parName <- "d"
 interval <- c(0.85,1.2) * fit[[parName]][geneIndex]
@@ -93,7 +90,7 @@ crossing points of the threshold line and the profile likelihood curve.
 
 Use the `ciGene` function in order to estimate this points numerically:
 
-```{r}
+```{r collapse=TRUE}
 geneIndexes <- 1:10
 CIs <- ciGene(parName, geneIndexes, pd, fit, opts)
 CIs
@@ -128,7 +125,7 @@ plTotal <- profile(paramPath = list("normFactors",2,1),
 However, it may result in long computation times, since it is equivalent to
 refitting the whole model several times.
 
-```{r}
+```{r collapse=TRUE}
 sessionInfo()
 ```
 
