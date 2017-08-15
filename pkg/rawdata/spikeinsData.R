@@ -1,7 +1,7 @@
 
 set.seed(259)
 
-nGenes <- 50
+nGenes <- 500
 nReplicates <- 2
 nTime <- 3
 
@@ -32,13 +32,13 @@ allNormFactors <- multiplyList(normFactors, conditions[,1])
 
 par <- list(size = 1e2)
 par <-  c(par, list(
-  mu = (1:nGenes) * 1e4, d = runif( nGenes,.1,.3)))
+  mu = (1:nGenes) * 1e3, d = runif( nGenes,.1,.3)))
 par$size <- 10000
 
 
 counts <- generateTestDataFrom(
   formulas, formulaIndexes, allNormFactors, par, conditions)
-
+rownames(counts) <- paste0("gene_", seq_len(dim(counts)[1]))
 ## make spikeins
 
 numSpikes <- 5
