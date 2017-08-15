@@ -5,7 +5,7 @@
 Tools for the analysis of RNA metabolic kinetics from RNAseq data.
 
 [![Build Status](https://travis-ci.org/dieterich-lab/pulseR.svg?branch=master)](https://travis-ci.org/dieterich-lab/pulseR)
-
+[![codecov](https://codecov.io/gh/dieterich-lab/pulseR/branch/master/graph/badge.svg)](https://codecov.io/gh/dieterich-lab/pulseR)
 
 ## Installation
 ```r
