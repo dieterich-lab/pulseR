@@ -3,8 +3,9 @@ Version: 0.0.2
 License: GPL-3
 Title: Analysis of pulse-chase RNAseq data
 Description: Tool to simplify MLE modelling of pulse-chase experiments.
-Author: Alexey Uvarovskii <alexey.mipt@gmail.com>
-Maintainer: Alexey Uvarovskii <alexey.mipt@gmail.com>
+Authors@R: c(
+    person("Alexey", "Uvarovskii", , "alexey.mipt@gmail.com", role = c("aut", "cre"))
+    )
 Imports:
     stats,
     methods,
@@ -19,3 +20,4 @@ RoxygenNote: 6.0.1
 Roxygen: list(markdown = TRUE)
 VignetteBuilder: knitr
 LazyData: true
+URL: https://github.com/dieterich-lab/pulseR, http://github.com/dieterich-lab/pulseR

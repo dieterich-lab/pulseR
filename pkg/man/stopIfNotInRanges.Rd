@@ -14,3 +14,4 @@ stopIfNotInRanges(args, options)
 \description{
 Validate list of parameters according to allowed value ranges.
 }
+\keyword{internal}

@@ -1,16 +1,69 @@
 
 
-#' Fit parameters given the initial values and the parameter names
+#' Fit model parameters 
 #'
+#' `fitModel` is the main fitting function which wraps around the others and
+#' fit iteratively the whole model. \cr
+#' `fitParams` fits only the listed parameters and `fitParamsSeparately` fit 
+#' gene-specific parameters having the shared parameters (e.g. normalisation
+#' factors). \cr 
+#' `fitNormFactors` fits the normalisation factors having fixed all other 
+#' parameters.
+#' 
 #' @param pd the \code{\link{PulseData}} object
-#' @param par the parameter named list
+#' @param par a list with an initial parameters values.
+#' Names correspond to the parameter names used in formulas. 
+#' `size` corresponds to the size parameter, `normFactors` stands for the
+#' list with normalistion factors (in spike-in free design, see details).
+#' There are following parameter types:
+#'   - gene-specific parameters must be set as vectors of the length equal to 
+#'     the gene number. The function \link{initParameters} may 
+#'     simplify the process of initial values randomisation.
+#'   - shared parameters. These are prersented by single numeric values,
+#'     which are assumed to be equal between all genes, e.g. additional 
+#'     normalisation fator.
+#'   - the size parameter for the negative binomial 
+#'     distribution and a list with the normalisation factors, if 
+#'     no spike-ins are used in the experiment.
+#'   - normalisation factors (in case of spike-in free design).
+#'     
 #' @param namesToOptimise a vector of names of parameters, which values 
 #'   need be optimised
 #' @param options a list with optimisation options. For details, see
-#' \link{setTolerance}, \link{setFittingOptions}.
+#'  \link{setTolerance}, \link{setFittingOptions}.
+#' @param knownGenePars a vectors of names of the gene-specific parameters,
+#'  which  are assumed to be fixed during optimisation.
+#' @param indexes indexes of genes to fit. By default includes all the genes.
+#' @param options a list of options. For more details, see \link{setBoundaries},
+#'   \link{setTolerance}, \link{setFittingOptions}
+#' 
+#' @details If no spike-ins are used, relations between samples are inferred
+#' during the model fitting. In this case, the initial parameter list must 
+#' containg  a field named `normFactors`. The normalistion factors are 
+#' accepted as a named list, e.g.
+#' ```
+#' par$normFactors <- list(total_fraction = 1,
+#'       pull_down.4 = c(1, 0.01),
+#'       pull_down.8 = c(1, 0.01))
+#' ```
+#' This will define the initial values for the normalisation factors. 
+#' The very first value is **always** equal 1 irregardless of the user input.
+#' This has to be done because the normalisation factors are known
+#' only up to some scaling coefficient, because they appear in 
+#' a multiplication with the expression level or synthesis rate.
+#' 
+#' The structure of the `normFactors` list is identical to the 
+#' `pd$interSampleCoeffs`. This structure is defined by the 
+#' `formulaIndexes` and `conditions` argumenta in the `PulseData`,
+#'  see `\link{PulseData}` for more.
+#' 
+#' `\link{fitParamsSeparately}` is same as \link{fitParams}, 
+#' but performs optimisation for gene-specific parameters only.
+#' Every set of parameters is fitted individually for every gene.
 #'
-#' @return a list with fitted parameters
+#' @return a list with fitted parameters (only which were optimized)
 #' @export
+#' @rdname fit
 #'
 fitParams <- function(pd, par, namesToOptimise, options) {
   options <- normaliseBoundaries(options, par, pd)
@@ -31,19 +84,18 @@ fitParams <- function(pd, par, namesToOptimise, options) {
   relist(x, par[namesToOptimise])
 }
 
-#' Fit parameters with separate likelihood functions
-#'
-#' The same as \link{fitParams}, but performs optimisation for gene-specific
-#' parameters only. Every set of parameters is fitted individually for
-#' every gene.
-#' 
-#' @inheritParams fitParams
-#' @param knownNames a vectors of names of the gene-specific parameters, which 
-#' are assumed to be fixed during optimisation.
-#' @return a list with fitted parameters
+#' @rdname fit
 #' @export
-#'
-fitParamsSeparately <- function(pd, par, knownNames, namesToOptimise, options) {
+fitParamsSeparately <- function(pd,
+                                par,
+                                knownGenePars,
+                                namesToOptimise,
+                                options, 
+                                indexes = seq_len(dim(pd$counts)[1])) {
+  if (missing(knownGenePars))
+    knownGenePars <- character(0)
+  if (is.null(options$replicates))
+    options$replicates <- 1
   options <- normaliseBoundaries(options, par, pd)
   # garantee that boundaries are in the same order as the params
   lb <- as.data.frame(options$lb[namesToOptimise])
@@ -52,31 +104,21 @@ fitParamsSeparately <- function(pd, par, knownNames, namesToOptimise, options) {
   objective <- ll(par, namesToOptimise, pd, byOne = TRUE)
   par[namesToOptimise] <- NULL
   fixedPars <- par
-  for (i in seq_along(p[, 1])) {
-    fixedPars[knownNames] <- lapply(par[knownNames], `[[`, i)
-    p[i, ] <- stats::optim(
-      unlist(p[i, ]),
-      objective,
-      method = "L-BFGS-B",
-      control = list(parscale = p[i,]),
-      lower = lb[i,],
-      upper = ub[i,],
-      counts = pd$counts[i,],
-      fixedPars = fixedPars
-    )$par
-  }
+  if (is.null(options$cores))
+    options$cores <- 1
+  res <- parallel::mclapply(indexes, function(i) {
+    fixedPars[knownGenePars] <- lapply(par[knownGenePars], `[[`, i)
+    .fitGene(p[i,], i, objective, lb, ub, fixedPars, pd$counts,
+                      N = options$replicates)$par
+  }, mc.cores = options$cores)
+  res <- do.call(rbind, res)
+  p[indexes,] <- res
   as.list(p)
 }
 
 
-#' Fit fraction normalisation coefficients
-#' 
-#' @inheritParams fitParams
-#' 
-#' @importFrom  stats optimise
-#' @return a list of normalisation factors
+#' @rdname fit
 #' @export
-#' 
 fitNormFactors <- function(pd, par, options) {
   lb <- unlist(options$lb$normFactors)[-1]
   ub <- unlist(options$ub$normFactors)[-1]
@@ -86,12 +128,13 @@ fitNormFactors <- function(pd, par, options) {
     x,
     objective,
     method = "L-BFGS-B",
-    control = list(parscale = (lb + ub) / 2), 
     lower = lb,
     upper = ub,
     counts = pd$counts
   )$par
-  relist(c(1,x), par$normFactors)
+  result <- relist(c(1,x), par$normFactors)
+  names(result) <- names(pd$interSampleCoeffs)
+  result
 }
 
 getMaxRelDifference <- function(x, y)
@@ -99,108 +142,99 @@ getMaxRelDifference <- function(x, y)
   max(abs(1 - unlist(x) / (unlist(y))), na.rm = TRUE)
 }
 
-#' Fit the model by MLE
-#'
-#' @param pulseData a \link{PulseData} object
-#' @param par a list with an initial parameters values.
-#'   Gene-specific parameters must be set as vectors of the length equal to 
-#'   the gene number. \link{initParameters} may simplify the process of initial
-#'   values randomisation.
-#'   
-#'   The list must include `size` parameter for the negative binomial 
-#'   distribution and a list with the normalisation factors, if 
-#'   no spike-ins are used in the experiment.
-#'   
-#' @param options a list of options. For more details, see \link{setBoundaries},
-#'   \link{setTolerance}, \link{setFittingOptions}
-#'
-#' @return a list with the fitted parameters in the same form as
-#' the initial guess `par` list
-#'     
+#' @rdname fit
 #' @export
-#'
-#' @examples 
-#' \dontrun{
-#' fitResult <- fitModel(pd, par)
-#' }
 fitModel <- function(pulseData, par, options){
-  known <- setdiff(names(par), names(options$lb))
-  toFit <- setdiff(names(par), c("size", "normFactors", known))
+  log2screen(options, cat("\n"))
+  # identify what to fit and what is fixed
+  known   <- .getKnownNames(par, options)
+  knownGenePars <- .getKnownGeneNames(par, known) 
+  fitSets <- list(
+    params = .getGeneToFitNames(par, known),
+    shared = .getSharedNames(par, known),
+    normFactors = "normFactors"
+  )
+  if (length(fitSets$shared) == 0)
+    fitSets$shared <- NULL
+  if (is.null(par$normFactors))
+    fitSets$normFactors <- NULL
+  # prepare functions and boundaries for optimisation
   options <- normaliseBoundaries(
     options, par[setdiff(names(par), known)], pulseData)
-  len <- vapply(par, length, integer(1))
-  sharedParams <- toFit[len[toFit] == 1] 
-  geneParams <- toFit[len[toFit] > 1]
-  knownGenePars <- names(len[known] > 1)
-  if (!is.null(pulseData$interSampleCoeffs) && is.null(par$normFactors)) {
-    par$normFactors <- assignList(pulseData$interSampleCoeffs, 1)
-  }
-  log2screen(options, cat("\n"))
-  rel_err <- Inf
-  shared_rel_err <- ifelse(length(sharedParams) == 0, 0, Inf)
-  fraction_rel_err <- ifelse(is.null(par$normFactors), 0, Inf)
-  while (rel_err > options$tolerance$params ||
-         shared_rel_err > options$tolerance$shared ||
-         fraction_rel_err > options$tolerance$normFactors) {
-    # Fit shared params
-    if (length(sharedParams) > 0) {
-      res <- fitParams(
-        pd = pulseData,
-        par = par,
-        namesToOptimise = sharedParams,
-        options = options
-      )
-      shared_rel_err <- getMaxRelDifference(res, par[sharedParams])
-      par[sharedParams] <- res
+  funs <- list(
+    params = function(par) 
+      fitParamsSeparately(pulseData, par, knownGenePars, fitSets$params, options),
+    shared = function(par)
+      fitParams(pulseData, par, fitSets$shared, options),
+    normFactors = function(par) 
+      list(normFactors = fitNormFactors(pulseData, par, options))
+  )
+  
+  err <- c(params = Inf, shared = Inf, normFactors = Inf)[names(fitSets)]
+  while (any(err > unlist(options$tolerance[names(fitSets)]))) {
+    for (paramSet in names(fitSets)) {
+      parNames <- fitSets[[paramSet]]
+      res <- funs[[paramSet]](par)
+      err[[paramSet]] <- getMaxRelDifference(res, par[parNames])
+      par[parNames] <- res
     }
-    # Fit params for every genes individually
-    res <- fitParamsSeparately(
-      pd = pulseData,
-      par = par,
-      namesToOptimise = geneParams,
-      knownNames = knownGenePars,
-      options = options
-    )
-    rel_err <- getMaxRelDifference(res, par[geneParams])
-    par[geneParams] <- res
-    if (!is.null(par$normFactors)) {
-      res <- fitNormFactors(pulseData, par, options)
-      fraction_rel_err <- getMaxRelDifference(res, par$normFactors)
-      par$normFactors <- res
-    }
-    par["size"] <- fitParams(
-      pd = pulseData,
-      par = par,
-      namesToOptimise = "size",
-      options = options
-    )
-    str <- format(c(rel_err, shared_rel_err, fraction_rel_err),
-                  digits = 2,
-                  width = 6)
-    log2screen(options, cat(
-      paste0(
-        "Max Rel.err. in [params: ", str[1],
-        "]  [shared: ", str[2], 
-        "]  [fractions: ", str[3],
-        "]    \r"
-      )
-    ))
+    par["size"] <- fitParams(pulseData, par, "size", options)
+    logLik <- evaluateLikelihood(par, pulseData)
+    log2screen(options, progressString(err, logLik))
     if (!is.null(options$resultRDS)) {
       saveRDS(object = par, file = options$resultRDS)
     }
   }
   ## fit gene specific final parameters
-  res <- fitParamsSeparately(
-    pd = pulseData,
-    par = par,
-    namesToOptimise = geneParams,
-    knownNames = knownGenePars,
-    options = options
-  )
-  par[geneParams] <- res
+  par[fitSets$params] <- funs[["params"]](par)
   if (!is.null(options$resultRDS)) {
     saveRDS(object = par, file = options$resultRDS)
   }
   par
 }
 
+progressString <- function(err, logLik) {
+  str <- format(unlist(err),
+                digits = 2,
+                width = 6)
+  logLik <- format(logLik, digits=2, width=6)
+  paste0("LogLik: [", logLik, " ] Max Rel.err. in ", 
+         paste("[",names(str), str,"]", collapse = " "), "\n")
+}
+
+# if a parameter is not mentioned in the boundaries, 
+# it is assumed to be fixed
+.getKnownNames <- function(par, options) {
+  setdiff(names(par), names(options$lb))
+}
+
+# return names of parameters which must be fitted
+.namesToFit <- function(par, known) {
+  setdiff(names(par), c("size", "normFactors", known))
+}
+
+# return names of gene-specific parameters which must be fitted
+# a parameter is assumed to be gene-specific, if its length in `par` is > 1
+.getGeneToFitNames <- function(par, known) {
+  toFit <- .namesToFit(par, known)
+  len <- vapply(par, length, integer(1))
+  geneParams <- toFit[len[toFit] > 1]
+  geneParams
+}
+
+# return names of known gene-specific parameters
+# a parameter is assumed to be gene-specific, if its length in `par` is > 1
+.getKnownGeneNames <- function(par, known) {
+  len <- vapply(par, length, integer(1))
+  knownGenePars <- names(len[known] > 1)
+  knownGenePars
+}
+
+# return names of shared parameters
+# a parameter is assumed to be shared, if its length in `par` is 1
+.getSharedNames <- function(par, known) {
+  toFit <- .namesToFit(par, known)
+  len <- vapply(par, length, integer(1))
+  sharedParams <- toFit[len[toFit] == 1] 
+  sharedParams
+}

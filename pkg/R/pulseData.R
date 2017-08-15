@@ -28,8 +28,9 @@
 #' same as defined in formulas. For example, if a formula is defined as 
 #' `mu * exp(-d * time)` where `time` is the time point of the experiment, 
 #' the condition data.frame must contain a column named `time`.
-#' 
+#' @import methods
 #' @export
+#' @rdname pulsedata
 #' 
 #' @examples 
 #' 
@@ -64,7 +65,7 @@ PulseData <- function(counts,
                       formulaIndexes = NULL,
                       spikeins = NULL,
                       groups = NULL) {
-  e <- new.env()
+  e <- list()
   if (is.null(formulaIndexes))
     formulaIndexes <- match(conditions[, 1], names(formulas))
   class(e) <- "PulseData"
@@ -128,6 +129,8 @@ print.PulseData <- function(x,...){
 #'   the \code{count_data}
 #'
 #' @importFrom  stats median
+#' @rdname pulsedata
+#' @keywords  internal
 findDeseqFactorsSingle <- function(count_data)
 {
   loggeomeans <- rowMeans(log(count_data))
@@ -155,6 +158,8 @@ deseq <- function(x, loggeomeans) {
 #' @param spikeLists a named list with the same structure as formulaIndexes
 #'
 #' @return a list of lists of the normalisation coefficients for every sample
+#' @keywords  internal
+#' @rdname pulsedata
 #'
 normaliseWithSpikeIns <- function(pd, refGroup, spikeLists){
   refSpikes <- unlist(spikeLists[[refGroup]])
@@ -185,6 +190,8 @@ normaliseWithSpikeIns <- function(pd, refGroup, spikeLists){
 #' @param groups a vector for splitting objects to groups
 #'
 #' @return a vector with the coefficient for every sample
+#' @keywords  internal
+#' @rdname pulsedata
 #'
 normaliseNoSpikeins <- function(pd, groups){
   factors <- double(length(groups))
@@ -202,6 +209,9 @@ normaliseNoSpikeins <- function(pd, groups){
 #' @param conditions factors to split samples for normalisation
 #' @return vector of double; normalisation factors in the same order as 
 #'   columns in the \code{count_data}
+#' @keywords  internal
+#' @rdname pulsedata
+#' 
 findDeseqFactorsForFractions <- function(count_data, conditions) {
     deseqFactors <- lapply(
       split(colnames(count_data), conditions),
@@ -233,6 +243,7 @@ findDeseqFactorsForFractions <- function(count_data, conditions) {
 #'  - list of partially evaluated formulas
 #'  - a vector of conditions generated from combination of columns 
 #' @export
+#' @rdname pulsedata
 #'
 #' @examples
 #' 
@@ -296,6 +307,8 @@ addKnownToFormulas <- function(formulas, formulaIndexes, conditions) {
 #' for every group. 
 #' normCoeffIndexes stores indexes of coefficients from unlist(normCoeffs) 
 #' sample-wise, i.e. length(normCoeffIndexes) is the number of samples.
+#' @keywords  internal
+#' @rdname pulsedata
 #'
 makeGroups <- function(pd, normGroups) {
   # generate a list of normalisation coefficients with a proper structure
@@ -330,6 +343,7 @@ names2numbers <- function(nameLists, nameVector){
 #' @return matrix of counts with the order of columns as in conditions 
 #' @importFrom stats rnbinom
 #' @export
+#' @rdname pulsedata
 #'
 generateTestDataFrom <- function(formulas,
                                  formulaIndexes,
@@ -359,6 +373,7 @@ generateTestDataFrom <- function(formulas,
 #'
 #' @return a list
 #' @export
+#' @rdname pulsedata
 #'
 #' @examples
 #' source <- list(
@@ -400,6 +415,7 @@ multiplyList <- function(source, pattern) {
 #' 
 #' @return a shorter list
 #' @export
+#' @rdname pulsedata
 #'
 #' @examples
 #' l <- list(

@@ -1,0 +1,230 @@
+---
+title: "The workflow"
+author: "Uvarovskii Alexey"
+date: "`r Sys.Date()`"
+output: 
+  rmarkdown::html_vignette:
+    toc: true
+    toc_depth: 5
+vignette: >
+  %\VignetteIndexEntry{Vignette Title}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r include=FALSE}
+library(pulseR)
+set.seed(259)
+```
+
+## Overview
+
+The workflow consists of defining the data object, setting fitting options
+and fitting itself:
+
+```{r eval=FALSE}
+library(pulseR)
+...
+# define the data
+pd <- PulseData(...)
+# set options 
+opts <- setTolerance(...)
+opts <- setBoundaries(..., opts)
+# define first parameter guess
+initPars <- initParameters(...)
+# fit the model
+fit <- fitModel(pd, initPars, opts)
+```
+
+## PulseData object
+
+In the `pulseR` package, we keep all inial data in the `PulseData` structure
+(S3 class). When the information about read counts, conditions and the model is
+defined, one can create the object with a line as 
+
+```{r eval=TRUE}
+library(pulseR)
+attach(pulseRSpikeinsData)
+pd <- PulseData(counts, conditions, formulas, formulaIndexes, spikeins)
+```
+
+#### Counts
+
+The read counts must be delivered as an integer matrix.
+The rownames may describe the gene names and the column order corresponds to the
+sample order in the condition matrix (see below) 
+```{r echo=TRUE, collapse=TRUE}
+counts[c(1:5, 50:55), 1:4]
+```
+
+#### Condition matrix
+
+The information about samples must be described in the condition matrix.
+It is obligatory that the row order corresponds to the column order in the
+count matrix. Time or other sample-specific variable are defined here.
+
+```{r echo=TRUE, collapse=TRUE}
+conditions
+```
+
+#### Formulas
+
+The experiment design defines how different fractions evolve with the time.
+
+```{r echo=TRUE}
+formulas <- MeanFormulas(
+  total      =  mu,
+  labelled   =  mu * exp(-d * time),
+  unlabelled =  mu * (1 - exp(-d * time))
+)
+```
+
+One may use the helper functions, e.g.`amount`, `degrade`, `grow`:
+
+```{r collapse=TRUE}
+degrade("mu","d","time")
+```
+
+#### Fraction content
+
+In pulseR, it is possible to model contamination of the fractions.
+This definition is passed as `formulaIndexes` argument to the `PulseData`
+function.
+Here we define the the pull-down fraction consists of the labelled and
+unlabelled molecules, and the total fraction is degenerates to a simple 
+formulas, which we defined in addition in the `formulas` list:
+
+```{r result="none"}
+formulaIndexes <- list(total_fraction = "total",
+                       pull_down      = c("labelled", "unlabelled"))
+```
+
+
+#### Normalisation
+
+##### Using spike-ins
+
+Samples can be normalised using spike-ins. In this case,
+we assume that labelled and unlabelled spike-in molecules 
+were added in the same proportion to the total RNA amount to all the samples.
+
+```{r collapse=TRUE}
+spikeins
+```
+
+```{r eval=TRUE}
+pd <- PulseData(counts, conditions, formulas, formulaIndexes, 
+                spikeins = spikeins)
+```
+
+##### Without spike-ins
+
+Alternatively, the relations between samples can be inferred during the 
+fitting procedure (if no spike-ins counts are present in the data).
+We implement it in two steps:
+
+- Samples from the same group are normalised according to the 
+  sequencing depth using the same technique as in the DESeq package.
+- Normalisation factors, which define the relations between the groups  and 
+  fractions are fitted together with other parameters.
+
+The way of sample grouping is defined in the `group` argument.
+We assume that efficiency of the pull-down procedure is different 
+between different time points (`time` column in the condition matrix):
+
+```{r eval=FALSE}
+pd <- PulseData(counts, conditions, formulas, formulaIndexes, 
+                groups = ~ fraction + time)
+```
+
+## Model fitting
+
+The model can be fit by the command
+```{r eval=FALSE}
+fit <- fitModel(pulseData = pd, par = initPars, options = opts)
+```
+
+The function will iteratively fit the parameters from the formulas, 
+overdispersion parameter for the negative binomial distribution and,
+if defined, the normalisation factors.
+
+#### Initial values
+
+The fitting procedure needs some initial guess for the parameter values.
+The result of the fitting may depend on the model parametrisation and
+the initial guess.
+
+The parameters, which are not specified in the par argument,
+in our case, both, the expression level and the degradation rate, will
+be sampled from a uniform distribution according to the boundaries,
+which are specified in the `options` argument (see the next section).
+
+```{r eval=TRUE, include=FALSE}
+opts <- setBoundaries(list(
+  mu = c(.1, 1e6),
+  d = c(.01, 2)
+))
+opts <- setTolerance(params = 1e-3,  options = opts)
+```
+
+```{r eval=TRUE}
+initPars <- initParameters(par = list(size=10),
+                           geneParams = c("mu", "d"), 
+                           pulseData  = pd, 
+                           options    = opts)
+str(initPars)
+```
+
+#### Fitting options
+
+To fit the model, we use *L-BFGS-B*  method implemented 
+in the `stats::optim` function. It requires values for the lower and upper
+boundaries for the parameter values. We specify it in the options:
+```{r eval=TRUE}
+opts <- setBoundaries(list(
+  mu = c(.1, 1e6),
+  d  = c(.01, 2)
+))
+```
+
+The `fitModel` function performs fitting in iterations: it
+optimises gene-specific, shared, overdispersion and normalisation parameters
+at separate steps. Relative change between them is the stopping criteria:
+```{r}
+opts <- setTolerance(params = 1e-3,  options = opts)
+```
+
+#### Result exploration
+
+The result of the `fitModel` function is just a list with the parameter
+values, which are ordered according to the rows in the read count table:
+```{r eval=TRUE, collapse=TRUE}
+fit <- fitModel(pulseData = pd, par = initPars, options = opts)
+str(fit)
+```
+
+We can use model prediction to see how good the model fits to the data
+(in the case of the simulated data all looks good):
+
+```{r, fig.width=4, fig.height=3.5, fig.cap="Model predictions vs. data"}
+pr <- predictExpression(fit, pd)
+plot(pr$predictions, pd$counts, pch=16, cex=.5, log='xy',
+     xlab="prediction", ylab="experiment")
+```
+
+The data were simulated from known values in `pulseRSpikeinsData$par` and
+we can compare fit to the true values:
+```{r, fig.width=8, fig.height=3.5, fig.cap="Fitted vs. true values"}
+par(mfrow=c(1,2))
+plot(par$d, fit$d, pch=16, cex=1, 
+     xlab="true", ylab="fit", main="d, degradation rate")
+plot(par$mu, fit$mu, pch=16, cex=1, log='xy',
+     xlab="true", ylab="fit", main="mu, expression level")
+```
+
+For simulation the uniformly distributed parameters were used, which is
+also observed in the fitted values:
+
+```{r, fig.width=4, fig.height=3.5, fig.cap="Model predictions vs. data"}
+plot(fit$mu, fit$d, pch=16, cex=.5,  xlab="expression", ylab="degradation")
+```

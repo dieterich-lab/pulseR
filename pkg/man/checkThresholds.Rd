@@ -12,3 +12,4 @@ checkThresholds(options)
 \description{
 Throws an error in case wrong format or value are provided.
 }
+\keyword{internal}

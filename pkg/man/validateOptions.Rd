@@ -12,3 +12,4 @@ validateOptions(options)
 \description{
 Throws an error if incorrect values are supplied.
 }
+\keyword{internal}
