@@ -10,7 +10,7 @@
 #' `fitNormFactors` fits the normalisation factors having fixed all other 
 #' parameters.
 #' 
-#' @param pd the \code{\link{PulseData}} object
+#' @param pulseData the \code{\link{PulseData}} object
 #' @param par a list with an initial parameters values.
 #' Names correspond to the parameter names used in formulas. 
 #' `size` corresponds to the size parameter, `normFactors` stands for the
@@ -53,7 +53,7 @@
 #' a multiplication with the expression level or synthesis rate.
 #' 
 #' The structure of the `normFactors` list is identical to the 
-#' `pd$interSampleCoeffs`. This structure is defined by the 
+#' `pulseData$interSampleCoeffs`. This structure is defined by the 
 #' `formulaIndexes` and `conditions` argumenta in the `PulseData`,
 #'  see `\link{PulseData}` for more.
 #' 
@@ -65,12 +65,12 @@
 #' @export
 #' @rdname fit
 #'
-fitParams <- function(pd, par, namesToOptimise, options) {
-  options <- normaliseBoundaries(options, par, pd)
+fitParams <- function(pulseData, par, namesToOptimise, options) {
+  options <- normaliseBoundaries(options, par, pulseData)
   # garantee that boundaries are in the same order as the params
   lb <- unlist(options$lb[namesToOptimise])
   ub <- unlist(options$ub[namesToOptimise])
-  objective <- ll(par = par, namesToOptimise = namesToOptimise, pd = pd)
+  objective <- ll(par = par, namesToOptimise = namesToOptimise, pulseData = pulseData)
   x <- unlist(par[namesToOptimise])
   x <- stats::optim(
     x,
@@ -79,36 +79,36 @@ fitParams <- function(pd, par, namesToOptimise, options) {
     control = list(parscale = x),
     lower = lb,
     upper = ub,
-    counts = pd$counts
+    counts = pulseData$counts
   )$par
-  relist(x, par[namesToOptimise])
+  utils::relist(x, par[namesToOptimise])
 }
 
 #' @rdname fit
 #' @export
-fitParamsSeparately <- function(pd,
+fitParamsSeparately <- function(pulseData,
                                 par,
                                 knownGenePars,
                                 namesToOptimise,
                                 options, 
-                                indexes = seq_len(dim(pd$counts)[1])) {
+                                indexes = seq_len(dim(pulseData$counts)[1])) {
   if (missing(knownGenePars))
     knownGenePars <- character(0)
   if (is.null(options$replicates))
     options$replicates <- 1
-  options <- normaliseBoundaries(options, par, pd)
+  options <- normaliseBoundaries(options, par, pulseData)
   # garantee that boundaries are in the same order as the params
   lb <- as.data.frame(options$lb[namesToOptimise])
   ub <- as.data.frame(options$ub[namesToOptimise])
   p <- data.frame(par[namesToOptimise])
-  objective <- ll(par, namesToOptimise, pd, byOne = TRUE)
+  objective <- ll(par, namesToOptimise, pulseData, byOne = TRUE)
   par[namesToOptimise] <- NULL
   fixedPars <- par
   if (is.null(options$cores))
     options$cores <- 1
   res <- parallel::mclapply(indexes, function(i) {
     fixedPars[knownGenePars] <- lapply(par[knownGenePars], `[[`, i)
-    .fitGene(p[i,], i, objective, lb, ub, fixedPars, pd$counts,
+    .fitGene(p[i,], i, objective, lb, ub, fixedPars, pulseData$counts,
                       N = options$replicates)$par
   }, mc.cores = options$cores)
   res <- do.call(rbind, res)
@@ -119,10 +119,10 @@ fitParamsSeparately <- function(pd,
 
 #' @rdname fit
 #' @export
-fitNormFactors <- function(pd, par, options) {
+fitNormFactors <- function(pulseData, par, options) {
   lb <- unlist(options$lb$normFactors)[-1]
   ub <- unlist(options$ub$normFactors)[-1]
-  objective <- llnormFactors(par = par, pd = pd)
+  objective <- llnormFactors(par = par, pulseData = pulseData)
   x <- unlist(par$normFactors)[-1]
   x <- stats::optim(
     x,
@@ -130,10 +130,10 @@ fitNormFactors <- function(pd, par, options) {
     method = "L-BFGS-B",
     lower = lb,
     upper = ub,
-    counts = pd$counts
+    counts = pulseData$counts
   )$par
-  result <- relist(c(1,x), par$normFactors)
-  names(result) <- names(pd$interSampleCoeffs)
+  result <- utils::relist(c(1,x), par$normFactors)
+  names(result) <- names(pulseData$interSampleCoeffs)
   result
 }
 

@@ -143,7 +143,7 @@ deseq <- function(x, loggeomeans) {
   if (any(finitePositive)) {
     res <- exp(median((log(x) - loggeomeans)[finitePositive], na.rm = TRUE))
   } else {
-    print(head(x))
+    print(utils::head(x))
     stop("Can't normalise accross a condition.
          Too many zero expressed genes. ")
   }
@@ -316,7 +316,7 @@ makeGroups <- function(pd, normGroups) {
   names(normCoeffs) <- unique(normGroups)
   # all the normalisation coefficients are numbered according 
   # to their appearance in the flatten list `unlist(normCoeffs)`
-  normCoeffs <- relist(seq_along(unlist(normCoeffs)), normCoeffs)
+  normCoeffs <- utils::relist(seq_along(unlist(normCoeffs)), normCoeffs)
   # normCoeffIndexes contains items for every sample
   normCoeffIndexes <- multiplyList(normCoeffs, normGroups)
   normCoeffs <- assignList(normCoeffs, 1)

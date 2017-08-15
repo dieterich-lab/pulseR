@@ -29,7 +29,7 @@ known <- addKnownToFormulas(formulas, formulaIndexes, conditions)
 normFactors <- known$formulaIndexes[unique(names(known$formulaIndexes))]
 normFactors <- normFactors[-grep("A", names(normFactors))]
 normFactors <- c(list(total = 1), normFactors)
-normFactors <- relist(seq_along(unlist(normFactors)), normFactors)
+normFactors <- utils::relist(seq_along(unlist(normFactors)), normFactors)
 normFactors[grep("B", names(normFactors))] <- list(c(3,.2))
 
 fractions <- as.character(interaction(conditions))

@@ -30,7 +30,7 @@ known <- addKnownToFormulas(formulas, formulaIndexes, conditions)
 normFactors <- known$formulaIndexes[unique(names(known$formulaIndexes))]
 normFactors <- normFactors[-grep("A", names(normFactors))]
 normFactors <- c(list(total = 1), normFactors)
-normFactors <- relist(seq_along(unlist(normFactors)), normFactors)
+normFactors <- utils::relist(seq_along(unlist(normFactors)), normFactors)
 normFactors[grep("B", names(normFactors))] <- list(c(3,.2))
 
 fractions <- as.character(interaction(conditions))
@@ -88,7 +88,7 @@ test_that("gene params fitting works (separately)", {
   par2 <- par
   toOptimise <- c("a", "b")
   par2[toOptimise] <- options$lb[toOptimise]
-  res <- pulseR:::fitParamsSeparately(pd = pd,
+  res <- pulseR:::fitParamsSeparately(pulseData = pd,
                                  par = par,
                                  knownGenePars = "p",
                                  namesToOptimise = c("a", "b"), 

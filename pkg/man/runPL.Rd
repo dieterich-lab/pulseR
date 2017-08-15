@@ -9,7 +9,7 @@ runPL(pL, interval, logScale = FALSE, numPoints = 21)
 \arguments{
 \item{pL}{a function (x) --> double(1) returning the -log(likelihood).
 For example, it can be a function returned by
-\link{`pl`} or \link{`plGene`}.}
+\link{pl} or \link{plGene}.}
 
 \item{interval}{double(2) vector; left and right boundaries to calculate the
 profile likelihood for the parameter given in \code{parName}}

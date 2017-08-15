@@ -22,7 +22,7 @@ known <- addKnownToFormulas(formulas, formulaIndexes, conditions)
 
 # create norm factors as 1...13
 normFactors <- known$formulaIndexes[unique(names(known$formulaIndexes))]
-normFactors <- relist(seq_along(unlist(normFactors)), normFactors)
+normFactors <- utils::relist(seq_along(unlist(normFactors)), normFactors)
 
 allNormFactors <- multiplyList(normFactors, names(known$formulaIndexes))
 normFactors <- list(

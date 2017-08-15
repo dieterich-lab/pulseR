@@ -2,7 +2,7 @@
 .getIndex <- function(path, params) {
   x <- unlist(params)
   x[] <- seq_along(x)
-  index <- .getElement(relist(x, params), path)
+  index <- .getElement(utils::relist(x, params), path)
   if (length(index) > 1) 
     stop("Not complete path to the element (length of selection > 1)")
   index
@@ -39,29 +39,29 @@
 
 #' Estimate profile likelihood for gene parameters (all other fixed)
 #'
-#' @param pd the \link{PulseData} object
-#' @param fit result output from the \link{fitModel} function
-#' @param geneIndex integer(1); the row index in the count table 
-#'   where the data for the given gene are located
 #' @param parName a character; 
 #'   the names of the gene-specific parameter (e.g. "mu")
+#' @param geneIndex integer(1); the row index in the count table 
+#'   where the data for the given gene are located
+#' @param pd the \link{PulseData} object
+#' @param par result output from the \link{fitModel} function
+#' @param interval a vector of two numbers defining the interval of
+#' parameter profiling
 #' @param options the options list used for the \link{fitModel} function call
+#' @param paramPath a list with names and indexes in order to locate the 
+#' parameter in the `par` argument (e.g. `list("mu", 1)` corresponds to
+#' the "mu" parameter value for the first gene, i.e.  
+#' \verb{par[["mu"]][[1]]}.
+#' @param namesToOptimise a character vector including the free parameters 
+#' (i.e. they wil be treated as unfixed)
 #' @param ... other parameters to pass to \link{runPL},
 #'  i.e. `logScale` (logical) and number of points `numPoints`
-#' @inheritParams runPL
 #' @return a data.frame; the column `logl` corresponds to the -log(likelihood) 
 #'   function values. the other represents the profiled parameter values.
 #' @export
 #' @rdname profile
 #'
-profileGene <- function(parName,
-                            geneIndex,
-                            pd, 
-                            par,
-                            interval, 
-                            options,
-                            ...
-                            ) {
+profileGene <- function(parName, geneIndex, pd, par, interval, options, ...) {
   pL <- plGene(parName, geneIndex, par, pd, options)
   parValue <- par[[parName]][geneIndex]
   if (missing(interval))
@@ -71,17 +71,8 @@ profileGene <- function(parName,
   result
 }
 
-#' Profile
-#'
-#' @inheritParams profileGene
-#' @inheritParams pl
-#' @param parName 
-#'
-#' @return a data.frame; the column `logl` corresponds to the -log(likelihood) 
-#'   function values. the other represents the profiled parameter values.
 #' @export
 #' @rdname profile
-#'
 profile <- function(paramPath,
                     pd,
                     par,
@@ -102,7 +93,7 @@ profile <- function(paramPath,
 #'
 #' @param pL a function (x) --> double(1) returning the -log(likelihood).
 #'   For example, it can be a function returned by 
-#'   \link{`pl`} or \link{`plGene`}.
+#'   \link{pl} or \link{plGene}.
 #' @param interval double(2) vector; left and right boundaries to calculate the
 #'   profile likelihood for the parameter given in `parName`
 #' @param logScale a logical (default: `FALSE`). Should points on the 
@@ -144,7 +135,7 @@ runPL <- function(pL,  interval, logScale = FALSE, numPoints = 21) {
 #' @param paramPath a list with names and indexes in order to locate the 
 #' parameter in the `par` argument (e.g. `list("mu", 1)` corresponds to
 #' the "mu" parameter value for the first gene, i.e.  
-#' `\verb{par[["mu"]][[1]]}` 
+#' \verb{par[["mu"]][[1]]}.
 #' @param parName a character, e.g. "mu"
 #' @param geneIndex an integer(1); a row index which corresponds to 
 #'   the investigating gene
@@ -238,7 +229,7 @@ pl <- function(paramPath,
   objective <- function(x, params) {
     p <- unlist(params[freeParams])
     p[freeInd] <- x
-    params[freeParams] <- relist(p, params[freeParams])
+    params[freeParams] <- utils::relist(p, params[freeParams])
     -evaluateLikelihood(params, pd)
   }
   optimisationStart <- unlist(par[freeParams])[freeInd]
@@ -310,7 +301,7 @@ pl <- function(paramPath,
 .getFreeIndexes <- function(par, paramPath, namesToOptimise) {
   freePars <- par[namesToOptimise]
   fixedIndexes <- .getIndex(paramPath, freePars)
-  freeInd <- unlist(relist(seq_along(unlist(freePars)),freePars))
+  freeInd <- unlist(utils::relist(seq_along(unlist(freePars)),freePars))
   freeInd <- freeInd[freeInd != fixedIndexes]
   if (!is.null(par$normFactors)) {
     freeInd <- freeInd[freeInd != .getIndex(list("normFactors", 1, 1), freePars)]
@@ -324,9 +315,11 @@ pl <- function(paramPath,
 #' @param pl  a result from the \link{profileGene} frunction
 #' @param confidence a confidence level for the likelihood threshold line
 #'   (default .95)
+#' @param ... other arguments to the \link[graphics]{plot} function
 #'
 #' @return used for its side effect
 #' @export
+#' @importFrom  graphics abline mtext par plot
 #'
 plotPL <- function(pl, confidence=.95, ...) {
   parName <- names(pl)[which(names(pl) != "logL")]
@@ -342,7 +335,7 @@ plotPL <- function(pl, confidence=.95, ...) {
   )
   mtext(parName,1,2, family = "serif")
   mtext("-logL",2,2.5, family = "serif")
-  abline(h = qchisq(confidence,1)/2, col= rgb(1,.2,0), lwd=2)
+  abline(h = stats::qchisq(confidence,1)/2, col= grDevices::rgb(1,.2,0), lwd=2)
 }
 
 
@@ -424,14 +417,14 @@ ci <- function(paramPath, pd, par, options, freeParams,
 #' @keywords internal
 #' 
 getCI <- function(pL, optimum, confidence, interval) {
-  threshold <- qchisq(confidence, 1)/2
+  threshold <- stats::qchisq(confidence, 1)/2
   objective <- function(x) pL(x)$value - threshold
   optimalObjective <- objective(optimum)
   ci <- c(NA, NA)
   if (optimalObjective * objective(interval[1]) < 0)
-    ci[1] <- uniroot(objective, c(interval[1], optimum))$root
+    ci[1] <- stats::uniroot(objective, c(interval[1], optimum))$root
   if (optimalObjective * objective(interval[2]) < 0)
-    ci[2] <- uniroot(objective, c(optimum, interval[2]))$root
+    ci[2] <- stats::uniroot(objective, c(optimum, interval[2]))$root
   ci
 }
 
