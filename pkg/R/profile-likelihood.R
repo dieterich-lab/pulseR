@@ -87,7 +87,7 @@ profile <- function(paramPath,
                     par,
                     options,
                     interval,
-                    namesToOptimise = names(options$lb), 
+                    namesToOptimise = names(par), 
                     ...) {
   pL <- pl(paramPath, par, pd, options, namesToOptimise)
   parValue <- .getElement2(par, paramPath)
@@ -225,7 +225,7 @@ pl <- function(paramPath,
                par,
                pd,
                options,
-               freeParams = names(options$lb)) {
+               freeParams = names(par)) {
   options <- .addDefaultsPL(options)
   knownNames <- .getKnownNames(par, options)
   options <- normaliseBoundaries(options, par, pd)
