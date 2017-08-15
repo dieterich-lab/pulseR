@@ -1,24 +1,23 @@
 
 set.seed(259)
 
-nGenes <- 10
-nReplicates <- 3
+nGenes <- 500
+nReplicates <- 2
 nTime <- 3
 
 formulas <- MeanFormulas(
-  A = a,
-  B =  a * b ^ time,
-  C = alpha * a * (1 - b ^ time))
+  total = mu,
+  labelled =  mu * exp(- d* time),
+  unlabelled =  mu *exp(-d*time))
 
-formulaIndexes <- list(
-  A_fraction = 'A',
-  B_fraction = c('B', 'C'),
-  C_fraction = c('B', 'C'))
+formulaIndexes <- list(total_fraction = "total",
+                       pull_down = c("labelled", "unlabelled"))
 
-
-conditions <- data.frame(condition = rep(names(formulaIndexes), each = nTime),
-                         time = rep(1:nTime, length(formulas) * nReplicates))
-rownames(conditions) <- paste0("sample_", seq_along(conditions$condition))
+conditions <- data.frame(
+  fraction = rep(names(formulaIndexes), each = nTime),
+  time = rep(1:nTime, length(formulaIndexes) * nReplicates)
+)
+rownames(conditions) <- paste0("sample_", seq_along(conditions$fraction))
 known <- addKnownToFormulas(formulas, formulaIndexes, conditions)
 
 # create norm factors as 1...13
@@ -27,24 +26,22 @@ normFactors <- relist(seq_along(unlist(normFactors)), normFactors)
 
 allNormFactors <- multiplyList(normFactors, names(known$formulaIndexes))
 normFactors <- list(
-  A_fraction = 1,
-  B_fraction = c(2, .1),
-  C_fraction = c(.1, 3))
+  total_fraction = 1,
+  pull_down = c(2, .1))
 allNormFactors <- multiplyList(normFactors, conditions[,1])
 
 par <- list(size = 1e2)
 par <-  c(par, list(
-  a = (1:nGenes) * 1e5, b = runif( nGenes,.1,1)))
-par$alpha <- 5
-par$size <- 100000
+  mu = (1:nGenes) * 1e3, d = runif( nGenes,.1,.3)))
+par$size <- 10000
 
 
 counts <- generateTestDataFrom(
   formulas, formulaIndexes, allNormFactors, par, conditions)
-
+rownames(counts) <- paste0("gene_", seq_len(dim(counts)[1]))
 ## make spikeins
 
-numSpikes <- 10
+numSpikes <- 5
 spikeinsMeans <- runif(numSpikes, 10,10000)
 spikes <- lapply(allNormFactors,
        function(x) {
@@ -56,15 +53,14 @@ spikes <- lapply(allNormFactors,
        })
 spikes <- do.call(cbind, spikes)
 rownames(spikes) <- paste("spikes", seq_len(dim(spikes)[1]))
-BSpikes <- rownames(spikes)[seq_len(numSpikes)]
-CSpikes <- rownames(spikes)[numSpikes + seq_len(numSpikes)]
+labelled <- rownames(spikes)[seq_len(numSpikes)]
+unlabelled <- rownames(spikes)[numSpikes + seq_len(numSpikes)]
 
-refGroup <- "A_fraction"
+refGroup <- "total_fraction"
 
 spikeLists <- list(
-  A_fraction = list(c(BSpikes, CSpikes)),
-  B_fraction = list(BSpikes, CSpikes),
-  C_fraction = list(BSpikes, CSpikes))
+  total_fraction = list(c(labelled, unlabelled)),
+  pull_down = list(labelled, unlabelled))
 
 counts <- rbind(counts, spikes)
 spikeins <- list(refGroup = refGroup,

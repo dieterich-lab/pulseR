@@ -7,6 +7,7 @@
 #' @return list with keys corresponding to condition names and values as
 #'   unevaluated call objects
 #' @export
+#' @rdname formulas
 #'
 #' @examples
 #' \dontrun{
@@ -33,6 +34,7 @@ MeanFormulas <- function(...) {
 #' @return unevaluated call, as from \code{\link{quote}} function
 #' 
 #' @export
+#' @rdname formulas
 #' @examples
 #' \dontrun{
 #' forms <- MeanFormulas(A=r_a, B=r_b)
@@ -60,6 +62,8 @@ contaminate <- function(formulas,
 #'
 #' @return list; formulas with substituted parameters according to the values
 #' in the \code{conditions} data.frame
+#' @rdname formulas
+#' @export
 #'
 constructFormulas <- function(formulas, conditions) {
   result <- lapply(rownames(conditions), function(x) {
@@ -85,6 +89,7 @@ toLanguage <- function(x) {
 #'
 #' @return an expression for the initial RNA level
 #' @export
+#' @rdname formulas
 #'
 #' @examples
 #' x <- amount("mu")
@@ -104,6 +109,7 @@ amount <- function(x){
 #'
 #' @return an expression for the initial RNA level
 #' @export
+#' @rdname formulas
 #'
 amount_ <- function(x){
  substitute(x) 
@@ -121,6 +127,7 @@ amount_ <- function(x){
 #' @return an expression for the calculation of the RNA level after
 #' degradation during time \verb{t}.
 #' @export
+#' @rdname formulas
 #'
 #' @examples
 #' x <- amount("mu_0")
@@ -147,6 +154,7 @@ degrade <- function(x, d, t){
 #' @return an expression for the calculation of the RNA level after
 #' degradation during time \verb{t}.
 #' @export
+#' @rdname formulas
 #'
 #' @examples
 #' x <- amount("a")
@@ -173,6 +181,7 @@ degrade_ <- function(x, d, t) {
 #' @return an expression for the calculation of the RNA level after time
 #' \verb{t}.
 #' @export
+#' @rdname formulas
 #'
 #' @examples
 #' x <- amount_(mu_0)
@@ -198,6 +207,7 @@ grow <- function(x, mu, d, t) {
 #' @inheritParams grow 
 #' @return an expression to calculate the RNA level.
 #' @export
+#' @rdname formulas
 #'
 #' @examples
 #' growFrom0("b","c","d")
@@ -212,11 +222,12 @@ growFrom0 <- function(mu, d, t) {
 
 #' Creates a formula which describe evolution of RNA concentration
 #' 
-#' This implement the non-standard evaluation version of the 
+#' This implements the non-standard evaluation version of the 
 #' \code{\link{grow}} function.
 #' @inheritParams grow
 #' @return an expression for the calculation of the RNA level.
 #' @export
+#' @rdname formulas
 #'
 #' @examples
 #' x <- amount("a")

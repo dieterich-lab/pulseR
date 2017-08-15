@@ -17,7 +17,8 @@ substitute_q <- function(x, env)
 #' @param norm_factors a matrix n x k, where k is the number of samples
 #'
 #' @return a vector of length equal to the sample number
-#'
+#' @keywords  internal
+#' 
 sample_means <- function(evaled_forms, norm_factors){
   evaled_forms %*% norm_factors
 }
@@ -55,9 +56,6 @@ ll <- function(par, namesToOptimise, pd, byOne=FALSE) {
   # from the flatten vector of parameters, which is used by 
   # optimisation function
   pattern <- par[namesToOptimise]
-  # leave only first parameter values if creating a gene-specific likelihood
-  if (byOne)
-    pattern <- lapply(pattern, `[[`, 1)
   par[namesToOptimise] <- NULL
   evalCall <- as.call(c(cbind, pd$formulas))
   norms <- getNorms(pd, par$normFactors)
@@ -91,6 +89,7 @@ ll <- function(par, namesToOptimise, pd, byOne=FALSE) {
 #' different formulas used in estimation of means 
 #' (i.e. the same as in `pd$rawFormulas`). The columns correspond to the samples
 #' in the count matrix of the PulseData object `pd`.
+#' @keywords  internal
 #'
 getNorms <- function(pd, normFactors = NULL) {
   m <- matrix(0,
@@ -130,6 +129,7 @@ getNorms <- function(pd, normFactors = NULL) {
 #'   provided counts, normalisation factors and  parameters.
 #'
 #' @export
+#' 
 llnormFactors <- function(par, pd) {
   evaledForms <- eval(as.call(c(cbind, pd$formulas)), par)
   function(x, counts) {
@@ -139,35 +139,6 @@ llnormFactors <- function(par, pd) {
   }
 }
 
-#' Create a likelihood function 
-#' 
-#' @inheritParams ll
-#'
-#' @return a function with the following arguments:
-#'   - x, a numeric vector which correspods to the records in 
-#'     `par` argument. The first element of the normFactors, if
-#'     `par$normFactors` is not `NULL`, is excluded, because it is assumed
-#'      to be fixed to 1. Other parameters are the same as in `par`.
-#'      The structure of `x` is identical to `unlist(par)`, if the first
-#'      element of `par$normFactors` is removed.
-#'   - counts, a numeric matrix with read counts for every gene/isoform and 
-#'     for every sample
-#'     
-#'   The created function returns a logarithm of the likelihood function
-#'   calculated on the basis of the negative binomial distribution for the
-#'   provided counts, normalisation factors and  parameters.
-#' @import utils methods
-#' @export
-#'
-totalll <- function(par, pd) {
-  function(x, counts) {
-    x <- relist(x, par)
-    evaledForms <- eval(as.call(c(cbind, pd$formulas)), par)
-    norms <- getNorms(pd, c(1, x$normFactors))
-    means <- sample_means(evaledForms,  norms)
-    -sum(stats::dnbinom( counts, mu = means, size = x$size, log = TRUE))
-  }
-}
 
 #' Calculates mean read number estimations 
 #'
@@ -175,7 +146,7 @@ totalll <- function(par, pd) {
 #' @param pd a \link{PulseData} object.
 #'
 #' @return a named list:
-#'   - preditions, a matrix of the same dimension as of the raw counts 
+#'   - predictions, a matrix of the same dimension as of the raw counts 
 #'   - llog, a matrix with logarithms of likelihood for the given raw counts.
 #' @export
 #'
@@ -186,6 +157,7 @@ totalll <- function(par, pd) {
 #' pr <- predictExpression(pd, res)
 #' plot(y = pr$predictions, x = pd$counts, xlab = "raw", ylab = "fitted")
 #' }
+#' 
 predictExpression <- function(par, pd) {
   evaledForms <- eval(as.call(c(cbind, pd$formulas)), par)
   norms <- getNorms(pd, par$normFactors)
@@ -209,10 +181,5 @@ log2screen <- function(options, ...) {
 #' @export
 #'
 evaluateLikelihood <- function(par, pd) {
-  evaledForms <- eval(as.call(c(cbind, pd$formulas)), par)
-  norms <- getNorms(pd, par$normFactors)
-  means <- sample_means(evaledForms, norms)
-  llog <- stats::dnbinom(
-    pd$counts, mu = means, size = par$size, log = TRUE)
-  sum(llog)
+  sum(predictExpression(par, pd)$llog)
 }
