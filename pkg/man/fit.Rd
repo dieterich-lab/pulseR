@@ -7,17 +7,17 @@
 \alias{fitModel}
 \title{Fit model parameters}
 \usage{
-fitParams(pd, par, namesToOptimise, options)
+fitParams(pulseData, par, namesToOptimise, options)
 
-fitParamsSeparately(pd, par, knownGenePars, namesToOptimise, options,
-  indexes = seq_len(dim(pd$counts)[1]))
+fitParamsSeparately(pulseData, par, knownGenePars, namesToOptimise, options,
+  indexes = seq_len(dim(pulseData$counts)[1]))
 
-fitNormFactors(pd, par, options)
+fitNormFactors(pulseData, par, options)
 
 fitModel(pulseData, par, options)
 }
 \arguments{
-\item{pd}{the \code{\link{PulseData}} object}
+\item{pulseData}{the \code{\link{PulseData}} object}
 
 \item{par}{a list with an initial parameters values.
 Names correspond to the parameter names used in formulas.
@@ -40,16 +40,13 @@ no spike-ins are used in the experiment.
 \item{namesToOptimise}{a vector of names of parameters, which values
 need be optimised}
 
-\item{options}{a list with optimisation options. For details, see
-\link{setTolerance}, \link{setFittingOptions}.}
+\item{options}{a list of options. For more details, see \link{setBoundaries},
+\link{setTolerance}, \link{setFittingOptions}}
 
 \item{knownGenePars}{a vectors of names of the gene-specific parameters,
 which  are assumed to be fixed during optimisation.}
 
 \item{indexes}{indexes of genes to fit. By default includes all the genes.}
-
-\item{options}{a list of options. For more details, see \link{setBoundaries},
-\link{setTolerance}, \link{setFittingOptions}}
 }
 \value{
 a list with fitted parameters (only which were optimized)
@@ -79,7 +76,7 @@ only up to some scaling coefficient, because they appear in
 a multiplication with the expression level or synthesis rate.
 
 The structure of the \code{normFactors} list is identical to the
-\code{pd$interSampleCoeffs}. This structure is defined by the
+\code{pulseData$interSampleCoeffs}. This structure is defined by the
 \code{formulaIndexes} and \code{conditions} argumenta in the \code{PulseData},
 see \code{\link{PulseData}} for more.
 

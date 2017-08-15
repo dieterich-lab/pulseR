@@ -315,7 +315,7 @@ pl <- function(paramPath,
 #' @param pl  a result from the \link{profileGene} frunction
 #' @param confidence a confidence level for the likelihood threshold line
 #'   (default .95)
-#' @param ... other arguments to the \link[graphics]{plot} function
+#' @param ... other arguments to the `\link[graphics]{plot}` function
 #'
 #' @return used for its side effect
 #' @export
@@ -345,7 +345,6 @@ plotPL <- function(pl, confidence=.95, ...) {
 #' @inheritParams getCI
 #' @param geneIndexes a vector;  corresponds to the indexes of genes, for which the
 #' confidence intervals must be computed
-#' @details
 #' @return 
 #' - `ciGene`: 
 #'   a data.frame with two columns (left, right) confidence boundaries

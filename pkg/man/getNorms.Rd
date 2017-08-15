@@ -4,23 +4,23 @@
 \alias{getNorms}
 \title{Constructs a matrix of normalisation coefficients}
 \usage{
-getNorms(pd, normFactors = NULL)
+getNorms(pulseData, normFactors = NULL)
 }
 \arguments{
-\item{pd}{\code{\link{PulseData}} object}
+\item{pulseData}{\code{\link{PulseData}} object}
 
 \item{normFactors}{a list of normalisation factors if inter-fraction
 normalisation is used (i.e. no spike-ins are provided).
 If NULL (default), only sequencing depth normalisation is used
 on the basis of spike-ins counts. The structure of \code{normFactors} must be
-same as of \code{pd$interSampleCoeffs}.}
+same as of \code{pulseData$interSampleCoeffs}.}
 }
 \value{
 a matrix of normalisation coefficients to use during calculation of
 mean read number in samples. The row number equals number of
 different formulas used in estimation of means
-(i.e. the same as in \code{pd$rawFormulas}). The columns correspond to the samples
-in the count matrix of the PulseData object \code{pd}.
+(i.e. the same as in \code{pulseData$rawFormulas}). The columns correspond to the samples
+in the count matrix of the PulseData object \code{pulseData}.
 }
 \description{
 Constructs a matrix of normalisation coefficients

@@ -4,12 +4,12 @@
 \alias{predictExpression}
 \title{Calculates mean read number estimations}
 \usage{
-predictExpression(par, pd)
+predictExpression(par, pulseData)
 }
 \arguments{
 \item{par}{estimated parameters from \link{fitModel}}
 
-\item{pd}{a \link{PulseData} object.}
+\item{pulseData}{a \link{PulseData} object.}
 }
 \value{
 a named list:
@@ -24,9 +24,9 @@ Calculates mean read number estimations
 \examples{
 \dontrun{
 # Plot expected values vs the raw counts.
-# Let res is the return of fitModel and pd is a PulseData object
-pr <- predictExpression(pd, res)
-plot(y = pr$predictions, x = pd$counts, xlab = "raw", ylab = "fitted")
+# Let res is the return of fitModel and pulseData is a PulseData object
+pr <- predictExpression(pulseData, res)
+plot(y = pr$predictions, x = pulseData$counts, xlab = "raw", ylab = "fitted")
 }
 
 }

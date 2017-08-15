@@ -29,8 +29,6 @@
 #'     
 #' @param namesToOptimise a vector of names of parameters, which values 
 #'   need be optimised
-#' @param options a list with optimisation options. For details, see
-#'  \link{setTolerance}, \link{setFittingOptions}.
 #' @param knownGenePars a vectors of names of the gene-specific parameters,
 #'  which  are assumed to be fixed during optimisation.
 #' @param indexes indexes of genes to fit. By default includes all the genes.
