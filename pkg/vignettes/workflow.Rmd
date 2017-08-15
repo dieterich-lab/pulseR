@@ -5,6 +5,7 @@ date: "`r Sys.Date()`"
 output: 
   rmarkdown::html_vignette:
     toc: true
+    toc_depth: 5
 vignette: >
   %\VignetteIndexEntry{Vignette Title}
   %\VignetteEngine{knitr::rmarkdown}
@@ -13,6 +14,7 @@ vignette: >
 
 ```{r include=FALSE}
 library(pulseR)
+set.seed(259)
 ```
 
 ## Overview
@@ -220,8 +222,9 @@ plot(par$mu, fit$mu, pch=16, cex=1, log='xy',
      xlab="true", ylab="fit", main="mu, expression level")
 ```
 
+For simulation the uniformly distributed parameters were used, which is
+also observed in the fitted values:
 
 ```{r, fig.width=4, fig.height=3.5, fig.cap="Model predictions vs. data"}
-plot(fit$mu, fit$d, pch=16, cex=.5, log='x',
-     xlab="mu, expression", ylab="d, degradation")
+plot(fit$mu, fit$d, pch=16, cex=.5,  xlab="expression", ylab="degradation")
 ```

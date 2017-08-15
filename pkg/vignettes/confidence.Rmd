@@ -5,6 +5,7 @@ date: "`r Sys.Date()`"
 output: 
   rmarkdown::html_vignette:
     toc: true
+    toc_depth: 4
 vignette: >
   %\VignetteIndexEntry{Confidence intervals}
   %\VignetteEngine{knitr::rmarkdown}
@@ -35,59 +36,49 @@ the influence of individual gene parameters on the shared parameters.
 
 ### The workflow 
 
-Let us use the model of experiment used in the [vignette](fit-fractions.html)
-for application  of pulseR to spike-ins-free data.
+Let us use the model of experiment used in the [vignette](workflow.html)
+for application  of pulseR to spike-ins-free data:
 
-#### Get the model fit
-
-Here we get the data and fit the result:
-
-```{r}
+```{r include=FALSE}
 library(pulseR)
-set.seed(258)
-attach(pulseRFractionData)
 ```
 
-```{r cache=TRUE}
-pd <- PulseData(
-  counts = counts,
-  conditions = conditions,
-  formulas = formulas,
-  formulaIndexes = formulaIndexes,
-  groups = fractions
+
+```{r include=TRUE, cache=TRUE}
+library(pulseR)
+attach(pulseRSpikeinsData)
+pd <- PulseData(counts, conditions, formulas, formulaIndexes, spikeins)
+formulas <- MeanFormulas(
+  total      =  mu,
+  labelled   =  mu * exp(-d * time),
+  unlabelled =  mu * (1 - exp(-d * time))
 )
-detach(pulseRFractionData)
+formulaIndexes <- list(total_fraction = "total",
+                       pull_down      = c("labelled", "unlabelled"))
+pd <- PulseData(counts, conditions, formulas, formulaIndexes, 
+                spikeins = spikeins)
 opts <- setBoundaries(list(
-  a = c(.1, 1e6),
-  b = c(.01, .99),
-  normFactors = c(.1, 50)
+  mu = c(.1, 1e6),
+  d = c(.01, 2)
 ))
-initPars <- list(p = pulseRFractionData$par$p)
-initPars <- initParameters(initPars, c("a", "b"), pulseData = pd, options = opts)
-opts <- setTolerance(params = 1e-6, normFactors = 1e-3, options = opts)
-
+opts <- setTolerance(params = 1e-3,  options = opts)
+initPars <- initParameters(par = list(size=10),
+                           geneParams = c("mu", "d"), 
+                           pulseData  = pd, 
+                           options    = opts)
+fit <- fitModel(pulseData = pd, par = initPars, options = opts)
 ```
-
-```{r eval = FALSE}
-fit <- fitModel(pd, initPars, opts)
-```
-
-```{r include = FALSE, eval = FALSE}
-saveRDS(fit, "fit.rds")
-```
-```{r include = FALSE}
-fit <- readRDS("fit.rds")
-```
-
 
 #### Construct the profile likelihood
 
 ```{r}
 geneIndex <- 7
-parName <- "b"
-interval <- c(0.95,1.05) * fit[[parName]][geneIndex]
+parName <- "d"
+interval <- c(0.85,1.2) * fit[[parName]][geneIndex]
 numPoints <- 51
-pl <- profileGene(parName, geneIndex, pd, fit, interval, options=opts, numPoints = 21)
+pl <- profileGene(parName, geneIndex, pd, fit, interval, 
+                  options=opts, numPoints = 21)
+str(pl)
 ```
 
 We can see the result using the `plotPL` function:
@@ -97,13 +88,13 @@ plotPL(pl)
 ```
 
 The red line corresponds to the 95% confidence level likelihood threshold.
-The 95%-confidence interval for the $b$ parameter is defined from the 
+The 95%-confidence interval for the $d$ parameter is defined from the 
 crossing points of the threshold line and the profile likelihood curve.
 
 Use the `ciGene` function in order to estimate this points numerically:
 
 ```{r}
-geneIndexes <- seq_along(fit$b)
+geneIndexes <- 1:10
 CIs <- ciGene(parName, geneIndexes, pd, fit, opts)
 CIs
 ```
@@ -114,42 +105,28 @@ If the normalisation factors are not fixed, or changes in a single gene paramete
 result in observed difference in the shared or normalisation parameters values,
 it is necessary to use the whole likelihood, which is a function of all shared and
 individual parameters.
-
-```{r fig.width=6, fig.height=4}
-plTotal <- profile(paramPath = list("b",geneIndex),
+```{r fig.width=6, fig.height=4, eval=FALSE}
+plTotal <- profile(paramPath = list("d",geneIndex),
               pd = pd, 
               par = fit,
               options = opts,
               interval = interval,
               numPoints = 20)
-plotPL(pl)
-lines(plTotal$b, plTotal$logL, col="tomato", lty=2, lwd=2)
 ```
 
-Quite narrow:
-```{r cache=TRUE}
+If the model includes the normalisation factors and
+we are interested in estimation of the CI for the normalisation factors, 
+it is possible to run the same function in the same manner:
+```{r eval=FALSE}
 plTotal <- profile(paramPath = list("normFactors",2,1),
               pd = pd, 
               par = fit,
               options = opts,
-              interval = c(2.96,2.98),
-              numPoints = 21)
-plotPL(plTotal)
+              interval = c(1, 3))
 
 ```
-
-Although we can see a broader view:
-
-```{r cache=TRUE}
-plTotal <- profile(paramPath = list("normFactors",2,1),
-              pd = pd, 
-              par = fit,
-              options = opts,
-              interval = c(2.,4.),
-              numPoints = 51)
-plotPL(plTotal)
-
-```
+However, it may result in long computation times, since it is equivalent to
+refitting the whole model several times.
 
 ```{r}
 sessionInfo()
