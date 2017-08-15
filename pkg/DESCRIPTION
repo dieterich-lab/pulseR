@@ -1,5 +1,5 @@
 Package: pulseR
-Version: 0.0.2
+Version: 1.0.0
 License: GPL-3
 Title: Analysis of pulse-chase RNAseq data
 Description: Tool to simplify MLE modelling of pulse-chase experiments.
