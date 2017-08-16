@@ -38,7 +38,7 @@ parameter values}
 \item{paramPath}{a list with names and indexes in order to locate the
 parameter in the \code{par} argument (e.g. \code{list("mu", 1)} corresponds to
 the "mu" parameter value for the first gene, i.e.
-\code{\verb{par[["mu"]][[1]]}}}
+\verb{par[["mu"]][[1]]}.}
 
 \item{freeParams}{which parameters are optimised (i.e. not fixed);
 by default they are derived from the names of the boundaries}

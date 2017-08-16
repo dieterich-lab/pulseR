@@ -4,20 +4,20 @@
 \alias{llnormFactors}
 \title{Create a likelihood function for optimisation of normalisation factors}
 \usage{
-llnormFactors(par, pd)
+llnormFactors(par, pulseData)
 }
 \arguments{
 \item{par}{a named list with parameter values (including the size parameter
 for the negative binomial distribution, see \code{\link{dnbinom}})}
 
-\item{pd}{a \code{\link{PulseData}} object}
+\item{pulseData}{a \code{\link{PulseData}} object}
 }
 \value{
 a function with the following arguments:
 \itemize{
 \item x, a numeric vector which correspods to the records in
-\code{pd$interSampleCoeffs}, but without the first element, i.e.
-\code{unlist(pd$interSampleCoeffs)[-1]}
+\code{pulseData$interSampleCoeffs}, but without the first element, i.e.
+\code{unlist(pulseData$interSampleCoeffs)[-1]}
 \item counts, a numeric matrix with read counts for every gene/isoform and
 for every sample
 }

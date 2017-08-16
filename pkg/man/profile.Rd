@@ -7,8 +7,8 @@
 \usage{
 profileGene(parName, geneIndex, pd, par, interval, options, ...)
 
-profile(paramPath, pd, par, options, interval,
-  namesToOptimise = names(options$lb), ...)
+profile(paramPath, pd, par, options, interval, namesToOptimise = names(par),
+  ...)
 }
 \arguments{
 \item{parName}{a character;
@@ -19,10 +19,10 @@ where the data for the given gene are located}
 
 \item{pd}{the \link{PulseData} object}
 
-\item{par}{a result of the \link{fitModel} function}
+\item{par}{result output from the \link{fitModel} function}
 
-\item{interval}{double(2) vector; left and right boundaries to calculate the
-profile likelihood for the parameter given in \code{parName}}
+\item{interval}{a vector of two numbers defining the interval of
+parameter profiling}
 
 \item{options}{the options list used for the \link{fitModel} function call}
 
@@ -32,21 +32,15 @@ i.e. \code{logScale} (logical) and number of points \code{numPoints}}
 \item{paramPath}{a list with names and indexes in order to locate the
 parameter in the \code{par} argument (e.g. \code{list("mu", 1)} corresponds to
 the "mu" parameter value for the first gene, i.e.
-\code{\verb{par[["mu"]][[1]]}}}
+\verb{par[["mu"]][[1]]}.}
 
-\item{fit}{result output from the \link{fitModel} function}
-
-\item{parName}{}
+\item{namesToOptimise}{a character vector including the free parameters
+(i.e. they wil be treated as unfixed)}
 }
 \value{
-a data.frame; the column \code{logl} corresponds to the -log(likelihood)
-function values. the other represents the profiled parameter values.
-
 a data.frame; the column \code{logl} corresponds to the -log(likelihood)
 function values. the other represents the profiled parameter values.
 }
 \description{
 Estimate profile likelihood for gene parameters (all other fixed)
-
-Profile
 }

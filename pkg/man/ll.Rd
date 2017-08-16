@@ -4,7 +4,7 @@
 \alias{ll}
 \title{Creates a likelihood function for given parameter names}
 \usage{
-ll(par, namesToOptimise, pd, byOne = FALSE)
+ll(par, namesToOptimise, pulseData, byOne = FALSE)
 }
 \arguments{
 \item{par}{a named list with parameter values (including the size parameter
@@ -12,7 +12,7 @@ for the negative binomial distribution, see \code{\link{dnbinom}})}
 
 \item{namesToOptimise}{names of not fixed parameters}
 
-\item{pd}{a \code{\link{PulseData}} object}
+\item{pulseData}{a \code{\link{PulseData}} object}
 
 \item{byOne}{logical. If TRUE, the created function works on the level of
 a single gene/isoform. In this case, every gene-specific parameter is

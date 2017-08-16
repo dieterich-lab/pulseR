@@ -11,6 +11,8 @@ plotPL(pl, confidence = 0.95, ...)
 
 \item{confidence}{a confidence level for the likelihood threshold line
 (default .95)}
+
+\item{...}{other arguments to the \code{\link[graphics]{plot}} function}
 }
 \value{
 used for its side effect
