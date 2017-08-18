@@ -1,6 +1,5 @@
 # pulseR  
 
-<img src="../logo.gif" width="100"> 
 [![Build Status](https://travis-ci.org/dieterich-lab/pulseR.svg?branch=master)](https://travis-ci.org/dieterich-lab/pulseR)
 [![codecov](https://codecov.io/gh/dieterich-lab/pulseR/branch/master/graph/badge.svg)](https://codecov.io/gh/dieterich-lab/pulseR)
 

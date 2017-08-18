@@ -1,3 +1,25 @@
 template:
   params:
     bootswatch: united
+
+navbar:
+  title: pulseR
+  type: default
+  left:
+  - icon: fa-home fa-lg
+    href: index.html
+  - text: Reference
+    href: reference/index.html
+  - text: Articles
+    menu:
+    - text: Profile likelihood
+      href: articles/confidence.html
+    - text: Formula creation
+      href: articles/formulas.html
+    - text: The workflow
+      href: articles/workflow.html
+  - text: News
+    href: news/index.html
+  right:
+  - icon: fa-github fa-lg
+    href: https://github.com/dieterich-lab/pulseR
