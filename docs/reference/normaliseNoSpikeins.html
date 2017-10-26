@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Constructs a matrix of normalisation coefficients — getNorms • pulseR</title>
+<title>Performs sequencing depth normalisation using the DESeq procedure. — normaliseNoSpikeins • pulseR</title>
 
 <!-- jquery -->
 <script src="https://code.jquery.com/jquery-3.1.0.min.js" integrity="sha384-nrOSfDHtoPMzJHjVTdCopGqIqeYETSXhZDFyniQ8ZHcVy08QesyHcnOUpMpqnmWq" crossorigin="anonymous"></script>
@@ -101,39 +101,31 @@
       <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>Constructs a matrix of normalisation coefficients</h1>
+    <h1>Performs sequencing depth normalisation using the DESeq procedure.</h1>
     </div>
 
     
-    <p>Constructs a matrix of normalisation coefficients</p>
+    <p>Performs sequencing depth normalisation using the DESeq procedure.</p>
     
 
-    <pre class="usage"><span class='fu'>getNorms</span>(<span class='no'>pulseData</span>, <span class='kw'>normFactors</span> <span class='kw'>=</span> <span class='kw'>NULL</span>)</pre>
+    <pre class="usage"><span class='fu'>normaliseNoSpikeins</span>(<span class='no'>pd</span>, <span class='no'>groups</span>)</pre>
     
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a> Arguments</h2>
     <table class="ref-arguments">
     <colgroup><col class="name" /><col class="desc" /></colgroup>
     <tr>
-      <th>pulseData</th>
-      <td><p><code><a href='PulseData.html'>PulseData</a></code> object</p></td>
+      <th>pd</th>
+      <td><p>a <code><a href='PulseData.html'>PulseData</a></code> object</p></td>
     </tr>
     <tr>
-      <th>normFactors</th>
-      <td><p>a list of normalisation factors if inter-fraction
-normalisation is used (i.e. no spike-ins are provided).
-If NULL (default), only sequencing depth normalisation is used
-on the basis of spike-ins counts. The structure of <code>normFactors</code> must be
-same as of <code>pulseData$interSampleCoeffs</code>.</p></td>
+      <th>groups</th>
+      <td><p>a vector for splitting objects to groups</p></td>
     </tr>
     </table>
     
     <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
 
-    <p>a matrix of normalisation coefficients to use during calculation of
-mean read number in samples. The row number equals number of
-different formulas used in estimation of means
-(i.e. the same as in <code>pulseData$rawFormulas</code>). The columns correspond to the samples
-in the count matrix of the PulseData object <code>pulseData</code>.</p>
+    <p>a vector with the coefficient for every sample</p>
     
 
   </div>

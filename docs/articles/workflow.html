@@ -29,7 +29,7 @@
     <div id="navbar" class="navbar-collapse collapse">
       <ul class="nav navbar-nav">
 <li>
-  <a href="..//index.html">
+  <a href="../index.html">
     <span class="fa fa-home fa-lg"></span>
      
   </a>
@@ -81,7 +81,7 @@
       <h1>The workflow</h1>
                         <h4 class="author">Uvarovskii Alexey</h4>
             
-            <h4 class="date">2017-08-15</h4>
+            <h4 class="date">2017-10-26</h4>
           </div>
 
     
@@ -94,7 +94,7 @@
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(pulseR)
 ...
 <span class="co"># define the data</span>
-pd &lt;-<span class="st"> </span><span class="kw"><a href="../reference/pulsedata.html">PulseData</a></span>(...)
+pd &lt;-<span class="st"> </span><span class="kw"><a href="../reference/PulseData.html">PulseData</a></span>(...)
 <span class="co"># set options </span>
 opts &lt;-<span class="st"> </span><span class="kw"><a href="../reference/setTolerance.html">setTolerance</a></span>(...)
 opts &lt;-<span class="st"> </span><span class="kw"><a href="../reference/setBoundaries.html">setBoundaries</a></span>(..., opts)
@@ -109,7 +109,7 @@ fit &lt;-<span class="st"> </span><span class="kw"><a href="../reference/fit.htm
 <p>In the <code>pulseR</code> package, we keep all inial data in the <code>PulseData</code> structure (S3 class). When the information about read counts, conditions and the model is defined, one can create the object with a line as</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(pulseR)
 <span class="kw">attach</span>(pulseRSpikeinsData)
-pd &lt;-<span class="st"> </span><span class="kw"><a href="../reference/pulsedata.html">PulseData</a></span>(counts, conditions, formulas, formulaIndexes, spikeins)</code></pre></div>
+pd &lt;-<span class="st"> </span><span class="kw"><a href="../reference/PulseData.html">PulseData</a></span>(counts, conditions, formulas, formulaIndexes, spikeins)</code></pre></div>
 <div id="counts" class="section level4">
 <h4 class="hasAnchor">
 <a href="#counts" class="anchor"></a>Counts</h4>
@@ -191,7 +191,7 @@ pd &lt;-<span class="st"> </span><span class="kw"><a href="../reference/pulsedat
 ## 
 ## $spikeLists$pull_down[[2]]
 ## [1] "spikes 6"  "spikes 7"  "spikes 8"  "spikes 9"  "spikes 10"</code></pre></div>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">pd &lt;-<span class="st"> </span><span class="kw"><a href="../reference/pulsedata.html">PulseData</a></span>(counts, conditions, formulas, formulaIndexes, 
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">pd &lt;-<span class="st"> </span><span class="kw"><a href="../reference/PulseData.html">PulseData</a></span>(counts, conditions, formulas, formulaIndexes, 
                 <span class="dt">spikeins =</span> spikeins)</code></pre></div>
 </div>
 <div id="without-spike-ins" class="section level5">
@@ -203,7 +203,7 @@ pd &lt;-<span class="st"> </span><span class="kw"><a href="../reference/pulsedat
 <li>Normalisation factors, which define the relations between the groups and fractions are fitted together with other parameters.</li>
 </ul>
 <p>The way of sample grouping is defined in the <code>group</code> argument. We assume that efficiency of the pull-down procedure is different between different time points (<code>time</code> column in the condition matrix):</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">pd &lt;-<span class="st"> </span><span class="kw"><a href="../reference/pulsedata.html">PulseData</a></span>(counts, conditions, formulas, formulaIndexes, 
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">pd &lt;-<span class="st"> </span><span class="kw"><a href="../reference/PulseData.html">PulseData</a></span>(counts, conditions, formulas, formulaIndexes, 
                 <span class="dt">groups =</span> ~<span class="st"> </span>fraction +<span class="st"> </span>time)</code></pre></div>
 </div>
 </div>
