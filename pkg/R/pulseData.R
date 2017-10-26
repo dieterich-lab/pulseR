@@ -264,6 +264,7 @@ findDeseqFactorsForFractions <- function(count_data, conditions) {
 #'
 addKnownToFormulas <- function(formulas, formulaIndexes, conditions) {
   uc <- unique(conditions)
+  uc <- uc[order(uc[,1]),,drop = FALSE]
   newIndexes <- list()
   newForms <- list()
   for (i in seq_along(uc[, 1])) {
