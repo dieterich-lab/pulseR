@@ -7,7 +7,8 @@
   ),
   verbose = "silent",
   lb = list(size = 10),
-  ub = list(size = 1e10)
+  ub = list(size = 1e10),
+  fixedNorms = FALSE
 )
 
 

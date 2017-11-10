@@ -143,6 +143,7 @@ getMaxRelDifference <- function(x, y)
 #' @rdname fit
 #' @export
 fitModel <- function(pulseData, par, options){
+  options <- addDefault(options)
   log2screen(options, cat("\n"))
   # identify what to fit and what is fixed
   known   <- .getKnownNames(par, options)
@@ -154,7 +155,7 @@ fitModel <- function(pulseData, par, options){
   )
   if (length(fitSets$shared) == 0)
     fitSets$shared <- NULL
-  if (is.null(par$normFactors))
+  if (is.null(par$normFactors) || options$fixedNorms)
     fitSets$normFactors <- NULL
   # prepare functions and boundaries for optimisation
   options <- normaliseBoundaries(
