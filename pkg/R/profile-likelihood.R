@@ -259,12 +259,13 @@ pl <- function(paramPath,
 .fitGene <- function(initPars, i, objective, lb, ub, fixedPars, counts, N=1) {
   lb <- unlist(lb[i,])
   ub <- unlist(ub[i,])
+  parscale <- .5 * (abs(ub) + abs(lb))
   optFun <- function(inits)
     stats::optim(
     inits,
     objective,
     method = "L-BFGS-B",
-    control = list(parscale =  initPars), 
+    control = list(parscale = parscale), 
     lower = lb,
     upper = ub,
     counts = counts[i, ],

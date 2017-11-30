@@ -140,6 +140,12 @@ getMaxRelDifference <- function(x, y)
   max(abs(1 - unlist(x) / (unlist(y))), na.rm = TRUE)
 }
 
+
+getMaxAbsDifference <- function(x, y)
+{
+  max(abs(unlist(x) - (unlist(y))), na.rm = TRUE)
+}
+
 #' @rdname fit
 #' @export
 fitModel <- function(pulseData, par, options){
@@ -174,7 +180,8 @@ fitModel <- function(pulseData, par, options){
     for (paramSet in names(fitSets)) {
       parNames <- fitSets[[paramSet]]
       res <- funs[[paramSet]](par)
-      err[[paramSet]] <- getMaxRelDifference(res, par[parNames])
+      #err[[paramSet]] <- getMaxRelDifference(res, par[parNames])
+      err[[paramSet]] <- getMaxAbsDifference(res, par[parNames])
       par[parNames] <- res
     }
     par["size"] <- fitParams(pulseData, par, "size", options)
