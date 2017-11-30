@@ -186,6 +186,10 @@ fitModel <- function(pulseData, par, options){
   }
   ## fit gene specific final parameters
   par[fitSets$params] <- funs[["params"]](par)
+  ## assign names
+  for(param in fitSets$params) {
+    names(par[[param]]) <- rownames(pulseData$counts)
+  }
   if (!is.null(options$resultRDS)) {
     saveRDS(object = par, file = options$resultRDS)
   }
