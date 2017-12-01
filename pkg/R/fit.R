@@ -188,16 +188,20 @@ fitModel <- function(pulseData, par, options){
     logLik <- evaluateLikelihood(par, pulseData)
     log2screen(options, progressString(err, logLik))
     if (!is.null(options$resultRDS)) {
+      ## assign names
+      for(param in fitSets$params) {
+        names(par[[param]]) <- rownames(pulseData$counts)
+      }
       saveRDS(object = par, file = options$resultRDS)
     }
   }
   ## fit gene specific final parameters
   par[fitSets$params] <- funs[["params"]](par)
-  ## assign names
-  for(param in fitSets$params) {
-    names(par[[param]]) <- rownames(pulseData$counts)
-  }
   if (!is.null(options$resultRDS)) {
+    ## assign names
+    for (param in fitSets$params) {
+      names(par[[param]]) <- rownames(pulseData$counts)
+    }
     saveRDS(object = par, file = options$resultRDS)
   }
   par
