@@ -68,13 +68,14 @@ fitParams <- function(pulseData, par, namesToOptimise, options) {
   # garantee that boundaries are in the same order as the params
   lb <- unlist(options$lb[namesToOptimise])
   ub <- unlist(options$ub[namesToOptimise])
+  parscale <- .5 * (abs(ub) + abs(lb))
   objective <- ll(par = par, namesToOptimise = namesToOptimise, pulseData = pulseData)
   x <- unlist(par[namesToOptimise])
   x <- stats::optim(
     x,
     objective,
     method = "L-BFGS-B",
-    control = list(parscale = x),
+    control = list(parscale = parscale),
     lower = lb,
     upper = ub,
     counts = pulseData$counts
