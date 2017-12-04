@@ -275,7 +275,7 @@ pl <- function(paramPath,
   if (N > 1) {
     res <- c(list(res),
              replicate(N - 1, {
-               initValues <- .sampleWithLog(lb, ub)
+               initValues <- .sampleParameter(lb, ub)
                optFun(initValues)
              }, simplify = FALSE))
   res <- res[[which.min(lapply(res, `[[`, "value"))]]
@@ -283,7 +283,7 @@ pl <- function(paramPath,
   res
 }
 
-.sampleWithLog <- function(lb,ub) {
+.sampleParameter <- function(lb,ub) {
   sameSign <- lb*ub > 0
   res <- double(length(lb))
   # different signs -- linear runif
