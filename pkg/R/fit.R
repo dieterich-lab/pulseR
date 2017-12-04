@@ -177,16 +177,19 @@ fitModel <- function(pulseData, par, options){
   )
   
   err <- c(params = Inf, shared = Inf, normFactors = Inf)[names(fitSets)]
-  while (any(err > unlist(options$tolerance[names(fitSets)]))) {
+  err <- c(err, logLik = Inf)
+  logLik <- -Inf
+  while (any(err > unlist(options$tolerance[names(err)]))) {
     for (paramSet in names(fitSets)) {
       parNames <- fitSets[[paramSet]]
       res <- funs[[paramSet]](par)
-      #err[[paramSet]] <- getMaxRelDifference(res, par[parNames])
       err[[paramSet]] <- getMaxAbsDifference(res, par[parNames])
       par[parNames] <- res
     }
     par["size"] <- fitParams(pulseData, par, "size", options)
-    logLik <- evaluateLikelihood(par, pulseData)
+    newlogLik <- evaluateLikelihood(par, pulseData)
+    err["logLik"] <- - logLik + newlogLik
+    logLik <- newlogLik
     log2screen(options, progressString(err, logLik))
     if (!is.null(options$resultRDS)) {
       ## assign names

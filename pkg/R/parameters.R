@@ -3,7 +3,8 @@
   tolerance = list(
     params = 1e-3,
     shared = 1e-2,
-    normFactors = 1e-3
+    normFactors = 1e-3,
+    logLik = .5
   ),
   verbose = "silent",
   lb = list(size = 10),
