@@ -240,7 +240,7 @@ pl <- function(paramPath,
       optimisationStart,
       objective,
       method = "L-BFGS-B",
-      control = list(parscale = optimisationStart),
+      control = list(parscale = .5*(abs(boundaries$lb) + abs(boundaries$ub))),
       lower = boundaries$lb,
       upper = boundaries$ub,
       params = par
