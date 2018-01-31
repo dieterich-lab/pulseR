@@ -240,7 +240,7 @@ pl <- function(paramPath,
       optimisationStart,
       objective,
       method = "L-BFGS-B",
-      control = list(parscale = optimisationStart),
+      control = list(parscale = .5*(abs(boundaries$lb) + abs(boundaries$ub))),
       lower = boundaries$lb,
       upper = boundaries$ub,
       params = par
@@ -259,12 +259,13 @@ pl <- function(paramPath,
 .fitGene <- function(initPars, i, objective, lb, ub, fixedPars, counts, N=1) {
   lb <- unlist(lb[i,])
   ub <- unlist(ub[i,])
+  parscale <- .5 * (abs(ub) + abs(lb))
   optFun <- function(inits)
     stats::optim(
     inits,
     objective,
     method = "L-BFGS-B",
-    control = list(parscale =  initPars), 
+    control = list(parscale = parscale), 
     lower = lb,
     upper = ub,
     counts = counts[i, ],
@@ -274,7 +275,7 @@ pl <- function(paramPath,
   if (N > 1) {
     res <- c(list(res),
              replicate(N - 1, {
-               initValues <- .sampleWithLog(lb, ub)
+               initValues <- .sampleParameter(lb, ub)
                optFun(initValues)
              }, simplify = FALSE))
   res <- res[[which.min(lapply(res, `[[`, "value"))]]
@@ -282,7 +283,7 @@ pl <- function(paramPath,
   res
 }
 
-.sampleWithLog <- function(lb,ub) {
+.sampleParameter <- function(lb,ub) {
   sameSign <- lb*ub > 0
   res <- double(length(lb))
   # different signs -- linear runif
