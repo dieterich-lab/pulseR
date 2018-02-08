@@ -365,11 +365,14 @@ ciGene <- function(parName, geneIndexes, pd,  par, options, interval,
     if (!is.null(dim(interval)[1]))
       interval_ <- interval[geneIndex, ]
     pL <- plGene(parName, geneIndex, par, pd, options)
-    getCI(
-      pL = pL,
-      optimum = par[[parName]][geneIndex],
-      interval = interval_,
-      confidence = confidence
+    tryCatch(
+      getCI(
+        pL = pL,
+        optimum = par[[parName]][geneIndex],
+        interval = interval_,
+        confidence = confidence),
+        error = function(c)
+          c(NA, NA)
     )
   }
   if (!is.null(options$cores) && options$cores > 1) {
