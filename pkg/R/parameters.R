@@ -228,7 +228,7 @@ setBoundaries <- function(boundaries,
   options
 }
 
-#' Set the stopping criteria in a form of the relative 
+#' Set the stopping criteria in a form of the absolute
 #' changes during fitting iterations.
 #'
 #' @param params a threshold for gene-specific parameter boundaries
@@ -240,7 +240,7 @@ setBoundaries <- function(boundaries,
 #' @return   an options object with the new parameter values
 #' @details If no options object is provided, the default options are used
 #' as a base.
-#' A threshold  represents the relative changes in parameter values 
+#' A threshold  represents the absolute changes in parameter values 
 #' between two subsequent fitting iterations.
 #' @export
 #' @examples 
@@ -249,15 +249,15 @@ setBoundaries <- function(boundaries,
 setTolerance <- function(params = .01,
                          shared = .01,
                          normFactors = .01,
+                         logLik = .5,
                          options = .defaultParams) {
   if (!is.list(options))
     stop("Options must be a list")
   options <- addDefault(options)
-  plist <- as.list(match.call())[-1]
-  plist$options <- NULL
-  plist <- lapply(plist, eval)
-  options$tolerance[names(plist)] <- plist
-  checkThresholds(options)
+  options$tolerance <- list(params = params,
+                            shared = shared,
+                            normFactors = normFactors,
+                            logLik = logLik)
   options
 }
 
