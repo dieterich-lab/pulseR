@@ -68,13 +68,14 @@ fitParams <- function(pulseData, par, namesToOptimise, options) {
   # garantee that boundaries are in the same order as the params
   lb <- unlist(options$lb[namesToOptimise])
   ub <- unlist(options$ub[namesToOptimise])
+  parscale <- .5 * (abs(ub) + abs(lb))
   objective <- ll(par = par, namesToOptimise = namesToOptimise, pulseData = pulseData)
   x <- unlist(par[namesToOptimise])
   x <- stats::optim(
     x,
     objective,
     method = "L-BFGS-B",
-    control = list(parscale = x),
+    control = list(parscale = parscale),
     lower = lb,
     upper = ub,
     counts = pulseData$counts
@@ -140,9 +141,16 @@ getMaxRelDifference <- function(x, y)
   max(abs(1 - unlist(x) / (unlist(y))), na.rm = TRUE)
 }
 
+
+getMaxAbsDifference <- function(x, y)
+{
+  max(abs(unlist(x) - (unlist(y))), na.rm = TRUE)
+}
+
 #' @rdname fit
 #' @export
 fitModel <- function(pulseData, par, options){
+  options <- addDefault(options)
   log2screen(options, cat("\n"))
   # identify what to fit and what is fixed
   known   <- .getKnownNames(par, options)
@@ -154,7 +162,7 @@ fitModel <- function(pulseData, par, options){
   )
   if (length(fitSets$shared) == 0)
     fitSets$shared <- NULL
-  if (is.null(par$normFactors))
+  if (is.null(par$normFactors) || options$fixedNorms)
     fitSets$normFactors <- NULL
   # prepare functions and boundaries for optimisation
   options <- normaliseBoundaries(
@@ -169,23 +177,35 @@ fitModel <- function(pulseData, par, options){
   )
   
   err <- c(params = Inf, shared = Inf, normFactors = Inf)[names(fitSets)]
-  while (any(err > unlist(options$tolerance[names(fitSets)]))) {
+  err <- c(err, logLik = Inf)
+  logLik <- -Inf
+  while (any(err > unlist(options$tolerance[names(err)]))) {
     for (paramSet in names(fitSets)) {
       parNames <- fitSets[[paramSet]]
       res <- funs[[paramSet]](par)
-      err[[paramSet]] <- getMaxRelDifference(res, par[parNames])
+      err[[paramSet]] <- getMaxAbsDifference(res, par[parNames])
       par[parNames] <- res
     }
     par["size"] <- fitParams(pulseData, par, "size", options)
-    logLik <- evaluateLikelihood(par, pulseData)
+    newlogLik <- evaluateLikelihood(par, pulseData)
+    err["logLik"] <- - logLik + newlogLik
+    logLik <- newlogLik
     log2screen(options, progressString(err, logLik))
     if (!is.null(options$resultRDS)) {
+      ## assign names
+      for(param in fitSets$params) {
+        names(par[[param]]) <- rownames(pulseData$counts)
+      }
       saveRDS(object = par, file = options$resultRDS)
     }
   }
   ## fit gene specific final parameters
   par[fitSets$params] <- funs[["params"]](par)
   if (!is.null(options$resultRDS)) {
+    ## assign names
+    for (param in fitSets$params) {
+      names(par[[param]]) <- rownames(pulseData$counts)
+    }
     saveRDS(object = par, file = options$resultRDS)
   }
   par

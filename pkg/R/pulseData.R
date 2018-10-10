@@ -352,6 +352,10 @@ generateTestDataFrom <- function(formulas,
   formulas <- known$formulas
   indexes <- known$formulaIndexes
   evaled <- do.call(cbind, lapply(formulas, eval, env = par))
+  # if normFactors are specified only once per condition --> multiply
+  if (length(normFactors) == length(unique(conditions)[,1])) {
+    normFactors <- multiplyList(normFactors, conditions[,1])
+  }
   pd <- list(formulas = formulas, formulaIndexes = indexes,
              depthNormalisation = normFactors)
   norms <- getNorms(pd)
