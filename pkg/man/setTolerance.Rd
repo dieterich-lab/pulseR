@@ -15,6 +15,8 @@ setTolerance(params = 0.01, shared = 0.01, normFactors = 0.01,
 
 \item{normFactors}{a threshold for the fraction factors}
 
+\item{logLik}{a threshold for the logarithm of the likelihood function}
+
 \item{options}{an options object to use as a basis for a new parameter set}
 }
 \value{
