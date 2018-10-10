@@ -234,7 +234,7 @@ setBoundaries <- function(boundaries,
 #' @param params a threshold for gene-specific parameter boundaries
 #' @param shared a threshold for shared parameters boundaries
 #' @param normFactors a threshold for the fraction factors
-#' 
+#' @param logLik a threshold for the logarithm of the likelihood function
 #' @param options an options object to use as a basis for a new parameter set
 #'
 #' @return   an options object with the new parameter values
