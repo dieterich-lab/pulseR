@@ -48,7 +48,7 @@
 #' unlabelled <- c("spike3", "spike4") 
 #' 
 #' spikeLists <- list(
-#' #  total samples are normalised using all spike-ins
+#' # total samples are normalised using all spike-ins
 #'   total_fraction = list(c(unlabelled, labelled)),
 #' # for every item in formulaIndexes we have a set of spike-ins:   
 #'   flow_through   = list(unlabelled, labelled),
@@ -240,7 +240,7 @@ findDeseqFactorsForFractions <- function(count_data, conditions) {
 #' @export
 #'
 #' @examples
-#' 
+#'
 #' formulas <- MeanFormulas(total = m, label = m * exp(-d*t))
 #' formulaIndexes <- list(
 #'   total = 'total',
@@ -252,15 +252,6 @@ findDeseqFactorsForFractions <- function(count_data, conditions) {
 #' )
 #' result <- addKnownToFormulas(formulas, formulaIndexes, conditions)
 #' str(result)
-#' # List of 2
-#' # $ formulas      :List of 3
-#' # ..$ total.0: symbol m
-#' # ..$ label.1: language m * exp(-d * 1)
-#' # ..$ label.5: language m * exp(-d * 5)
-#' # $ formulaIndexes:List of 3
-#' # ..$ total.0    : int 1
-#' # ..$ pull_down.1: int 2
-#' # ..$ pull_down.5: int 3
 #'
 addKnownToFormulas <- function(formulas, formulaIndexes, conditions) {
   uc <- unique(conditions)
@@ -381,20 +372,6 @@ generateTestDataFrom <- function(formulas,
 #'   unlabel = c(4,5))
 #' pattern <- c("total", "total", "label", "total", "unlabel")
 #' multiplyList(source, pattern)
-#' # $total
-#' # [1] 1
-#' # 
-#' # $total
-#' # [1] 1
-#' # 
-#' # $label
-#' # [1] 2 3
-#' # 
-#' # $total
-#' # [1] 1
-#' # 
-#' # $unlabel
-#' # [1] 4 5
 multiplyList <- function(source, pattern) {
   res <- list()
   for (i in seq_along(pattern)) {
@@ -421,12 +398,6 @@ multiplyList <- function(source, pattern) {
 #'   total   = 1,
 #'   unlabel = c(4,5))
 #' shrinkList(l)
-#' # $total
-#' # [1] 1
-#' # 
-#' # $unlabel
-#' # [1] 4 5
-#' 
 shrinkList <- function(list){
  list[unique(names(list))] 
 }
