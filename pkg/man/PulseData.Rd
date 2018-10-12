@@ -18,8 +18,8 @@ The order of rows corresponds to the columns (samples) in the
 
 \item{formulas}{a list, created by \code{\link{MeanFormulas}}}
 
-\item{formulaIndexes}{a list of lists; defines indexes of formulas
-used for calculation of the expected read number}
+\item{formulaIndexes}{a list of lists (or of vectors);
+defines indexes of formulas used for calculation of the expected read number.}
 
 \item{spikeins}{NULL (default) or a list of two items:
 \itemize{
@@ -29,14 +29,62 @@ treated as a reference for normalisation
 the same structure as \code{formulaIndexes}.
 }}
 
-\item{groups}{NULL (default) or a formula or a vector,
-e.g. ~ condition + time (if spike-ins are not provided).
-The vector length must be the same as the sample number.
-the names used in the \code{fractions} defines different fractions,
-which should have distinct coefficients for mean expression fitting.}
+\item{groups}{NULL (default) or a vector or a formula,
+e.g. ~ fraction + time.
+If the normalisation factors must be recovered during fitting,
+\code{groups} define the sets of the samples, which share the same normalisation
+factors. Hence \code{groups} is relevant only, if there were no spike-ins provided.
+In this case, one may assume that for the samples of the same nature, i.e.
+same fraction and labelling time, the efficiency of the purification is the
+same, which reduces the number of parameters to fit. However, it is possible
+to treat every sample as an individual group, hence there will be no shared
+parameters.
+
+If it is NULL, \code{groups} are derived from the first column of the \code{conditions}.
+If a vector is provided, its elements correspond to the rows (samples) in the
+\code{conditions}.
+If, for example, there are 3 pull-down (2hr) samples purified with the protocol
+"A", and 3 pull-down (2hr) samples from the protocol "B", one may assume different
+efficiency of this protocols and reflect it in the \code{groups} argument by
+introducing additional column \code{protocol} in the condition matrix, which results in
+\code{groups = ~ fraction + time + protocol}.
+Alternatively, one may manually create a vector like
+\code{c("pull_down.2hr.A", "pull_down.2hr.B", ...)} with the order, corresponding
+to the sample order in the \code{conditions}.}
 }
 \value{
 an object of class "PulseData"
+
+It is a list with the following slots:
+\itemize{
+\item \code{user_conditions}, \code{user_formulas}, \code{counts} are the values of arguments
+\code{conditions}, \code{formulas} and \code{counts}, provided to the call of \code{PulseData}
+\item \code{rawFormulas} is a list of initial formulas, evaluated at the
+corresponding conditions (e.g. \code{time} in formulas is substituted with
+its values in the \code{conditions$time}).
+\item \code{formulas} is a list of the compiled \code{rawFormulas}
+\item \code{formulaIndexes} is a list of integers (or vectors) with indexes of formulas
+used in estimation of the expression level in a given sample.
+The order of list items corresponds to the order of the samples in the
+\code{conditions} data.frame. See also \code{\link{addKnownToFormulas}}.
+\item \code{groups} is a vector with the names of the sample groups, which is used to
+calculate normalisation factors.
+\item \code{depthNormalisation} is a list of normalisation factors of the same structure as
+\code{formulaIndexes}. If no spike-ins are used, these values correspond
+to sequencing depth within a given group of samples according to the
+\code{groups} vector. For example, depth normalisation for a group "pull_down.2hr"
+of the pull-down samples after 2 hr of labelling. The relation between
+different groups, i.e. "total_fraction", "pull_down.2hr" etc., is
+not known and must be recovered during fitting as \code{normFactors} values.
+If spike-ins are provided, the relation between different fractions
+is recovered during the initialisation of the \code{PulseData} object and
+the values are written to the \code{depthNormalisation} slot.
+\item \code{interSampleCoeffs} is a list, which structure is used as a sekeleton for the
+normalisation factors, if no spike-ins were provided. For every group in
+\code{groups}, there is a corresponding list item (a number of a numeric vector).
+\item \code{interSampleIndexes} describes which normalisation factor to use during
+calculation of
+}
 }
 \description{
 Create an object for pulse-change count data
@@ -46,32 +94,32 @@ The \code{conditions} argument may include additional  columns, which
 provide values for known parameters, such as time. Their name must be the
 same as defined in formulas. For example, if a formula is defined as
 \code{mu * exp(-d * time)} where \code{time} is the time point of the experiment,
-the condition data.frame must contain a column named \code{time}.
+the condition data.frame must contain a column named \code{time}, otherwise \code{time}
+is treated as a parameter to fit!
 }
 \examples{
 
-# Spike-ins definition for object creation
- 
+
+
 formulaIndexes <- list(
   total_fraction = 'total',
   flow_through   = c('unlabelled', 'labelled'),
   pull_down      = c('labelled', 'unlabelled'))
-  
-# spike-ins set up:
 
+# Spike-ins definition for object creation
 refGroup <- "total_fraction"
 
-labelled <- c("spike1", "spike2") 
-unlabelled <- c("spike3", "spike4") 
+labelled <- c("spike1", "spike2")
+unlabelled <- c("spike3", "spike4")
 
 spikeLists <- list(
-#  total samples are normalised using all spike-ins
+# total samples are normalised using all spike-ins
   total_fraction = list(c(unlabelled, labelled)),
-# for every item in formulaIndexes we have a set of spike-ins:   
+# for every item in formulaIndexes we have a set of spike-ins:
   flow_through   = list(unlabelled, labelled),
   pull_down      = list(labelled, unlabelled))
-  
-# argument for the function: 
+
+# argument for the function:
 spikeins <- list(refGroup = refGroup,
                  spikeLists = spikeLists)
 

@@ -8,8 +8,8 @@ addKnownToFormulas(formulas, formulaIndexes, conditions)
 }
 \arguments{
 \item{formulas}{a named list with unevaluated expressions
-for expression levels
-(e.g. describing amounts of "labelled", "total" etc. RNA)}
+for expected levels in a given fraction
+(e.g. describing amounts of "labelled", "total" RNA etc.)}
 
 \item{formulaIndexes}{a list describing which formulas to use for
 mean read number calculation for fractions defined by the names of list items}
