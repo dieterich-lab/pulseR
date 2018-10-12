@@ -304,10 +304,9 @@ findDeseqFactorsForFractions <- function(count_data, conditions) {
 #'
 addKnownToFormulas <- function(formulas, formulaIndexes, conditions) {
   uc <- unique(conditions)
-  uc <- uc[order(uc[,1]),,drop = FALSE]
   newIndexes <- list()
   newForms <- list()
-  for (i in order(uc[, 1])) {
+  for (i in seq_along(uc[, 1])) {
     # take formulas for the current condition i
     f <- formulas[formulaIndexes[[as.character(uc[i, 1])]]]
     # a combined formula name is a concatenation with the i-th row values 
@@ -347,10 +346,9 @@ addKnownToFormulas <- function(formulas, formulaIndexes, conditions) {
 makeGroups <- function(pd, normGroups) {
   # generate a list of normalisation coefficients with a proper structure
   # names are ordered according to the first columns of conditions
-  groupNames <- unique(normGroups[order(pd$conditions[,1])])
+  groupNames <- unique(normGroups)
   normCoeffs <- pd$formulaIndexes[match(groupNames, normGroups)]
   names(normCoeffs) <- groupNames
-  normCoeffs[order(normGroups)]
   # all the normalisation coefficients are numbered according 
   # to their appearance in the flatten list `unlist(normCoeffs)`
   normCoeffs <- utils::relist(seq_along(unlist(normCoeffs)), normCoeffs)
