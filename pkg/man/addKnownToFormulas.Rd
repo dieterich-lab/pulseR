@@ -45,14 +45,5 @@ conditions <- data.frame(
 )
 result <- addKnownToFormulas(formulas, formulaIndexes, conditions)
 str(result)
-# List of 2
-# $ formulas      :List of 3
-# ..$ total.0: symbol m
-# ..$ label.1: language m * exp(-d * 1)
-# ..$ label.5: language m * exp(-d * 5)
-# $ formulaIndexes:List of 3
-# ..$ total.0    : int 1
-# ..$ pull_down.1: int 2
-# ..$ pull_down.5: int 3
 
 }

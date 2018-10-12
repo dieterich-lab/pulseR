@@ -22,10 +22,4 @@ l <- list(
   total   = 1,
   unlabel = c(4,5))
 shrinkList(l)
-# $total
-# [1] 1
-# 
-# $unlabel
-# [1] 4 5
-
 }
