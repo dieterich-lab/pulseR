@@ -1,0 +1,349 @@
+---
+title: "Application to epitranscriptomics"
+author: "Uvarovskii Alexey"
+date: "17-10-2018"
+output: 
+  rmarkdown::html_vignette
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+
+### Introduction
+
+The `pulseR` package may be adapted for analysis of experimental approaches,
+which are similar to the metabolic labelling in having several related fractions.
+For example, RNA modification level can be measured on the basis of immunoprecipitation (IP)
+using antibodies against of modified nucleotisides, e.g. anti-m$^6$A or anti-m$^5$C IgG.
+
+Here we consider an example of the LAIC-seq approach,
+[published here](https://www.nature.com/articles/nmeth.3898)
+
+> Molinie, Benoit, et al. "m(6)A-LAIC-seq reveals the census and complexity of the m(6)A epitranscriptome." Nature methods 13.8 (2016): 692.
+
+### Get and prepare the data
+
+Download the table with read counts and results from the publisher's site
+```{r, cache = TRUE}
+library(openxlsx)
+dataURL <- "https://media.nature.com/original/nature-assets/nmeth/journal/v13/n8/extref/nmeth.3898-S2.xlsx"
+laicSeqData <- read.xlsx(dataURL)
+```
+
+Prepare the condition table and the count table:
+```{r, cache = TRUE}
+counts <- laicSeqData[, -(1:10)]
+rownames(counts) <- laicSeqData$Gene_ID
+
+conditions <- do.call(rbind, strsplit(names(counts), "_"))
+conditions <- data.frame(conditions[,3:1], stringsAsFactors = FALSE)
+names(conditions) <- c("fraction", "run", "cells")
+conditions$sample <- names(counts)
+
+conditions$fraction <- c(
+ "input" = "total",
+ "elu"   = "pull-down",
+ "sup"   = "flow-through")[conditions$fraction]
+
+## In this example we use only the "GM" cells data set
+cellTypeIndex <- conditions$cells == "GM"
+byFraction <- order(conditions$fraction[cellTypeIndex], decreasing = TRUE)
+
+counts     <- counts[, cellTypeIndex][,byFraction]
+conditions <- conditions[cellTypeIndex,][byFraction,]
+
+knitr::kable(conditions, row.names = FALSE)
+```
+
+The count table looks like
+
+```{r, echo = FALSE, results="asis"}
+knitr::kable(head(counts))
+```
+
+### Analysis
+
+#### Which parametrisation to use?
+
+There are two ways to report the methylation level:
+
+- as a **proportion** $\alpha$ of the molecules, which are trapped by the antibodies.  
+  In this case, $\alpha$ is in [0,1] interval.
+- as a **ratio** of modified / nonmodified molecules.  
+  It is equal to $\alpha/(1 - \alpha)$ and is in $[0,\infty)$ interval
+- as the **logarithm of odds**, 
+  $\gamma = \log\left(\dfrac{\alpha}{1 - \alpha}\right)$.  
+  It can take all the values from $(-\infty, \infty)$.
+
+Out of these three parameters, only the log(odds) is symmetrical in respect to the
+modified and unmodified molecules quantities. If, for example,
+the level of modification increases from 80% to 90%, it is only a mild change in
+the proportion (1.125-fold), but the amount of nonmodified molecules decreased
+from 20% to 10%, which is 2-fold decrease. Hence, the extent of the difference
+depends on the molecule type, we are considering.  
+
+In contrast, if we swap the labels of the molecules in the log(odds),
+it results only in change of the sign, but not the absolute value:
+
+```{r, cache = FALSE}
+lor <- function(a) log(a/(1 - a))
+lor(.9) - lor(.8) # change from 80% to 90%
+lor(.1) - lor(.2) # change from 20% to 10%
+```
+
+#### Model definition
+
+In this workflow, we use the parametrisation based on the log(odds).
+To have parameters of similar scale, the expression level is modelled at the
+logarithmic scale, i.e. mean read count in the total fraction is `exp(mu)`.
+
+To use the `pulseR` package, we need to define these formulas and describe,
+how the read counts in different conditions are related to the formulas:
+
+```{r, cache = FALSE, message = FALSE}
+library(pulseR)
+formulas <- MeanFormulas(
+  total       = exp(mu),
+  modified    = exp(y + mu) / (1 + exp(y)),
+  nonmodified = exp(mu) / (1 + exp(y))
+)
+formIndexes <- list(
+  "total"        = "total",
+  "pull-down"    = "modified",
+  "flow-through" = "nonmodified"
+)
+```
+
+It is important to note, that here we neglect cross-contamination, as in the
+paper it was experimentally shown, that the purification procedure is very efficient,
+which results in high quality separation.
+
+Alternatively, one may use spike-ins for estimation of the cross-contamination
+levels and relation of fractions to each other.
+
+To keep computations light, we use only highly expressed genes,
+using mean read count in the total fraction for filtering:
+
+```{r, eval = TRUE, cache = TRUE}
+expressionRank <- rank(
+  -rowMeans(counts[, conditions$fraction == "total"]))
+highExp <- expressionRank < 501
+```
+
+Now we prepared everything for the `PulseData` object initialisation:
+
+```{r, eval = TRUE, cache = TRUE}
+pd <- PulseData(counts = counts[highExp,],
+                conditions = conditions[, 1,  drop = FALSE],
+                formulas = formulas,
+                formulaIndexes = formIndexes,
+                groups = ~fraction)
+```
+
+#### Fitting options
+
+The model is fitted using the optimisation routine "L-BFGS-B", which requires
+boundaries for the parameters. In this case, there following parameters to fit:
+
+- gene specific: expression level $\mu$ and 
+  the log(odds) $\gamma$ for RNA modification
+- size parameter for the negative binomial distribution (shared between all the genes)
+- normalisation factors (shared between the samples from the same condition, i.e.
+  a single factor for e.g. "pull-down" samples). Alternatively, every sample can
+  be attributed with its own normalisation factor, if, for example, 
+  efficiency of purification is varies between repetitions (batches).
+
+```{r, eval = TRUE, cache = TRUE}
+
+lbNormFactors <- list(
+  "total"        = .1,
+  "pull-down"    = .1,
+  "flow-through" = .1
+)
+ubNormFactors <- list(
+  "total"        = 2e1,
+  "pull-down"    = 2e1,
+  "flow-through" = 2e1
+)
+
+opts <- setBoundaries(list(
+  mu = log(c(.1, 1e8)),
+  y = c(-5,5),
+  size = c(.1,1e6)),
+  normFactors = list(lbNormFactors, ubNormFactors)
+)
+## Set stopping criteria for fitting:
+## absolute difference between iterations must be not higher than 0.1 for
+## the parameters (mu and y) and the normalisation factors
+opts <- setTolerance(params = .1, 
+                     options = opts,
+                     normFactors = .1,
+                     logLik = 1 # minimal absolute difference for the logLikelihood
+)
+opts$verbose <- "silent"
+opts$resultRDS <- NULL # a path to save the result after every iteration
+opts$cores <- 3
+```
+
+To start model fitting, it can be beneficial to initialise the parameters
+close to their expected values: for example, the expression level must be
+near the logarithm of the read counts in the total fractions.
+
+```{r, eval = TRUE, cache = TRUE}
+pars <- initParameters(list(), c("mu", "y"), pd, opts)
+pars$mu <- log(pd$counts[, 1] + 1)
+pars$y[] <- 0 # corresponds to 50% methylation
+pars$size <- 10
+pars$normFactors[[2]] <- 2
+pars$normFactors[[3]] <- 2
+
+## Finally, run the fitting using the initial values, options and the data provided
+result <- fitModel(pd, pars, opts)
+```
+
+#### Results
+
+We may compare how the model prediction and the raw counts relate to each other,
+using the `predictExpression` function:
+
+```{r, eval = TRUE, cache = TRUE}
+pr <- predictExpression(result, pd)
+
+plot(as.vector(pd$counts) + .5,
+ as.vector(pr$predictions) + .5,
+ log='xy',
+ cex = .3,
+ xlab = "experiment",
+ ylab = "model")
+abline(0,1,col = 2, lwd = 2)
+```
+
+In addition, in the paper supplementary the estimations for the
+methylation levels are available for two experiment repetitions.
+It is interesting to compare the pulseR estimations based on the both
+repetitions and the estimations from the paper.
+
+Since we use only a subset of the data and a different
+way to normalise the fractions, it affects the estimations of the methylation
+level, hence a global bias between these two results can be observed,
+i.e. estimations will be shifted to higher or lower values.
+It complicates comparison of the results from, for example, different
+studies, and further development is needed in order to tackle this problem.
+
+```{r, eval = TRUE, cache = TRUE}
+paperResults <- laicSeqData[highExp,c(1,6,7)]
+head(paperResults)
+```
+
+```{r, eval = TRUE, cache = TRUE, fig.height = 8}
+or2alpha <- function(or) exp(or) / (1 + exp(or))
+par(mfrow = c(2,2))
+plotCompare <- function(...) {
+  plot(cex = .5, pch = 16, ...)
+  abline(0, 1, col = "tomato", lwd = 2)
+}
+for(i in 1:2) {
+  plotCompare(or2alpha(result$y), paperResults[,2],
+    xlab = "pulseR estimation",
+    ylab = "paper",
+    main = paste("proportion methylated, batch ", i))
+  plotCompare(result$y, lor(paperResults[,2]),
+    xlab = "pulseR estimation",
+    ylab = "paper",
+    main = paste("log(odds) methylated, batch ", i))
+}
+
+```
+
+#### Confidence intervals
+
+In addition to the estimations, one usually is interested to have
+confidence intervals for making inference about the parameter values, for example,
+to compare between different conditions.
+
+The function `ciGene` allows to estimate CI for the gene specific parameters.
+In this case, uncertainty from the normalisation factors is neglected and
+the profile of the likelihood is computed assuming the normalisation factors and
+the size parameter to be fixed.
+
+```{r, eval = TRUE, cache = TRUE}
+opts$replicates <- 3
+cis <- ciGene(parName = "y",
+              geneIndexes = seq_along(result$y),
+              par = result,
+              pd = pd,
+              options = opts,
+              interval = c(-5, 5),
+              confidence = .95
+)
+
+```
+
+Here we gather the results into a data.frame and plot the confidence intervals
+and the estimated values. The genes are sorted by their m6A level:
+```{r, eval = TRUE, cache = TRUE, fig.height = 8}
+
+dat <- data.frame(
+  y = result$y,
+  mu = result$mu,
+  y.min = cis[,1],
+  y.max = cis[,2]
+)
+
+dat$paperAvg <- rowMeans(paperResults[,2:3])
+dat$lor.paperAvg <- lor(dat$paperAvg)
+
+par(mfrow = c(2,1), mar = c(5,5,4,2))
+o <- order(dat$y)
+i <- seq_along(dat$y)
+plot(x = i, y = dat$y[o], type = "n",
+  xlab = expression(paste(m^6, A, "  rank")),
+  ylab = expression(paste(m^6, A, " log(odds)")),
+  cex.lab = 1.2
+)
+lines(x = i, y = dat$y.max[o], col = "dodgerblue")
+lines(x = i, y = dat$y.min[o], col = "dodgerblue")
+points(x = i, y = dat$y[o], cex = .3)
+
+plot(x = i, y = or2alpha(dat$y[o]), type = "n",
+  xlab = expression(paste(m^6, A, "  rank")),
+  ylab = expression(paste(m^6, A, "  proportion")),
+  cex.lab = 1.2
+)
+lines(x = i, y = or2alpha(dat$y.max[o]), col = "dodgerblue")
+lines(x = i, y = or2alpha(dat$y.min[o]), col = "dodgerblue")
+points(x = i, y = or2alpha(dat$y[o]), cex = .3)
+
+```
+
+#### On bias in estimations
+
+As it was mentioned before, the normalisation may have high influence on the
+estimated values, which can shift the absolute values to higher or lower values,
+although the ranking is much less affected.
+To illustrate how estimations compare to each other,
+I add to the previous plot the average of the
+two estimations from the paper (red dots):
+```{r, eval = TRUE, cache = TRUE, fig.height = 8}
+par(mar = c(5,5,4,2))
+plot(x = i, y = dat$y[o], type = "n",
+  xlab = expression(paste(m^6, A, "  rank")),
+  ylab = expression(paste(m^6, A, " log(odds)")),
+  cex.lab = 1.2
+)
+lines(x = i, y = dat$y.max[o], col = "dodgerblue")
+lines(x = i, y = dat$y.min[o], col = "dodgerblue")
+points(x = i, y = dat$y[o], cex = .3)
+points(x = i, y = dat$lor.paperAvg[o], cex = .3, col = "tomato")
+legend("topright", legend = c("pulseR", "paper"), col = c("black", "tomato"),
+  lty = 1)
+````
+
+```{r}
+sessionInfo()
+````
