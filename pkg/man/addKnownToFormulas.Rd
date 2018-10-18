@@ -8,8 +8,8 @@ addKnownToFormulas(formulas, formulaIndexes, conditions)
 }
 \arguments{
 \item{formulas}{a named list with unevaluated expressions
-for expression levels
-(e.g. describing amounts of "labelled", "total" etc. RNA)}
+for expected levels in a given fraction
+(e.g. describing amounts of "labelled", "total" RNA etc.)}
 
 \item{formulaIndexes}{a list describing which formulas to use for
 mean read number calculation for fractions defined by the names of list items}
@@ -45,14 +45,5 @@ conditions <- data.frame(
 )
 result <- addKnownToFormulas(formulas, formulaIndexes, conditions)
 str(result)
-# List of 2
-# $ formulas      :List of 3
-# ..$ total.0: symbol m
-# ..$ label.1: language m * exp(-d * 1)
-# ..$ label.5: language m * exp(-d * 5)
-# $ formulaIndexes:List of 3
-# ..$ total.0    : int 1
-# ..$ pull_down.1: int 2
-# ..$ pull_down.5: int 3
 
 }

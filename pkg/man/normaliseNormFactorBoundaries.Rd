@@ -5,7 +5,7 @@
 \title{Shape boundaries for the normalisation factors
 
 Create lower and upper boundaries with the same structure as
-the list of normalisation coefficients \code{interSamplCoeffs} in
+the list of normalisation coefficients \code{interSampleCoeffs} in
 the \code{\link{PulseData}} object.}
 \usage{
 normaliseNormFactorBoundaries(options, pd)

@@ -2,59 +2,108 @@
 #' Create an object for pulse-change count data
 #'
 #' @param counts a matrix; column names correspond to sample names.
-#' The columns in `counts` correspond to the rows in `conditions` argument. 
+#' The columns in `counts` correspond to the rows in `conditions` argument.
 #' @param conditions a data.frame;
 #'   the first column corresponds to the conditions given in \code{formulas}.
-#'   The order of rows corresponds to the columns (samples) in the 
+#'   The order of rows corresponds to the columns (samples) in the
 #'   `counts` argument.
 #' @param formulas a list, created by \code{\link{MeanFormulas}}
-#' @param formulaIndexes a list of lists; defines indexes of formulas 
-#' used for calculation of the expected read number
+#' @param formulaIndexes a list of lists (or of vectors);
+#' defines indexes of formulas used for calculation of the expected read number.
+#'
 #' @param spikeins NULL (default) or a list of two items:
 #'   - refGroup, a character, which defines the group which should be
 #'     treated as a reference for normalisation
 #'   - spikeLists, a list of character vectors with the spike-ins names and
 #'     the same structure as `formulaIndexes`.
-#' @param groups NULL (default) or a formula or a vector,
-#'  e.g. ~ condition + time (if spike-ins are not provided). 
-#' The vector length must be the same as the sample number.
-#' the names used in the \code{fractions} defines different fractions,
-#' which should have distinct coefficients for mean expression fitting.
-#' 
+#' @param groups NULL (default) or a vector or a formula,
+#'  e.g. ~ fraction + time.
+#' If the normalisation factors must be recovered during fitting,
+#' `groups` define the sets of the samples, which share the same normalisation
+#' factors. Hence `groups` is relevant only, if there were no spike-ins provided.
+#' In this case, one may assume that for the samples of the same nature, i.e.
+#' same fraction and labelling time, the efficiency of the purification is the
+#' same, which reduces the number of parameters to fit. However, it is possible
+#' to treat every sample as an individual group, hence there will be no shared
+#' parameters.
+#'
+#' If it is NULL, `groups` are derived from the first column of the `conditions`.
+#' If a vector is provided, its elements correspond to the rows (samples) in the
+#' `conditions`.
+#' If, for example, there are 3 pull-down (2hr) samples purified with the protocol
+#' "A", and 3 pull-down (2hr) samples from the protocol "B", one may assume different
+#' efficiency of this protocols and reflect it in the `groups` argument by
+#' introducing additional column `protocol` in the condition matrix, which results in
+#' `groups = ~ fraction + time + protocol`.
+#' Alternatively, one may manually create a vector like
+#' `c("pull_down.2hr.A", "pull_down.2hr.B", ...)` with the order, corresponding
+#' to the sample order in the `conditions`.
+#'
 #' @return an object of class "PulseData"
-#' @details 
-#' The `conditions` argument may include additional  columns, which 
+#'
+#' It is a list with the following slots:
+#'
+#' - `user_conditions`, `user_formulas`, `counts` are the values of arguments
+#' `conditions`, `formulas` and `counts`, provided to the call of `PulseData`
+#' - `rawFormulas` is a list of initial formulas, evaluated at the
+#' corresponding conditions (e.g. `time` in formulas is substituted with
+#' its values in the `conditions$time`).
+#' - `formulas` is a list of the compiled `rawFormulas`
+#' - `formulaIndexes` is a list of integers (or vectors) with indexes of formulas
+#'   used in estimation of the expression level in a given sample.
+#'   The order of list items corresponds to the order of the samples in the
+#'   `conditions` data.frame. See also `\link{addKnownToFormulas}`.
+#' - `groups` is a vector with the names of the sample groups, which is used to
+#'   calculate normalisation factors.
+#' - `depthNormalisation` is a list of normalisation factors of the same structure as
+#'   `formulaIndexes`. If no spike-ins are used, these values correspond
+#'   to sequencing depth within a given group of samples according to the
+#'   `groups` vector. For example, depth normalisation for a group "pull_down.2hr"
+#'   of the pull-down samples after 2 hr of labelling. The relation between
+#'   different groups, i.e. "total_fraction", "pull_down.2hr" etc., is
+#'   not known and must be recovered during fitting as `normFactors` values.
+#'   If spike-ins are provided, the relation between different fractions
+#'   is recovered during the initialisation of the `PulseData` object and
+#'   the values are written to the `depthNormalisation` slot.
+#' - `interSampleCoeffs` is a list, which structure is used as a sekeleton for the
+#'   normalisation factors, if no spike-ins were provided. For every group in
+#'   `groups`, there is a corresponding list item (a number of a numeric vector).
+#' - `interSampleIndexes` describes which normalisation factor to use during
+#'   calculation of 
+#'
+#' @details
+#' The `conditions` argument may include additional  columns, which
 #' provide values for known parameters, such as time. Their name must be the
-#' same as defined in formulas. For example, if a formula is defined as 
-#' `mu * exp(-d * time)` where `time` is the time point of the experiment, 
-#' the condition data.frame must contain a column named `time`.
+#' same as defined in formulas. For example, if a formula is defined as
+#' `mu * exp(-d * time)` where `time` is the time point of the experiment,
+#' the condition data.frame must contain a column named `time`, otherwise `time`
+#' is treated as a parameter to fit!
 #' @import methods
 #' @export
-#' 
-#' @examples 
-#' 
-#' # Spike-ins definition for object creation
-#'  
+#'
+#' @examples
+#'
+#'
+#'
 #' formulaIndexes <- list(
 #'   total_fraction = 'total',
 #'   flow_through   = c('unlabelled', 'labelled'),
 #'   pull_down      = c('labelled', 'unlabelled'))
-#'   
-#' # spike-ins set up:
-#' 
+#'
+#' # Spike-ins definition for object creation
 #' refGroup <- "total_fraction"
-#' 
-#' labelled <- c("spike1", "spike2") 
-#' unlabelled <- c("spike3", "spike4") 
-#' 
+#'
+#' labelled <- c("spike1", "spike2")
+#' unlabelled <- c("spike3", "spike4")
+#'
 #' spikeLists <- list(
-#' #  total samples are normalised using all spike-ins
+#' # total samples are normalised using all spike-ins
 #'   total_fraction = list(c(unlabelled, labelled)),
-#' # for every item in formulaIndexes we have a set of spike-ins:   
+#' # for every item in formulaIndexes we have a set of spike-ins:
 #'   flow_through   = list(unlabelled, labelled),
 #'   pull_down      = list(labelled, unlabelled))
-#'   
-#' # argument for the function: 
+#'
+#' # argument for the function:
 #' spikeins <- list(refGroup = refGroup,
 #'                  spikeLists = spikeLists)
 #'
@@ -218,7 +267,7 @@ findDeseqFactorsForFractions <- function(count_data, conditions) {
 }
 
 #' Evaluate formulas in the environment of known params from the conditions
-#' 
+#'
 #' If, for example, a labelled fraction is estimated at several time points
 #' (0hr, 2hr, 4hr), corresponding partially evaluated formulas will be
 #' created. In this case, a time variable (e.g. "t") will be substituted by
@@ -227,20 +276,20 @@ findDeseqFactorsForFractions <- function(count_data, conditions) {
 #' combination of variable values described in the conditions data.frame.
 #'
 #' @param formulas a named list with unevaluated expressions
-#'  for expression levels 
-#'  (e.g. describing amounts of "labelled", "total" etc. RNA)
+#'  for expected levels in a given fraction
+#'  (e.g. describing amounts of "labelled", "total" RNA etc.)
 #' @param formulaIndexes a list describing which formulas to use for
 #' mean read number calculation for fractions defined by the names of list items
-#' @param conditions a data.frame with the first column corresponding to 
+#' @param conditions a data.frame with the first column corresponding to
 #' names in formulasIndexes (e.g. "total", "pull_down")
 #'
 #' @return a list with two items:
 #'  - list of partially evaluated formulas
-#'  - a vector of conditions generated from combination of columns 
+#'  - a vector of conditions generated from combination of columns
 #' @export
 #'
 #' @examples
-#' 
+#'
 #' formulas <- MeanFormulas(total = m, label = m * exp(-d*t))
 #' formulaIndexes <- list(
 #'   total = 'total',
@@ -252,22 +301,12 @@ findDeseqFactorsForFractions <- function(count_data, conditions) {
 #' )
 #' result <- addKnownToFormulas(formulas, formulaIndexes, conditions)
 #' str(result)
-#' # List of 2
-#' # $ formulas      :List of 3
-#' # ..$ total.0: symbol m
-#' # ..$ label.1: language m * exp(-d * 1)
-#' # ..$ label.5: language m * exp(-d * 5)
-#' # $ formulaIndexes:List of 3
-#' # ..$ total.0    : int 1
-#' # ..$ pull_down.1: int 2
-#' # ..$ pull_down.5: int 3
 #'
 addKnownToFormulas <- function(formulas, formulaIndexes, conditions) {
   uc <- unique(conditions)
-  uc <- uc[order(uc[,1]),,drop = FALSE]
   newIndexes <- list()
   newForms <- list()
-  for (i in order(uc[, 1])) {
+  for (i in seq_along(uc[, 1])) {
     # take formulas for the current condition i
     f <- formulas[formulaIndexes[[as.character(uc[i, 1])]]]
     # a combined formula name is a concatenation with the i-th row values 
@@ -307,10 +346,9 @@ addKnownToFormulas <- function(formulas, formulaIndexes, conditions) {
 makeGroups <- function(pd, normGroups) {
   # generate a list of normalisation coefficients with a proper structure
   # names are ordered according to the first columns of conditions
-  groupNames <- unique(normGroups[order(pd$conditions[,1])])
+  groupNames <- unique(normGroups)
   normCoeffs <- pd$formulaIndexes[match(groupNames, normGroups)]
   names(normCoeffs) <- groupNames
-  normCoeffs[order(normGroups)]
   # all the normalisation coefficients are numbered according 
   # to their appearance in the flatten list `unlist(normCoeffs)`
   normCoeffs <- utils::relist(seq_along(unlist(normCoeffs)), normCoeffs)
@@ -381,20 +419,6 @@ generateTestDataFrom <- function(formulas,
 #'   unlabel = c(4,5))
 #' pattern <- c("total", "total", "label", "total", "unlabel")
 #' multiplyList(source, pattern)
-#' # $total
-#' # [1] 1
-#' # 
-#' # $total
-#' # [1] 1
-#' # 
-#' # $label
-#' # [1] 2 3
-#' # 
-#' # $total
-#' # [1] 1
-#' # 
-#' # $unlabel
-#' # [1] 4 5
 multiplyList <- function(source, pattern) {
   res <- list()
   for (i in seq_along(pattern)) {
@@ -421,12 +445,6 @@ multiplyList <- function(source, pattern) {
 #'   total   = 1,
 #'   unlabel = c(4,5))
 #' shrinkList(l)
-#' # $total
-#' # [1] 1
-#' # 
-#' # $unlabel
-#' # [1] 4 5
-#' 
 shrinkList <- function(list){
  list[unique(names(list))] 
 }

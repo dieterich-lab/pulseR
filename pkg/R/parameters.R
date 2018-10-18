@@ -16,7 +16,7 @@
 #' Shape boundaries for the normalisation factors
 #'  
 #' Create lower and upper boundaries with the same structure as
-#' the list of normalisation coefficients `interSamplCoeffs` in
+#' the list of normalisation coefficients `interSampleCoeffs` in
 #' the \code{\link{PulseData}} object.
 #'
 #' The following cases for options${lb,ub}$normFactors are considered:

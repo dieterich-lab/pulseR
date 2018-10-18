@@ -1,0 +1,5 @@
+^\.travis\.yml$
+^codecov\.yml$
+^_pkgdown\.yml$
+vignettes/epitranscriptomics\.Rmd$
+^docs/

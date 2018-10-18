@@ -25,18 +25,4 @@ source <- list(
   unlabel = c(4,5))
 pattern <- c("total", "total", "label", "total", "unlabel")
 multiplyList(source, pattern)
-# $total
-# [1] 1
-# 
-# $total
-# [1] 1
-# 
-# $label
-# [1] 2 3
-# 
-# $total
-# [1] 1
-# 
-# $unlabel
-# [1] 4 5
 }
