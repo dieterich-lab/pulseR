@@ -165,7 +165,7 @@ NULL
 
 .addDefaultsPL <- function(options) {
   defaults <- list(
-    replicates = 10,
+    replicates = 4,
     jitter = .1,
     absolute = FALSE)
   notSet <- setdiff(names(defaults),names(options))
