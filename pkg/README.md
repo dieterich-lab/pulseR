@@ -20,7 +20,7 @@ or download, unpack and run inside the `pkg` directory
 
 ```shell
 R CMD build .
-R CMD INSTALL pulseR_0.0.1.tar.gz
+R CMD INSTALL pulseR_1.0.2.tar.gz
 ```
 
 ## Presentation

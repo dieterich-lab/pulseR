@@ -1,6 +1,10 @@
 template:
   params:
     bootswatch: united
+destination: ../docs/
+
+toc:
+  depth: 4
 
 navbar:
   title: pulseR
@@ -12,12 +16,12 @@ navbar:
     href: reference/index.html
   - text: Articles
     menu:
-    - text: Profile likelihood
-      href: articles/confidence.html
-    - text: Formula creation
-      href: articles/formulas.html
     - text: The workflow
       href: articles/workflow.html
+    - text: Analysis of RNA modifications
+      href: articles/epitranscriptomics.html
+    - text: Profile likelihood
+      href: articles/confidence.html
   - text: News
     href: news/index.html
   right:

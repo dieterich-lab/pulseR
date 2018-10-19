@@ -1,5 +1,8 @@
+^docs$
 ^\.travis\.yml$
 ^codecov\.yml$
 ^_pkgdown\.yml$
 vignettes/epitranscriptomics\.Rmd$
 ^docs/
+.*_cache/
+vignettes/fig
