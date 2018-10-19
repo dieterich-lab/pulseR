@@ -25,4 +25,5 @@ If the normalisation factors are provided, i.e. \code{par$normFactors} is
 not NULL, they are also randomly generated with the resulting structure
 equal to the \code{pulseData$interSampleCoeffs}. Please make sure, that
 the upper and lower boundaries are correctly named and structured.
+The first value the normalisation factors list is assigned to 1.
 }

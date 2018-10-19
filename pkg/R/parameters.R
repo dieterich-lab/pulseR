@@ -291,6 +291,7 @@ setFittingOptions <- function(
 #' not NULL, they are also randomly generated with the resulting structure
 #' equal to the `pulseData$interSampleCoeffs`. Please make sure, that
 #' the upper and lower boundaries are correctly named and structured.
+#' The first value the normalisation factors list is assigned to 1.
 #'
 #' @param par a list with parameter values
 #' @param geneParams a vector of names of the gene-specific parameters.
@@ -332,11 +333,18 @@ initParameters <- function(par, geneParams, pulseData, options) {
                x
              })
       names(par$normFactors) <- names(pulseData$interSampleCoeffs)
+      par$normFactors <- assignFirstToOne(par$normFactors)
     }
   }
   stopIfNotInRanges(par, options)
   par
 }
+
+assignFirstToOne <- function(normFactors) {
+  normFactors[[1]][[1]] <- 1
+  normFactors
+}
+
 
 
 #' Validate list of parameters according to allowed value ranges.
