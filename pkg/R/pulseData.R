@@ -68,8 +68,9 @@
 #' - `interSampleCoeffs` is a list, which structure is used as a sekeleton for the
 #'   normalisation factors, if no spike-ins were provided. For every group in
 #'   `groups`, there is a corresponding list item (a number of a numeric vector).
-#' - `interSampleIndexes` describes which normalisation factor to use during
-#'   calculation of 
+#' - `interSampleIndexes` describes which normalisation factors to use during
+#'   calculation of the mean read count in every sample (an index in the
+#'   `unlist(interSampleCoeffs)`)
 #'
 #' @details
 #' The `conditions` argument may include additional  columns, which

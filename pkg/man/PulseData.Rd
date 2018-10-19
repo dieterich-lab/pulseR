@@ -82,8 +82,9 @@ the values are written to the \code{depthNormalisation} slot.
 \item \code{interSampleCoeffs} is a list, which structure is used as a sekeleton for the
 normalisation factors, if no spike-ins were provided. For every group in
 \code{groups}, there is a corresponding list item (a number of a numeric vector).
-\item \code{interSampleIndexes} describes which normalisation factor to use during
-calculation of
+\item \code{interSampleIndexes} describes which normalisation factors to use during
+calculation of the mean read count in every sample (an index in the
+\code{unlist(interSampleCoeffs)})
 }
 }
 \description{

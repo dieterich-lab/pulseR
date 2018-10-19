@@ -8,7 +8,7 @@
   ),
   verbose = "silent",
   lb = list(size = 10),
-  ub = list(size = 1e10),
+  ub = list(size = 1e7),
   fixedNorms = FALSE
 )
 
@@ -285,15 +285,20 @@ setFittingOptions <- function(
   options
 }
 
-#' Initialize first guess for the parameters 
+#' Initialize first guess for the parameters
+#'
+#' If the normalisation factors are provided, i.e. `par$normFactors` is
+#' not NULL, they are also randomly generated with the resulting structure
+#' equal to the `pulseData$interSampleCoeffs`. Please make sure, that
+#' the upper and lower boundaries are correctly named and structured.
 #'
 #' @param par a list with parameter values
 #' @param geneParams a vector of names of the gene-specific parameters.
 #'   For this parameters, the output length is equal the number of genes, i.e.
 #'   an individual parameter value is generated for every gene.
-#' @param pulseData a \code{\link{PulseData}} object 
+#' @param pulseData a \code{\link{PulseData}} object
 #' @param options an options object
-#' 
+#'
 #' @importFrom stats runif
 #'
 #' @return  a list to provide to the function \code{\link{fitModel}}.
@@ -326,6 +331,7 @@ initParameters <- function(par, geneParams, pulseData, options) {
                              options$ub$normFactors[[i]][1])
                x
              })
+      names(par$normFactors) <- names(pulseData$interSampleCoeffs)
     }
   }
   stopIfNotInRanges(par, options)

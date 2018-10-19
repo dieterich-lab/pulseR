@@ -21,5 +21,8 @@ an individual parameter value is generated for every gene.}
 a list to provide to the function \code{\link{fitModel}}.
 }
 \description{
-Initialize first guess for the parameters
+If the normalisation factors are provided, i.e. \code{par$normFactors} is
+not NULL, they are also randomly generated with the resulting structure
+equal to the \code{pulseData$interSampleCoeffs}. Please make sure, that
+the upper and lower boundaries are correctly named and structured.
 }
