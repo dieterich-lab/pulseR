@@ -9,8 +9,8 @@
 \usage{
 fitParams(pulseData, par, namesToOptimise, options)
 
-fitParamsSeparately(pulseData, par, knownGenePars, namesToOptimise, options,
-  indexes = seq_len(dim(pulseData$counts)[1]))
+fitParamsSeparately(pulseData, par, knownGenePars, namesToOptimise,
+  options, indexes = seq_len(dim(pulseData$counts)[1]))
 
 fitNormFactors(pulseData, par, options)
 

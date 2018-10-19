@@ -7,8 +7,8 @@
 \usage{
 profileGene(parName, geneIndex, pd, par, interval, options, ...)
 
-profile(paramPath, pd, par, options, interval, namesToOptimise = names(par),
-  ...)
+profile(paramPath, pd, par, options, interval,
+  namesToOptimise = names(par), ...)
 }
 \arguments{
 \item{parName}{a character;

@@ -4,7 +4,8 @@
 \alias{generateTestDataFrom}
 \title{Create a test count data}
 \usage{
-generateTestDataFrom(formulas, formulaIndexes, normFactors, par, conditions)
+generateTestDataFrom(formulas, formulaIndexes, normFactors, par,
+  conditions)
 }
 \arguments{
 \item{formulas}{a list}

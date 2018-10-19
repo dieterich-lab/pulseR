@@ -5,7 +5,8 @@
 \alias{ci}
 \title{Estimate confidence intervals}
 \usage{
-ciGene(parName, geneIndexes, pd, par, options, interval, confidence = 0.95)
+ciGene(parName, geneIndexes, pd, par, options, interval,
+  confidence = 0.95)
 
 ci(paramPath, pd, par, options, freeParams, interval, confidence = 0.95)
 }
