@@ -14,7 +14,7 @@ knitr::opts_chunk$set(
 ```
 
 
-### Introduction
+## Introduction
 
 The `pulseR` package may be adapted for analysis of experimental approaches,
 which are similar to the metabolic labelling in having several related fractions.
@@ -26,9 +26,55 @@ Here we consider an example of the LAIC-seq approach,
 
 > Molinie, Benoit, et al. "m(6)A-LAIC-seq reveals the census and complexity of the m(6)A epitranscriptome." Nature methods 13.8 (2016): 692.
 
+The data consists of three fractions:
+
+- total ("input") $\leftarrow$ the original pool
+- pull-down ("elution") $\leftarrow$ m$^6$A modified RNA
+- flow-through ("supernatant") $\leftarrow$ m$^6$A **non**modified RNA.
+
+Since during library preparation, usually the probes are normalised to
+the same amount (e.g. 100ng), it is important to recover the original
+relation between the pull-down, flow-through and the total fractions.
+One may whether
+
+- use external molecules for normalisation 
+  (e.g. ERCC spike-ins or RNA from another species). The approaches are
+    1. external spike-in molecules are added in known (e.g. equal) proportion
+      **right after the purification** ($\leftarrow$ approach in the original paper).
+      One must prove experimentally, that
+      efficiency of separation is high (negligible cross-contamination)
+    2. nonmodified and modified (e.g. m$^6$A$^+$ RNA) spike-ins are **before the
+      purification**
+- estimate relations between fractions during model fitting (
+  $\leftarrow$ this example)
+
+
+The task of normalisation and the model fitting can be illustrated with the following
+figure:
+
+<img src="fig/laicseq-model.png" style = "width: 500px">
+
+Considering the total sample as a reference, with denote the expression level
+of a given gene as $\mu$. Then if $\alpha$ is proportion of modified molecules
+(a value between 0 and 1), the amount of the modified molecules in the
+total sample is $\alpha\mu$ and amount of the nonmodified molecules 
+is $(1 - \alpha)\mu$.
+
+However, normalisation of material for library preparation affects the
+expected read counts in both fractions, and the task is to recover 
+additional normalisation factors $x_1$ and $x_2$ (see figure), in such a way,
+that the read counts can be explained by the model. The coefficients 
+$x_1$ and $x_2$ are shared between all the genes, and the expression level and
+modification level are gene-specific.
+
+## Analysis
+
 ### Get and prepare the data
 
-Download the table with read counts and results from the publisher's site
+Thanks to the authors, the paper is accompanied by the supplementary count table,
+which makes reproducibility much easier.
+In this subsection, preliminary steps for data  preparation are discussed.
+Download the table with read counts and results from the publisher's site:
 ```{r, cache = TRUE}
 library(openxlsx)
 dataURL <- "https://media.nature.com/original/nature-assets/nmeth/journal/v13/n8/extref/nmeth.3898-S2.xlsx"
@@ -66,18 +112,17 @@ The count table looks like
 knitr::kable(head(counts))
 ```
 
-### Analysis
+### Which parametrisation to use?
 
-#### Which parametrisation to use?
-
-There are two ways to report the methylation level:
+There are several ways to report the methylation level:
 
 - as a **proportion** $\alpha$ of the molecules, which are trapped by the antibodies.  
   In this case, $\alpha$ is in [0,1] interval.
 - as a **ratio** of modified / nonmodified molecules.  
   It is equal to $\alpha/(1 - \alpha)$ and is in $[0,\infty)$ interval
 - as the **logarithm of odds**, 
-  $\gamma = \log\left(\dfrac{\alpha}{1 - \alpha}\right)$.  
+  $\gamma = \log\left(\dfrac{\alpha}{1 - \alpha}\right)$
+  $\leftarrow$ **we are here**.  
   It can take all the values from $(-\infty, \infty)$.
 
 Out of these three parameters, only the log(odds) is symmetrical in respect to the
@@ -96,9 +141,18 @@ lor(.9) - lor(.8) # change from 80% to 90%
 lor(.1) - lor(.2) # change from 20% to 10%
 ```
 
-#### Model definition
+It is always good to keep gene-specific parameters at the same scale, since currently
+the stopping criteria for fitting depends on the absolute changes in 
+parameter values between iterations. That it is why,
+if the log(odds) is used, it is better to describe the expression level 
+at the logarithmic scale, i.e. mean read count is
+$$\text{[total]} = e^{\mu}$$ and 
+the amount of modified molecules is 
+$$\text{[modified]} = e^{\mu + \gamma} / (1 + e^{\gamma}).$$
 
-In this workflow, we use the parametrisation based on the log(odds).
+### Model definition
+
+**In this workflow, we use the parametrisation based on the log(odds).**
 To have parameters of similar scale, the expression level is modelled at the
 logarithmic scale, i.e. mean read count in the total fraction is `exp(mu)`.
 
@@ -145,12 +199,12 @@ pd <- PulseData(counts = counts[highExp,],
                 groups = ~fraction)
 ```
 
-#### Fitting options
+### Fitting options
 
 The model is fitted using the optimisation routine "L-BFGS-B", which requires
-boundaries for the parameters. In this case, there following parameters to fit:
+boundaries for the parameters. In this case, there are following parameters to fit:
 
-- gene specific: expression level $\mu$ and 
+- gene specific: logarithmic expression level $\mu$ and 
   the log(odds) $\gamma$ for RNA modification
 - size parameter for the negative binomial distribution (shared between all the genes)
 - normalisation factors (shared between the samples from the same condition, i.e.
@@ -191,22 +245,32 @@ opts$cores <- 3
 ```
 
 To start model fitting, it can be beneficial to initialise the parameters
-close to their expected values: for example, the expression level must be
+close to their expected values: for example, the parameter `mu` must be
 near the logarithm of the read counts in the total fractions.
 
+The normalisation factors will be fitted as well, except for the very first
+item: it is the reference for all other samples and will be fixed to 1
+identifiability.
+
 ```{r, eval = TRUE, cache = TRUE}
+# create a list of needed structure and then adjust the values
 pars <- initParameters(list(), c("mu", "y"), pd, opts)
 pars$mu <- log(pd$counts[, 1] + 1)
 pars$y[] <- 0 # corresponds to 50% methylation
-pars$size <- 10
+pars$size <- 1000
 pars$normFactors[[2]] <- 2
 pars$normFactors[[3]] <- 2
 
-## Finally, run the fitting using the initial values, options and the data provided
+## look inside the initial guess
+str(pars)
+```
+
+Finally, run the fitting using the initial values, options and the data provided:
+```{r, eval = TRUE, cache = TRUE}
 result <- fitModel(pd, pars, opts)
 ```
 
-#### Results
+### Results
 
 We may compare how the model prediction and the raw counts relate to each other,
 using the `predictExpression` function:
@@ -260,7 +324,7 @@ for(i in 1:2) {
 
 ```
 
-#### Confidence intervals
+### Confidence intervals
 
 In addition to the estimations, one usually is interested to have
 confidence intervals for making inference about the parameter values, for example,
@@ -321,7 +385,7 @@ points(x = i, y = or2alpha(dat$y[o]), cex = .3)
 
 ```
 
-#### On bias in estimations
+### On bias in estimations
 
 As it was mentioned before, the normalisation may have high influence on the
 estimated values, which can shift the absolute values to higher or lower values,
@@ -346,4 +410,5 @@ legend("topright", legend = c("pulseR", "paper"), col = c("black", "tomato"),
 
 ```{r}
 sessionInfo()
-````
+```
+

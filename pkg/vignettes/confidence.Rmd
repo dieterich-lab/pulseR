@@ -44,7 +44,7 @@ library(pulseR)
 ```{r include=TRUE, cache=TRUE}
 library(pulseR)
 attach(pulseRSpikeinsData)
-pd <- PulseData(counts, conditions, formulas, formulaIndexes, spikeins)
+
 formulas <- MeanFormulas(
   total      =  mu,
   labelled   =  mu * exp(-d * time),
@@ -58,11 +58,14 @@ opts <- setBoundaries(list(
   mu = c(.1, 1e6),
   d = c(.01, 2)
 ))
+opts$ub$size <- 1e7
 opts <- setTolerance(params = 1e-3,  options = opts)
-initPars <- initParameters(par = list(size=10),
-                           geneParams = c("mu", "d"), 
-                           pulseData  = pd, 
+initPars <- initParameters(par = list(size=100),
+                           geneParams = c("mu", "d"),
+                           pulseData  = pd,
                            options    = opts)
+initPars$d[] <- .1
+initPars$mu <- pd$counts[,1] + 1
 fit <- fitModel(pulseData = pd, par = initPars, options = opts)
 ```
 
@@ -71,7 +74,7 @@ fit <- fitModel(pulseData = pd, par = initPars, options = opts)
 ```{r collapse=TRUE}
 geneIndex <- 7
 parName <- "d"
-interval <- c(0.85,1.2) * fit[[parName]][geneIndex]
+interval <- c(0.8,1.3) * fit[[parName]][geneIndex]
 numPoints <- 51
 pl <- profileGene(parName, geneIndex, pd, fit, interval, 
                   options=opts, numPoints = 21)
