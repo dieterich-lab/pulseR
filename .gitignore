@@ -1,0 +1,12 @@
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+lit
+pulseR.Rproj
+pkg/vignettes/*cache
+pkg/vignettes/*html
+pkg/vignettes/*.md
+pkg/vignettes/*files
+*Rcheck
+docs/**/*cache
