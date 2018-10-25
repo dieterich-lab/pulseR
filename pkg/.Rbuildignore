@@ -4,5 +4,5 @@
 ^_pkgdown\.yml$
 vignettes/epitranscriptomics\.Rmd$
 ^docs/
-.*_cache/
+.*_cache
 vignettes/fig
