@@ -216,7 +216,7 @@ progressString <- function(err, logLik) {
                 digits = 2,
                 width = 6)
   logLik <- format(logLik, digits=2, width=6)
-  paste0("LogLik: [", logLik, " ] Max Rel.err. in ",
+  paste0("LogLik: [", logLik, " ] Max err. in ",
          paste("[",names(str), str,"]", collapse = " "), "\n")
 }
 
