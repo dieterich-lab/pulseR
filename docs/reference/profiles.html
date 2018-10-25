@@ -40,7 +40,7 @@ parameters of other genes,  shared parameters and
 the normalisation factors to be fixed. 
 The profile likelihood is estimated by numerical optimisation, and it can
 be sensitive to the initial values. The optimisation is repeated
-options$replicate times (default: 10), by adding a random values to the
+options$replicates times (default: 10), by adding a random values to the
 the optimum  parameters at a scale specified in the options$jitter." />
 <meta name="twitter:card" content="summary" />
 
@@ -141,7 +141,7 @@ parameters of other genes,  shared parameters and
 the normalisation factors to be fixed. <br />
 The profile likelihood is estimated by numerical optimisation, and it can
 be sensitive to the initial values. The optimisation is repeated
-<code>options$replicate</code> times (default: 10), by adding a random values to the
+<code>options$replicates</code> times (default: 10), by adding a random values to the
 the optimum  parameters at a scale specified in the options$jitter.</p>
     
     </div>
@@ -175,7 +175,7 @@ the investigating gene</p></td>
       <td><p>an option list used for the <a href='fit.html'>fitModel</a> call;
 additional options can be specified:</p><ul>
 <li><p>jitter, a double (default: .1)</p></li>
-<li><p>replicate, an integer number of repeating the optimisation from random
+<li><p>replicates, an integer number of repeating the optimisation from random
 points</p></li>
 <li><p>absolute, a logical (default: FALSE); if FALSE, the likelihood value at
 the optimal point (i.e. <code>par</code>) is substracted from the returned value.

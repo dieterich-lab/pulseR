@@ -132,8 +132,7 @@
     
     </div>
 
-    <pre class="usage"><span class='fu'>ciGene</span>(<span class='no'>parName</span>, <span class='no'>geneIndexes</span>, <span class='no'>pd</span>, <span class='no'>par</span>, <span class='no'>options</span>, <span class='no'>interval</span>,
-  <span class='kw'>confidence</span> <span class='kw'>=</span> <span class='fl'>0.95</span>)
+    <pre class="usage"><span class='fu'>ciGene</span>(<span class='no'>parName</span>, <span class='no'>geneIndexes</span>, <span class='no'>pd</span>, <span class='no'>par</span>, <span class='no'>options</span>, <span class='no'>interval</span>, <span class='kw'>confidence</span> <span class='kw'>=</span> <span class='fl'>0.95</span>)
 
 <span class='fu'>ci</span>(<span class='no'>paramPath</span>, <span class='no'>pd</span>, <span class='no'>par</span>, <span class='no'>options</span>, <span class='no'>freeParams</span>, <span class='no'>interval</span>, <span class='kw'>confidence</span> <span class='kw'>=</span> <span class='fl'>0.95</span>)</pre>
     
@@ -162,7 +161,7 @@ confidence intervals must be computed</p></td>
       <td><p>an option list used for the <a href='fit.html'>fitModel</a> call;
 additional options can be specified:</p><ul>
 <li><p>jitter, a double (default: .1)</p></li>
-<li><p>replicate, an integer number of repeating the optimisation from random
+<li><p>replicates, an integer number of repeating the optimisation from random
 points</p></li>
 <li><p>absolute, a logical (default: FALSE); if FALSE, the likelihood value at
 the optimal point (i.e. <code>par</code>) is substracted from the returned value.
