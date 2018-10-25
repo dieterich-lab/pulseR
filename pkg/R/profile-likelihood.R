@@ -3,28 +3,28 @@
   x <- unlist(params)
   x[] <- seq_along(x)
   index <- .getElement(utils::relist(x, params), path)
-  if (length(index) > 1) 
+  if (length(index) > 1)
     stop("Not complete path to the element (length of selection > 1)")
   index
 }
-  
+
 # assign value in the list of parameters `params` given the path as a list
 # `path` (e.g. list("mu", 2) will assign to params$mu[2])
 .assignElement <- function(params, path, value) {
   if (length(path) == 1) {
-    params[[unlist(path)]] <- value 
+    params[[unlist(path)]] <- value
     params
   } else {
     params[[unlist(path[1])]] <-
       Recall(params[[unlist(path[1])]], path[-1], value)
-    params 
+    params
   }
 }
 
 # get the element value located on the `path` in the `params`
 .getElement <- function(params, path) {
   if (length(path) == 1) {
-    params[[unlist(path)]] 
+    params[[unlist(path)]]
   } else {
     Recall(params[[unlist(path[1])]], path[-1])
   }
@@ -39,24 +39,24 @@
 
 #' Estimate profile likelihood for gene parameters (all other fixed)
 #'
-#' @param parName a character; 
+#' @param parName a character;
 #'   the names of the gene-specific parameter (e.g. "mu")
-#' @param geneIndex integer(1); the row index in the count table 
+#' @param geneIndex integer(1); the row index in the count table
 #'   where the data for the given gene are located
 #' @param pd the \link{PulseData} object
 #' @param par result output from the \link{fitModel} function
 #' @param interval a vector of two numbers defining the interval of
 #' parameter profiling
 #' @param options the options list used for the \link{fitModel} function call
-#' @param paramPath a list with names and indexes in order to locate the 
+#' @param paramPath a list with names and indexes in order to locate the
 #' parameter in the `par` argument (e.g. `list("mu", 1)` corresponds to
-#' the "mu" parameter value for the first gene, i.e.  
+#' the "mu" parameter value for the first gene, i.e.
 #' \verb{par[["mu"]][[1]]}.
-#' @param namesToOptimise a character vector including the free parameters 
+#' @param namesToOptimise a character vector including the free parameters
 #' (i.e. they wil be treated as unfixed)
 #' @param ... other parameters to pass to \link{runPL},
 #'  i.e. `logScale` (logical) and number of points `numPoints`
-#' @return a data.frame; the column `logl` corresponds to the -log(likelihood) 
+#' @return a data.frame; the column `logl` corresponds to the -log(likelihood)
 #'   function values. the other represents the profiled parameter values.
 #' @export
 #' @rdname profile
@@ -78,32 +78,32 @@ profile <- function(paramPath,
                     par,
                     options,
                     interval,
-                    namesToOptimise = names(par), 
+                    namesToOptimise = names(par),
                     ...) {
   pL <- pl(paramPath, par, pd, options, namesToOptimise)
   parValue <- .getElement2(par, paramPath)
   if (missing(interval))
     interval <- c(.1,2) * parValue
   result <- runPL(pL, interval, ...)
-  names(result)[1] <- as.character(paramPath[[1]]) 
+  names(result)[1] <- as.character(paramPath[[1]])
   result
 }
 
 #' Compute profile likelihood on the interval
 #'
 #' @param pL a function (x) --> double(1) returning the -log(likelihood).
-#'   For example, it can be a function returned by 
+#'   For example, it can be a function returned by
 #'   \link{pl} or \link{plGene}.
 #' @param interval double(2) vector; left and right boundaries to calculate the
 #'   profile likelihood for the parameter given in `parName`
-#' @param logScale a logical (default: `FALSE`). Should points on the 
+#' @param logScale a logical (default: `FALSE`). Should points on the
 #'   `interval` be positioned at log scale?
 #' @param numPoints the number of points to position at the `interval` for
 #'   profile likelihood calculations
 #'
 #' @return a data.frame; the first column consists of the parameter values,
 #'   the second ("logL") is for -log(likelihood) values.
-#' 
+#'
 #' @export
 #'
 runPL <- function(pL,  interval, logScale = FALSE, numPoints = 21) {
@@ -121,30 +121,30 @@ runPL <- function(pL,  interval, logScale = FALSE, numPoints = 21) {
 }
 
 #' Return a profile likelihood function for further use.
-#' 
+#'
 #' A profile likelihood function returned by the `pl` considers parameters of
 #' other genes. In contrast, the one from the `plGene` assumes
-#'  parameters of other genes,  shared parameters and 
+#'  parameters of other genes,  shared parameters and
 #'  the normalisation factors to be fixed. \cr
 #' The profile likelihood is estimated by numerical optimisation, and it can
-#' be sensitive to the initial values. The optimisation is repeated 
-#' `options$replicates` times (default: 10), by adding a random values to the 
+#' be sensitive to the initial values. The optimisation is repeated
+#' `options$replicates` times (default: 10), by adding a random values to the
 #' the optimum  parameters at a scale specified in the options$jitter.
-#' 
-#' 
-#' @param paramPath a list with names and indexes in order to locate the 
+#'
+#'
+#' @param paramPath a list with names and indexes in order to locate the
 #' parameter in the `par` argument (e.g. `list("mu", 1)` corresponds to
-#' the "mu" parameter value for the first gene, i.e.  
+#' the "mu" parameter value for the first gene, i.e.
 #' \verb{par[["mu"]][[1]]}.
 #' @param parName a character, e.g. "mu"
-#' @param geneIndex an integer(1); a row index which corresponds to 
+#' @param geneIndex an integer(1); a row index which corresponds to
 #'   the investigating gene
 #' @param par a result of the \link{fitModel} function
 #' @param pd a \link{PulseData} object
 #' @param options an option list used for the \link{fitModel} call;
 #'   additional options can be specified:
 #'  - jitter, a double (default: .1)
-#'  - replicate, an integer number of repeating the optimisation from random 
+#'  - replicate, an integer number of repeating the optimisation from random
 #'    points
 #'  - absolute, a logical (default: FALSE); if FALSE, the likelihood value at
 #'  the optimal point (i.e. `par`) is substracted from the returned value.
@@ -152,14 +152,14 @@ runPL <- function(pL,  interval, logScale = FALSE, numPoints = 21) {
 #' @param freeParams which parameters are optimised (i.e. not fixed);
 #'   by default they are derived from the names of the boundaries
 #'
-#' @details The randomisation of the parameter x is made as 
+#' @details The randomisation of the parameter x is made as
 #' $ x^* = (1 + a) * x$, where $a$ is a random value from the uniform
-#' distribution (0,`options$jitter`). 
+#' distribution (0,`options$jitter`).
 #'
-#' @return a function with the calling convention as   
-#'   `f(x = double(1)) --> double(1))`,  
+#' @return a function with the calling convention as
+#'   `f(x = double(1)) --> double(1))`,
 #'   which return the value of -log(likelihood(mu = x))
-#' 
+#'
 #' @name profiles
 NULL
 
@@ -198,9 +198,9 @@ plGene <- function(parName,
   function(x) {
     fixedPars[parName] <- x
     fits <- replicate(options$replicates,{
-      jitterCoeffs <- 1 + runif(length(initValues), 
+      jitterCoeffs <- 1 + runif(length(initValues),
                                 -options$jitter, options$jitter)
-      res <- .fitGene(initValues * jitterCoeffs, geneIndex, objective, lb, ub, 
+      res <- .fitGene(initValues * jitterCoeffs, geneIndex, objective, lb, ub,
                fixedPars, pd$counts)
       res$value <- res$value - optimum
       res
@@ -252,7 +252,7 @@ pl <- function(paramPath,
 
 # fit params for i-th gene
 # initPars is a vector of double
-# objective is a function to optimise 
+# objective is a function to optimise
 # the calling convention if f(x, counts, fixedPars),
 # where x are the parameters to fit, fixed is a character vector of gene-
 # sepecific parameters which are fixed
@@ -265,7 +265,7 @@ pl <- function(paramPath,
     inits,
     objective,
     method = "L-BFGS-B",
-    control = list(parscale = parscale), 
+    control = list(parscale = parscale),
     lower = lb,
     upper = ub,
     counts = counts[i, ],
@@ -346,10 +346,10 @@ plotPL <- function(pl, confidence=.95, ...) {
 #' @inheritParams getCI
 #' @param geneIndexes a vector;  corresponds to the indexes of genes, for which the
 #' confidence intervals must be computed
-#' @return 
-#' - `ciGene`: 
+#' @return
+#' - `ciGene`:
 #'   a data.frame with two columns (left, right) confidence boundaries
-#'   in the order of geneIndexes;  
+#'   in the order of geneIndexes;
 #' - `ci`: a vector of two numbers;
 #' @export
 #' @rdname confint
@@ -410,15 +410,15 @@ ci <- function(paramPath, pd, par, options, freeParams,
 #' @param pL a profile likelihood function
 #' @param optimum an optimal value of the parameter (e.g. from fitting)
 #' @param confidence confidence level for interval estimation
-#' @param interval a vector of too numbers, define (min, max) allowed 
+#' @param interval a vector of too numbers, define (min, max) allowed
 #'   parameter values
 #'
 #' @return a vector of two: c(min, max);
-#' @details  if the likelihood does not reach 
+#' @details  if the likelihood does not reach
 #'   the needed level (i.e. the CI exceeds the limitations in the `interval`,
 #'   NA is returned. Hence, in case of both ends, the return value is c(NA, NA).
 #' @keywords internal
-#' 
+#'
 getCI <- function(pL, optimum, confidence, interval) {
   threshold <- stats::qchisq(confidence, 1)/2
   objective <- function(x) pL(x)$value - threshold
@@ -430,4 +430,3 @@ getCI <- function(pL, optimum, confidence, interval) {
     ci[2] <- stats::uniroot(objective, c(optimum, interval[2]))$root
   ci
 }
-
