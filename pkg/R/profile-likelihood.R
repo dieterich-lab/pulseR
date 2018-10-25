@@ -144,7 +144,7 @@ runPL <- function(pL,  interval, logScale = FALSE, numPoints = 21) {
 #' @param options an option list used for the \link{fitModel} call;
 #'   additional options can be specified:
 #'  - jitter, a double (default: .1)
-#'  - replicate, an integer number of repeating the optimisation from random
+#'  - replicates, an integer number of repeating the optimisation from random
 #'    points
 #'  - absolute, a logical (default: FALSE); if FALSE, the likelihood value at
 #'  the optimal point (i.e. `par`) is substracted from the returned value.

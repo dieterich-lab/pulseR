@@ -24,7 +24,7 @@ the investigating gene}
 additional options can be specified:
 \itemize{
 \item jitter, a double (default: .1)
-\item replicate, an integer number of repeating the optimisation from random
+\item replicates, an integer number of repeating the optimisation from random
 points
 \item absolute, a logical (default: FALSE); if FALSE, the likelihood value at
 the optimal point (i.e. \code{par}) is substracted from the returned value.
