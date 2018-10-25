@@ -51,7 +51,7 @@ parameters of other genes,  shared parameters and
 the normalisation factors to be fixed. \cr
 The profile likelihood is estimated by numerical optimisation, and it can
 be sensitive to the initial values. The optimisation is repeated
-\code{options$replicate} times (default: 10), by adding a random values to the
+\code{options$replicates} times (default: 10), by adding a random values to the
 the optimum  parameters at a scale specified in the options$jitter.
 }
 \details{
